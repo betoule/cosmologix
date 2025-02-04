@@ -1,0 +1,56 @@
+stages:
+  - lint
+  - test
+  - build
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache:
+  paths:
+    - .cache/pip
+
+# Linting stage to check code style with Black
+lint:
+  stage: lint
+  image: python:3.9
+  script:
+    - pip install black
+    - black --check --diff .
+  allow_failure: false
+
+# Testing stage to run your tests
+test:
+  stage: test
+  image: python:3.9
+  script:
+    - pip install -r requirements.txt
+    - pip install pytest
+    - pytest -v
+  allow_failure: false
+
+# Building the package stage
+build:
+  stage: build
+  image: python:3.9
+  script:
+    - pip install setuptools wheel build
+    - python -m build --sdist --wheel
+    - ls -l dist/
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - dist/*
+  allow_failure: false
+
+# Optional: Publish to PyPI (This step is commented out and should only be enabled for your main branch or when you're ready to publish)
+#publish:
+#  stage: deploy
+#  image: python:3.9
+#  script:
+#    - pip install twine
+#    - twine upload --repository-url ${PYPI_REPOSITORY_URL} -u __token__ -p ${PYPI_API_TOKEN} dist/*
+#  only:
+#    - main  # or your release branch name
+#  environment:
+#    name: production

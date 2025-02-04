@@ -21,6 +21,8 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Astronomy",
 ]
 dependencies = [
@@ -31,7 +33,7 @@ dependencies = [
 ]
 
 [project.urls]
-"Source Code" = "https://github.com/your-username/cosmologix"  # Adjust with your repo URL
+"Source Code" = "https://gitlab.in2p3.fr/lemaitre/cosmologix"  # Adjust with your repo URL
 "Documentation" = "https://cosmologix.readthedocs.io/"  # Adjust with your docs URL
 
 [tool.setuptools]
@@ -73,5 +75,5 @@ allow_redefinition = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = [
-  "src"
+  "./"
 ]
