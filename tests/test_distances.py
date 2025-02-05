@@ -15,8 +15,8 @@ def lcdm_deviation(**keys):
 
 
 massless = lcdm_deviation(m_nu=0)
-curved = lcdm_deviation(Omega_k=0.01)
-
+opened = lcdm_deviation(Omega_k=0.01)
+closed = lcdm_deviation(Omega_k=-0.01)
 
 def params_to_ccl(params):
     h = params["H0"] / 100
@@ -42,7 +42,7 @@ def mu_ccl(params, z):
 
 def test_distance_modulus():
     z = jnp.linspace(0.01, 1, 3000)
-    for params in [Planck18, massless, curved]:
+    for params in [Planck18, massless, opened, closed]:
         delta_mu = mu(params, z) - mu_ccl(params, z)
         assert (
             jnp.abs(delta_mu) < 1e-3
