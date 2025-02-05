@@ -3,10 +3,11 @@ from jax import lax
 import jax
 from typing import Callable, Tuple
 
+
 def restrict(f: Callable, fixed_params: dict = {}) -> Callable:
     """
     Modify a function by fixing some of its parameters.
-    
+
     This is similar to functools.partial but allows fixing parts of the first pytree argument.
 
     Parameters:
@@ -23,14 +24,17 @@ def restrict(f: Callable, fixed_params: dict = {}) -> Callable:
 
     Example:
     --------
-    If mu expects a dictionary with 'Omega_m' and 'w', 
+    If mu expects a dictionary with 'Omega_m' and 'w',
     restrict(mu, {'w': -1}) returns a function of 'Omega_m' only.
     """
+
     def g(params, *args, **kwargs):
         updated_params = fixed_params.copy()
         updated_params.update(params)
         return f(updated_params, *args, **kwargs)
+
     return g
+
 
 def safe_vmap(in_axes: Tuple[None | int, ...] = (None, 0)) -> Callable:
     """
@@ -44,16 +48,25 @@ def safe_vmap(in_axes: Tuple[None | int, ...] = (None, 0)) -> Callable:
     Returns:
     - Callable: JIT-compiled, vectorized version of the input function.
     """
+
     def wrapper(f: Callable) -> Callable:
         @jax.jit
         def vectorized(*args):
-            vargs = [jnp.atleast_1d(arg) if ax is not None else arg for arg, ax in zip(args, in_axes)]
+            vargs = [
+                jnp.atleast_1d(arg) if ax is not None else arg
+                for arg, ax in zip(args, in_axes)
+            ]
             result = jax.vmap(f, in_axes=in_axes)(*vargs)
             return result
+
         return vectorized
+
     return wrapper
 
-def trapezoidal_rule_integration(f: Callable, bound_inf: float, bound_sup: float, n_step: int = 1000, *args, **kwargs) -> float:
+
+def trapezoidal_rule_integration(
+    f: Callable, bound_inf: float, bound_sup: float, n_step: int = 1000, *args, **kwargs
+) -> float:
     """
     Compute the integral of f over [bound_inf, bound_sup] using the trapezoidal rule.
 
@@ -65,7 +78,7 @@ def trapezoidal_rule_integration(f: Callable, bound_inf: float, bound_sup: float
         Integration bounds.
     n_step: int
         Number of subdivisions.
-    *args, **kwargs: 
+    *args, **kwargs:
         Additional arguments passed to f.
 
     Returns:
@@ -77,7 +90,10 @@ def trapezoidal_rule_integration(f: Callable, bound_inf: float, bound_sup: float
     h = (bound_sup - bound_inf) / (n_step - 1)
     return (h / 2) * (y[1:] + y[:-1]).sum()
 
-def linear_interpolation(x: jnp.ndarray, y_bins: jnp.ndarray, x_bins: jnp.ndarray) -> jnp.ndarray:
+
+def linear_interpolation(
+    x: jnp.ndarray, y_bins: jnp.ndarray, x_bins: jnp.ndarray
+) -> jnp.ndarray:
     """
     Perform linear interpolation between set points.
 
@@ -96,6 +112,7 @@ def linear_interpolation(x: jnp.ndarray, y_bins: jnp.ndarray, x_bins: jnp.ndarra
     w = (x - x_bins[bin_index]) / (x_bins[bin_index + 1] - x_bins[bin_index])
     return (1 - w) * y_bins[bin_index] + w * y_bins[bin_index + 1]
 
+
 class Constants:
     G = 6.67384e-11  # m^3/kg/s^2
     c = 299792458.0  # m/s
@@ -104,14 +121,16 @@ class Constants:
     h = 6.62617e-34  # J.s
     k = 1.38066e-23  # J/K
     e = 1.60217663e-19  # C
-    sigma = 2 * jnp.pi ** 5 * k ** 4 / (15 * h ** 3 * c ** 2)  # Stefan-Boltzmann constant
+    sigma = 2 * jnp.pi**5 * k**4 / (15 * h**3 * c**2)  # Stefan-Boltzmann constant
     qmax = 30
     nq = 100
-    const = 7. / 120 * jnp.pi ** 4
-    const2 = 5. / 7. / jnp.pi ** 2
+    const = 7.0 / 120 * jnp.pi**4
+    const2 = 5.0 / 7.0 / jnp.pi**2
     N = 2000
     am_min = 0.01
-    am_max = 600.
+    am_max = 600.0
     zeta3 = 1.2020569031595942853997
     zeta5 = 1.0369277551433699263313
-    neutrino_mass_fac = 94.082  # Conversion factor for thermal neutrinos with Neff=3, TCMB=2.7255
+    neutrino_mass_fac = (
+        94.082  # Conversion factor for thermal neutrinos with Neff=3, TCMB=2.7255
+    )
