@@ -2,8 +2,8 @@ import jax.numpy as jnp
 from jax import lax
 import jax
 from typing import Callable, Tuple, Dict
-from tools import linear_interpolation, Constants, restrict
-from radiation import Omega_n_mass, Omega_n_rel, Tcmb_to_Omega_gamma
+from .tools import linear_interpolation, Constants, restrict
+from .radiation import Omega_n_mass, Omega_n_rel, Tcmb_to_Omega_gamma
 
 
 def Omega_c(params: Dict[str, float]) -> float:
@@ -37,7 +37,7 @@ def dzoveru3H(params: Dict[str, float], u: jnp.ndarray) -> jnp.ndarray:
         params['Omega_k'] * u ** 2
     )
 
-def dC(params: Dict[str, float], z: jnp.ndarray, nstep: int = 300) -> jnp.ndarray:
+def dC(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
     """Compute the comoving distance at redshift z.
 
     Distance between comoving object and observer that stay
@@ -61,14 +61,14 @@ def dC(params: Dict[str, float], z: jnp.ndarray, nstep: int = 300) -> jnp.ndarra
     csum = jnp.cumsum(dzoveru3H(params, _u[-1::-1]))[-1::-1]
     return linear_interpolation(u, csum, _u - 0.5 * step) * 2 * step * dh
 
-def dM(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
+def dM(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
     """Compute the transverse comoving distance.
 
     The comoving distance between two comoving objects (distant
     galaxies for examples) separated by an angle theta is dM
     theta.
     """
-    comoving_distance = dC(params, z)
+    comoving_distance = dC(params, z, nstep)
     index = - jnp.sign(params["Omega_k"]).astype(jnp.int8) + 1
     dh = Constants.c / params['H0'] * 1e-3  # Hubble distance in kpc
     sqrt_omegak = jnp.sqrt(jnp.abs(params['Omega_k']))
@@ -85,21 +85,21 @@ def dM(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
     branches = (open, flat, close)
     return lax.switch(index, branches, comoving_distance)
 
-def dL(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
+def dL(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
     """Compute the luminosity distance in Mpc."""
-    return (1 + z) * dM(params, z)
+    return (1 + z) * dM(params, z, nstep)
 
-def dA(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
+def dA(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
     """Compute the angular diameter distance in Mpc.
 
     The physical proper size of a galaxy which subtend an angle
     theta on the sky is dA * theta
     """
-    return dM(params, z) / (1 + z)
+    return dM(params, z, nstep) / (1 + z)
 
-def mu(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
+def mu(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
     """Compute the distance modulus."""
-    return 5 * jnp.log10(dL(params, z)) + 25
+    return 5 * jnp.log10(dL(params, z, nstep)) + 25
 
 def dVc(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
     """Calculate the differential comoving volume."""
@@ -108,57 +108,14 @@ def dVc(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
     return 4 * jnp.pi * (dC(params, z) ** 2) * dh * dzoveru3H(params, 1 / jnp.sqrt(toto)) / (toto ** (3 / 2))
 
 
-class GeometricCMBPrior():
-    def __init__(self, mean, covariance):
-        '''An easy-to-work-with summary of CMB measurements
 
-        Parameters:
-        -----------
-        mean: best-fit values for Omega_ch2, Omega_bh2, and 100tetha_MC
-
-        covariance: covariance matrix of vector mean
-        '''
-        self.mean = jnp.array(mean)
-        self.cov = jnp.array(covariance)
-        self.W = jnp.linalg.inv(self.cov)
-        self.L = jnp.linalg.cholesky(self.W)
-
-    def model(self, params):
-        Omega_c_h2 = Omega_c(params) * (params['H0'] ** 2 * 1e-4)
-        zstar = z_star(params)
-        rsstar = rs(params, zstar)
-        thetastar = rsstar / dM(params, zstar) * 100.
-        return jnp.array([Omega_c_h2, params['Omega_b_h2'], thetastar])
-
-    def residuals(self, params):
-        return self.mean - self.model(params)
-
-    def weighted_residuals(self, params):
-        return self.L @ self.residuals(params)
-
-    def likelihood(self, params):
-        r = self.weighted_residuals(params)
-        return r.T @ r
-
-
-planck2018 = GeometricCMBPrior(
-    [2.2337930e-02, 1.2041740e-01, 1.0409010e+00],
-    [[2.2139987e-08, -1.1786703e-07, 1.6777190e-08],
-     [-1.1786703e-07, 1.8664921e-06, -1.4772837e-07],
-     [1.6777190e-08, -1.4772837e-07, 9.5788538e-08]])
-
-simu_params = {'Omega_m': 0.3,
-               'Tcmb': 2.7255,  # Kelvin, Fixen (2009)
-               'Omega_b_h2': 0.02204854,
-               'w': -1.,
-               'H0': 70.,
-               }
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
     from astropy import cosmology
     import numpy as np
     plt.ion()
+
     #
     # Distance modulus comparison
     #
@@ -184,7 +141,6 @@ if __name__ == '__main__':
     ax2.set_xlabel(r'$z$')
     ax1.set_ylabel(r'$\mu$ [mag]')
     ax2.set_ylabel(r'$\Delta \mu$ [mag]')
-
 
 
     #

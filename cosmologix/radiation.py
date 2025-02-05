@@ -16,7 +16,7 @@ share_delta_neff = T
 
 import jax.numpy as jnp
 from typing import Dict
-from tools import Constants, safe_vmap, trapezoidal_rule_integration, linear_interpolation
+from .tools import Constants, safe_vmap, trapezoidal_rule_integration, linear_interpolation
 
 def rhoc(H: float) -> float:
     """Calculate the critical density in kg/m^3."""

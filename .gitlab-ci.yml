@@ -24,8 +24,7 @@ test:
   stage: test
   image: python:3.9
   script:
-    - pip install -r requirements.txt
-    - pip install pytest
+    - pip install -e .[test]
     - pytest -v
   allow_failure: false
 
