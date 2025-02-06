@@ -29,6 +29,7 @@ dependencies = [
     "jaxlib>=0.3.0",
     "numpy>=1.21.0",
     "matplotlib>=3.4.0",  # Optional, for examples and plotting
+    "requests",
 ]
 
 [project.optional-dependencies]
