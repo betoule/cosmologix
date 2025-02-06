@@ -2,7 +2,8 @@ import jax.numpy as jnp
 from jax import lax
 import jax
 from typing import Callable, Tuple
-
+import requests
+import numpy as np
 
 def restrict(f: Callable, fixed_params: dict = {}) -> Callable:
     """
@@ -134,3 +135,40 @@ class Constants:
     neutrino_mass_fac = (
         94.082  # Conversion factor for thermal neutrinos with Neff=3, TCMB=2.7255
     )
+    
+def load_csv_from_url(url, delimiter=','):
+    """
+    Load a CSV file from a URL directly into a NumPy array without saving to disk.
+    
+    Parameters:
+    - url (str): URL of the CSV file to download.
+    - delimiter (str): The string used to separate values in the CSV file (default is ',').
+    
+    Returns:
+    - numpy.ndarray: The loaded CSV data as a NumPy array.
+    """
+    response = requests.get(url)
+    response.raise_for_status()  # Will raise an HTTPError if the HTTP request returned an unsuccessful status code
+    
+    # Decode the response content and split into lines
+    lines = response.content.decode('utf-8').splitlines()
+    
+    # Process the CSV data
+    def convert(value):
+        ''' Attemps to convert values to numerical types
+        '''
+        value = value.strip()
+        if not value:
+            value = "nan"
+        try:
+            value = int(value)
+        except ValueError:
+            try:
+                value = float(value)
+            except ValueError:
+                pass
+        return value
+    header = lines[0].split(delimiter)
+    data = [[convert(value) for value in line.split(delimiter)] for line in lines[1:]]
+        
+    return np.rec.fromrecords(data, names=header)
