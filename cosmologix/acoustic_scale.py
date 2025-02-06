@@ -1,11 +1,14 @@
 """
 Fitting formulae for the acoustic scale
 """
+
 import jax.numpy as jnp
 from typing import Callable, Tuple, Dict
 from .tools import Constants
 from .distances import Omega_c, Omega_de
 from .radiation import Omega_n_mass, Omega_n_rel, Tcmb_to_Omega_gamma
+
+
 #
 # Approximation for z_star and z_drag
 #

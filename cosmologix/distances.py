@@ -121,4 +121,3 @@ def dVc(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
         * dzoveru3H(params, 1 / jnp.sqrt(toto))
         / (toto ** (3 / 2))
     )
-
