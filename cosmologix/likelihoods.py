@@ -66,7 +66,8 @@ class Chi2:
 
         """
         return params
-    
+
+
 class MuMeasurements(Chi2):
     def __init__(self, z_cmb, mu, mu_err):
         self.z_cmb = jnp.atleast_1d(z_cmb)
@@ -74,11 +75,12 @@ class MuMeasurements(Chi2):
         self.error = jnp.atleast_1d(mu_err)
 
     def model(self, params):
-        return mu(params, self.z_cmb) + params['M']
+        return mu(params, self.z_cmb) + params["M"]
 
     def initial_guess(self, params):
         return dict(params, M=0)
-    
+
+
 # class GeometricCMBPrior:
 #    def __init__(self, mean, covariance):
 #        """An easy-to-work-with summary of CMB measurements

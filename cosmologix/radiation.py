@@ -103,4 +103,3 @@ def nu_rho(am: float) -> float:
     aqdn = q**3 / (1 + jnp.exp(q))
     drhonu = aqdn / v
     return jnp.sum(drhonu) * adq / Constants.const
-

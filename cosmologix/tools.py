@@ -9,16 +9,18 @@ import hashlib
 from pathlib import Path
 import shutil
 
+
 def get_cache_dir():
     """Determine the appropriate cache directory based on the OS."""
-    if os.name == 'nt':  # Windows
-        return str(Path(os.getenv('LOCALAPPDATA')) / 'Cache' / 'cosmologix')
-    elif os.name == 'posix':  # Unix-like systems
-        if 'XDG_CACHE_HOME' in os.environ:
-            return str(Path(os.environ['XDG_CACHE_HOME']) / 'cosmologix')
-        return str(Path.home() / '.cache' / 'cosmologix')
+    if os.name == "nt":  # Windows
+        return str(Path(os.getenv("LOCALAPPDATA")) / "Cache" / "cosmologix")
+    elif os.name == "posix":  # Unix-like systems
+        if "XDG_CACHE_HOME" in os.environ:
+            return str(Path(os.environ["XDG_CACHE_HOME"]) / "cosmologix")
+        return str(Path.home() / ".cache" / "cosmologix")
     else:
         raise OSError("Unsupported operating system")
+
 
 def clear_cache(cache_dir=None):
     """
@@ -28,7 +30,9 @@ def clear_cache(cache_dir=None):
     :return: None
     """
     if cache_dir is None:
-        cache_dir = get_cache_dir()  # Assuming get_cache_dir() is defined as in the previous example
+        cache_dir = (
+            get_cache_dir()
+        )  # Assuming get_cache_dir() is defined as in the previous example
 
     if os.path.exists(cache_dir):
         try:
@@ -38,6 +42,7 @@ def clear_cache(cache_dir=None):
             print(f"An error occurred while clearing the cache: {e}")
     else:
         print(f"Cache directory {cache_dir} does not exist.")
+
 
 def cached_download(url, cache_dir=None):
     """
@@ -49,12 +54,12 @@ def cached_download(url, cache_dir=None):
     """
     if cache_dir is None:
         cache_dir = get_cache_dir()
-    
+
     # Create cache directory if it doesn't exist
     os.makedirs(cache_dir, exist_ok=True)
 
     # Use URL hash for filename to avoid conflicts
-    filename = hashlib.md5(url.encode('utf-8')).hexdigest()
+    filename = hashlib.md5(url.encode("utf-8")).hexdigest()
     cache_path = os.path.join(cache_dir, filename)
 
     if os.path.exists(cache_path):
@@ -65,7 +70,7 @@ def cached_download(url, cache_dir=None):
     response = requests.get(url, stream=True)
     response.raise_for_status()
 
-    with open(cache_path, 'wb') as file:
+    with open(cache_path, "wb") as file:
         for chunk in response.iter_content(chunk_size=8192):
             file.write(chunk)
 
@@ -216,13 +221,13 @@ def load_csv_from_url(url, delimiter=","):
     Returns:
     - numpy.ndarray: The loaded CSV data as a NumPy array.
     """
-    #response = requests.get(url)
-    #response.raise_for_status()  # Will raise an HTTPError if the HTTP request returned an unsuccessful status code
+    # response = requests.get(url)
+    # response.raise_for_status()  # Will raise an HTTPError if the HTTP request returned an unsuccessful status code
 
     # Decode the response content and split into lines
-    #lines = response.content.decode("utf-8").splitlines()
+    # lines = response.content.decode("utf-8").splitlines()
     path = cached_download(url)
-    with open(path, 'r') as fid:
+    with open(path, "r") as fid:
         lines = fid.readlines()
 
     # Process the CSV data
@@ -244,4 +249,3 @@ def load_csv_from_url(url, delimiter=","):
     data = [[convert(value) for value in line.split(delimiter)] for line in lines[1:]]
 
     return np.rec.fromrecords(data, names=header)
-

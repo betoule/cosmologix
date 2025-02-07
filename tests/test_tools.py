@@ -1,6 +1,7 @@
 from cosmologix.tools import load_csv_from_url, clear_cache
 from numpy.testing import assert_array_equal
 
+
 def test_csv():
     clear_cache()
     des_data1 = load_csv_from_url(
