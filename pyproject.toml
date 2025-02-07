@@ -84,4 +84,5 @@ allow_redefinition = true
 testpaths = ["tests"]
 addopts = [
   "--cov=cosmologix",
+  "--cov-report=term-missing",
 ]

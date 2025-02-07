@@ -7,4 +7,5 @@ from numpy.testing import assert_allclose
 def test_sn_likelihood():
     des = DES5yr()
     l = jax.jit(des.negative_log_likelihood)
-    assert_allclose(l(Planck18), des.negative_log_likelihood(Planck18))
+    params = des.initial_guess(Planck18)
+    assert_allclose(l(params), des.negative_log_likelihood(params))

@@ -104,25 +104,3 @@ def nu_rho(am: float) -> float:
     drhonu = aqdn / v
     return jnp.sum(drhonu) * adq / Constants.const
 
-
-def nu_rho_interp(am: jnp.ndarray) -> jnp.ndarray:
-    """Interpolate the massive neutrino density for faster computation."""
-    am = jnp.asarray(am)
-    # Assuming NU_LOG_RHO_TAB and NU_AM_TAB are pre-computed tables for interpolation
-    rhonu = jnp.exp(
-        linear_interpolation(am, Constants.NU_LOG_RHO_TAB, Constants.NU_AM_TAB)
-    )
-
-    indexlow = am <= Constants.am_min
-    rhonu = rhonu.at[indexlow].set(1 + Constants.const2 * am[indexlow] ** 2)
-
-    indexhigh = am >= Constants.am_max
-    rhonu = rhonu.at[indexhigh].set(
-        1.5
-        / Constants.const
-        * (
-            Constants.zeta3 * am[indexhigh]
-            + 0.75 * 15 * Constants.zeta5 / am[indexhigh]
-        )
-    )
-    return rhonu
