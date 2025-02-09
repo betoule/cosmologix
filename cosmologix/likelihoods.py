@@ -67,7 +67,21 @@ class Chi2:
         """
         return params
 
+class LikelihoodSum():
+    def __init__(self, likelihoods):
+        self.likelihoods = likelihoods
 
+    def negative_log_likelihood(self, params):
+        return jnp.sum(jnp.array([l.negative_log_likelihood(params) for l in self.likelihoods]))
+
+    def weighted_residuals(self, params):
+        return jnp.hstack([l.weighted_residuals(params) for l in self.likelihoods])
+
+    def initial_guess(self, params):
+        for l in self.likelihoods:
+            params = l.initial_guess(params)
+        return params
+    
 class MuMeasurements(Chi2):
     def __init__(self, z_cmb, mu, mu_err):
         self.z_cmb = jnp.atleast_1d(z_cmb)
