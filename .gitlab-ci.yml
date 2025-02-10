@@ -54,6 +54,17 @@ build:
       - dist/*
   allow_failure: false
 
+pypi:
+  # publish the source distribution on https://pypi.org/project/stardiceonline/, only when
+  # a new tag
+  stage: deploy
+  needs: ["build"]
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - pip install twine
+    - twine upload --non-interactive --repository pypi dist/*
+    
 # Optional: Publish to PyPI (This step is commented out and should only be enabled for your main branch or when you're ready to publish)
 #publish:
 #  stage: deploy
