@@ -1,5 +1,8 @@
 from cosmologix import mu
+from cosmologix.distances import Omega_c, dM
+from cosmologix.acoustic_scale import z_star, rs
 import jax.numpy as jnp
+from cosmologix.tools import randn
 
 
 class Chi2:
@@ -67,6 +70,9 @@ class Chi2:
         """
         return params
 
+    def draw(self, params):
+        self.data =  self.model(params) + randn(self.error)
+        
 class LikelihoodSum():
     def __init__(self, likelihoods):
         self.likelihoods = likelihoods
@@ -81,6 +87,10 @@ class LikelihoodSum():
         for l in self.likelihoods:
             params = l.initial_guess(params)
         return params
+
+    def draw(self, params):
+        for l in self.likelihoods:
+            l.draw(params) 
     
 class MuMeasurements(Chi2):
     def __init__(self, z_cmb, mu, mu_err):
@@ -92,53 +102,45 @@ class MuMeasurements(Chi2):
         return mu(params, self.z_cmb) + params["M"]
 
     def initial_guess(self, params):
-        return dict(params, M=0)
+        return dict(params, M=0.)
 
 
-# class GeometricCMBPrior:
-#    def __init__(self, mean, covariance):
-#        """An easy-to-work-with summary of CMB measurements
-#
-#        Parameters:
-#        -----------
-#        mean: best-fit values for Omega_ch2, Omega_bh2, and 100tetha_MC
-#
-#        covariance: covariance matrix of vector mean
-#        """
-#        self.mean = jnp.array(mean)
-#        self.cov = jnp.array(covariance)
-#        self.W = jnp.linalg.inv(self.cov)
-#        self.L = jnp.linalg.cholesky(self.W)
-#
-#    def model(self, params):
-#        Omega_c_h2 = Omega_c(params) * (params["H0"] ** 2 * 1e-4)
-#        zstar = z_star(params)
-#        rsstar = rs(params, zstar)
-#        thetastar = rsstar / dM(params, zstar) * 100.0
-#        return jnp.array([Omega_c_h2, params["Omega_b_h2"], thetastar])
-#
-#    def residuals(self, params):
-#        return self.mean - self.model(params)
-#
-#    def weighted_residuals(self, params):
-#        return self.L @ self.residuals(params)
-#
-#    def likelihood(self, params):
-#        r = self.weighted_residuals(params)
-#        return r.T @ r
-#
-#
-## Extracted from
-# planck2018_prior = GeometricCMBPrior(
-#    [2.2337930e-02, 1.2041740e-01, 1.0409010e00],
-#    [
-#        [2.2139987e-08, -1.1786703e-07, 1.6777190e-08],
-#        [-1.1786703e-07, 1.8664921e-06, -1.4772837e-07],
-#        [1.6777190e-08, -1.4772837e-07, 9.5788538e-08],
-#    ],
-# )
-#
+class GeometricCMBLikelihood(Chi2):
+   def __init__(self, mean, covariance):
+       """An easy-to-work-with summary of CMB measurements
 
+       Parameters:
+       -----------
+       mean: best-fit values for Omega_bh2, Omega_c_h2, and 100tetha_MC
+
+       covariance: covariance matrix of vector mean
+       """
+       self.mean = jnp.array(mean)
+       self.cov = jnp.array(covariance)
+       self.W = jnp.linalg.inv(self.cov)
+       self.L = jnp.linalg.cholesky(self.W)
+
+   def model(self, params):
+       Omega_c_h2 = Omega_c(params) * (params["H0"] ** 2 * 1e-4)
+       zstar = z_star(params)
+       rsstar = rs(params, zstar)
+       thetastar = rsstar / dM(params, zstar) * 100.0
+       return jnp.array([params["Omega_b_h2"], Omega_c_h2, thetastar])
+
+   def residuals(self, params):
+       return self.mean - self.model(params)
+
+   def weighted_residuals(self, params):
+       return self.L @ self.residuals(params)
+
+   def likelihood(self, params):
+       r = self.weighted_residuals(params)
+       return r.T @ r
+
+   def draw(self, params):
+       m = self.model(params)
+       n = jnp.linalg.solve(self.L, randn(1, n=len(m)))
+       self.mean = m+n
 
 def DES5yr():
     from cosmologix.tools import load_csv_from_url
@@ -147,3 +149,16 @@ def DES5yr():
         "https://github.com/des-science/DES-SN5YR/raw/refs/heads/main/4_DISTANCES_COVMAT/DES-SN5YR_HD+MetaData.csv"
     )
     return MuMeasurements(des_data["zCMB"], des_data["MU"], des_data["MUERR_FINAL"])
+
+
+#Extracted from
+def Planck2018Prior():
+    planck2018_prior = GeometricCMBLikelihood(
+        [2.2337930e-02, 1.2041740e-01, 1.0409010e00],
+        [
+            [2.2139987e-08, -1.1786703e-07, 1.6777190e-08],
+            [-1.1786703e-07, 1.8664921e-06, -1.4772837e-07],
+            [1.6777190e-08, -1.4772837e-07, 9.5788538e-08],
+        ],
+    )
+    return planck2018_prior

@@ -45,6 +45,7 @@ def a4H2(params, a):
     Omega_b0 = params["Omega_b_h2"] / h**2
     Omega_c0 = Omega_c(params)
     Omega_nu_mass = jnp.array([Omega_n_mass(params, jnp.sqrt(aa)) for aa in a])
+    Omega_nu_mass = Omega_n_mass(params, jnp.sqrt(a))
     Omega_nu_rel = Omega_n_rel(params)
     Omega_de0 = Omega_de(params, Omega_nu_rel)
     Omega_gamma = Tcmb_to_Omega_gamma(params["Tcmb"], params["H0"])
@@ -73,7 +74,7 @@ def dsound_da_approx(params, a):
     )
 
 
-def rs(params, z, dsound_da=dsound_da_approx):
+def rs(params, z):
     """The comoving sound horizon size in Mpc"""
     nstep = 1000
     a = 1.0 / (1.0 + z)
@@ -82,5 +83,5 @@ def rs(params, z, dsound_da=dsound_da_approx):
     step = _a[1] - _a[0]
     # step = a / nstep
     # _a = jnp.arange(0.5 * step, a, step)
-    R = Constants.c * 1e-3 / jnp.sqrt(3) * dsound_da(params, _a).sum() * step
+    R = Constants.c * 1e-3 / jnp.sqrt(3) * dsound_da_approx(params, _a).sum() * step
     return R

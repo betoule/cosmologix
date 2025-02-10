@@ -77,39 +77,6 @@ def cached_download(url, cache_dir=None):
     print(f"File downloaded and cached at: {cache_path}")
     return cache_path
 
-
-def restrict(f: Callable, fixed_params: dict = {}) -> Callable:
-    """
-    Modify a function by fixing some of its parameters.
-
-    This is similar to functools.partial but allows fixing parts of the first pytree argument.
-
-    Parameters:
-    -----------
-    f: Callable
-        A function with signature f(params, *args, **keys) where params is a pytree.
-    fixed_params: dict
-        Parameters to fix with provided values.
-
-    Returns:
-    --------
-    Callable
-        Function with same signature but with parameters fixed to their provided values.
-
-    Example:
-    --------
-    If mu expects a dictionary with 'Omega_m' and 'w',
-    restrict(mu, {'w': -1}) returns a function of 'Omega_m' only.
-    """
-
-    def g(params, *args, **kwargs):
-        updated_params = fixed_params.copy()
-        updated_params.update(params)
-        return f(updated_params, *args, **kwargs)
-
-    return g
-
-
 def safe_vmap(in_axes: Tuple[None | int, ...] = (None, 0)) -> Callable:
     """
     Vectorize a function with JAX's vmap, treating all inputs as arrays.

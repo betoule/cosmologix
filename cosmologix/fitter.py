@@ -5,7 +5,7 @@ problems
 import jax
 import jax.numpy as jnp
 import time
-
+from typing import Callable
 
 def flatten_vector(v):
     """Transforms a vector with a pytree structure into a standard array"""
@@ -22,18 +22,120 @@ def unflatten_vector(p, v):
         i = j
     return st
 
+def restrict(f: Callable, fixed_params: dict = {}) -> Callable:
+    """
+    Modify a function by fixing some of its parameters.
+
+    This is similar to functools.partial but allows fixing parts of the first pytree argument.
+
+    Parameters:
+    -----------
+    f: Callable
+        A function with signature f(params, *args, **keys) where params is a pytree.
+    fixed_params: dict
+        Parameters to fix with provided values.
+
+    Returns:
+    --------
+    Callable
+        Function with same signature but with parameters fixed to their provided values.
+
+    Example:
+    --------
+    If mu expects a dictionary with 'Omega_m' and 'w',
+    restrict(mu, {'w': -1}) returns a function of 'Omega_m' only.
+    """
+
+    def g(params, *args, **kwargs):
+        updated_params = fixed_params.copy()
+        updated_params.update(params)
+        return f(updated_params, *args, **kwargs)
+
+    return g
+
+def restrict_to(func, complete, varied, flat=True):
+    """Create a new function by restricting the input parameters of `func` to a subset.
+
+    This utility function allows you to fix some parameters of `func` while allowing
+    others to vary. It effectively turns a function with multiple parameters into one 
+    where only a subset of those parameters can be changed, with the others fixed.
+
+    Parameters:
+    - func (callable): The original function to be modified. It should accept a dictionary 
+      of parameters as its argument.
+    - complete (dict): A dictionary containing all parameters that `func` could accept, 
+      with their values set to what should be used when not varied.
+    - varied (list or tuple): A list of parameter names that should be allowed to vary.
+    - flat (bool): If True, the input to the returned lambda will be expected as a 
+      flat vector (list or array) which will be converted into the dictionary form 
+      for `func`. If False, the input should already be a dictionary containing 
+      the varied parameters. Default is True.
+
+    Returns:
+    - callable: A lambda function that either:
+        - If `flat` is True, takes a flat vector of values for the `varied` parameters 
+          and returns the result of calling `func` with those values and the fixed 
+          parameters combined.
+        - If `flat` is False, takes a dictionary with keys matching `varied`, merges 
+          it with `fixed`, and calls `func` with this merged dictionary.
+
+    Notes:
+    - This function is particularly useful in optimization routines where you need to 
+      hold some parameters constant while optimizing others.
+    - See also `restrict` for another way to restrict the function by
+      specifying only the parameter to fix.
+
+    Example:
+    >>> def original_func(params):
+    ...     return params['a'] + params['b'] * params['c']
+    >>> restricted_func = restrict_to(original_func, {'a': 1, 'b': 2, 'c': 3}, ['b', 'c'])
+    >>> restricted_func([2, 3])  # 'a' is fixed at 1, 'b' and 'c' are varied
+    7
+
+    """
+    fixed = complete.copy()
+    V = {}
+    for p in varied:
+        fixed.pop(p)
+        V[p] = complete[p]
+    if flat:
+        return lambda x: func(dict(unflatten_vector(varied, x), fixed)), V
+    else:
+        return lambda x: func(dict(x, **fixed)), V
+
+def partial(func, param_subset):
+    def _func(x, point):
+        return func(dict(unflatten_vector(param_subset, x), **point))
+    return _func
+
+def newton_prep(func, params_subset):
+    f = jax.jit(partial(func, params_subset))
+    return f, jax.jit(jax.grad(f)), jax.jit(jax.hessian(f))
+
+def gauss_newton_prep(func, params_subset):
+    f = partial(func, params_subset)
+    return f, jax.jit(jax.jacfwd(f))
+
 def newton(func, x0, g=None, H=None, niter=1000, tol=1e-3):
     xi = flatten_vector(x0)
     loss = lambda x: func(unflatten_vector(x0, x))
     losses = [loss(xi)]
     tstart = time.time()
     if g is None:
-        g = jax.grad(loss)
+        g = jax.jit(jax.grad(loss))
     if H is None:
-        H = jax.hessian(loss)
+        H = jax.jit(jax.hessian(loss))
+    print(x0)
+    h = H(xi)
+    print(h)
+    G =g(xi)
+    print(G)
+    print(jnp.linalg.solve(h, G))
     timings = [0]
     for i in range(niter):
+        print(f'{i}/{niter}')
         xi -= jnp.linalg.solve(H(xi), g(xi))
+        print(xi)
         losses.append(loss(xi))
         timings.append(time.time() - tstart)
         if losses[-2] - losses[-1] < tol:

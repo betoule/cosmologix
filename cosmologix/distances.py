@@ -2,7 +2,7 @@ import jax.numpy as jnp
 from jax import lax
 import jax
 from typing import Callable, Tuple, Dict
-from .tools import linear_interpolation, Constants, restrict
+from .tools import linear_interpolation, Constants
 from .radiation import Omega_n_mass, Omega_n_rel, Tcmb_to_Omega_gamma
 
 
