@@ -77,6 +77,7 @@ def cached_download(url, cache_dir=None):
     print(f"File downloaded and cached at: {cache_path}")
     return cache_path
 
+
 def safe_vmap(in_axes: Tuple[None | int, ...] = (None, 0)) -> Callable:
     """
     Vectorize a function with JAX's vmap, treating all inputs as arrays.
@@ -219,7 +220,7 @@ def load_csv_from_url(url, delimiter=","):
 
 
 def conflevel_to_delta_chi2(level, dof=2, max_iter=1000, tol=1e-6):
-    '''Return the ΔΧ² value corresponding to a given
+    """Return the ΔΧ² value corresponding to a given
     confidence level in percent
 
     parameter:
@@ -229,15 +230,16 @@ def conflevel_to_delta_chi2(level, dof=2, max_iter=1000, tol=1e-6):
     - tol: The tolerance for the numerical accuracy of the solution.
     Note: for some reason ppf is not available in jax.scipy but cdf
     is, a quick fix was to solve for the root using Newton method.
-    '''
+    """
     x = jnp.array(dof)
-    prob= level/100
+    prob = level / 100
+
     def f(x):
         return jax.scipy.stats.chi2.cdf(x, dof) - prob
 
     def df(x):
         return jax.scipy.stats.chi2.pdf(x, dof)
-    
+
     for _ in range(max_iter):
         x_new = x - f(x) / df(x)
         if jnp.abs(x_new - x) < tol:
@@ -245,11 +247,13 @@ def conflevel_to_delta_chi2(level, dof=2, max_iter=1000, tol=1e-6):
         x = x_new
     raise ValueError("Newton's method did not converge")
 
+
 # This global random key at the module level is provided for
 # conveniency so that random vector can be obtained with onliners when
 # need. This will note ensure actual randomness nor reproducibility.
 # To be used cautiously
 global_key = jax.random.PRNGKey(42)
+
 
 def randn(sigma, n=None, key=None):
     """
@@ -258,13 +262,13 @@ def randn(sigma, n=None, key=None):
     Parameters:
     -----------
     sigma : float or array_like
-        Standard deviation to scale the random vector. If sigma is an array, 
+        Standard deviation to scale the random vector. If sigma is an array,
         each element scales the corresponding element of the output vector.
     n : int or tuple, optional
         If provided, specifies the shape of the output. If not provided (None),
         the shape of `sigma` is used.
     key : jax.random.PRNGKey, optional
-        PRNG key for random number generation. If not provided, uses the 
+        PRNG key for random number generation. If not provided, uses the
         global key, which can lead to non-reproducible results.
 
     Returns:
@@ -274,10 +278,10 @@ def randn(sigma, n=None, key=None):
 
     Notes:
     ------
-    - Using the global key (`key=None`) can lead to correlated results across 
-      function calls since the key is updated globally. For reproducibility, 
+    - Using the global key (`key=None`) can lead to correlated results across
+      function calls since the key is updated globally. For reproducibility,
       pass an explicit key.
-    - The function splits the key if no key is provided, which might lead 
+    - The function splits the key if no key is provided, which might lead
       to issues in parallel computing scenarios due to key reuse.
 
     Examples:
@@ -285,7 +289,7 @@ def randn(sigma, n=None, key=None):
     >>> import jax.numpy as jnp
     >>> randn(1.0, (2, 3))  # 2x3 matrix of random numbers scaled by 1.0
     >>> randn(jnp.array([1, 2, 3]))  # Vector scaled by different sigmas
-    """ 
+    """
     global global_key
     if key is None:
         global_key, subkey = jax.random.split(global_key)

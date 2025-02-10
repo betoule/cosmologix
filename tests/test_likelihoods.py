@@ -7,6 +7,7 @@ import time
 
 jax.config.update("jax_enable_x64", True)
 
+
 def test_likelihoods():
     des = DES5yr()
     pl = Planck2018Prior()
@@ -22,12 +23,13 @@ def test_likelihoods():
         gj = jax.jit(g)
         assert_allclose(g(x), gj(x))
         assert_allclose(g(x), gj(x))
-        
+
         H = jax.hessian(_l)
         Hj = jax.jit(H)
         assert_allclose(H(x), Hj(x))
         assert_allclose(H(x), Hj(x))
-        
+
+
 def toto():
     des = DES5yr()
     pl = Planck2018Prior()

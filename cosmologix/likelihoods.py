@@ -71,14 +71,17 @@ class Chi2:
         return params
 
     def draw(self, params):
-        self.data =  self.model(params) + randn(self.error)
-        
-class LikelihoodSum():
+        self.data = self.model(params) + randn(self.error)
+
+
+class LikelihoodSum:
     def __init__(self, likelihoods):
         self.likelihoods = likelihoods
 
     def negative_log_likelihood(self, params):
-        return jnp.sum(jnp.array([l.negative_log_likelihood(params) for l in self.likelihoods]))
+        return jnp.sum(
+            jnp.array([l.negative_log_likelihood(params) for l in self.likelihoods])
+        )
 
     def weighted_residuals(self, params):
         return jnp.hstack([l.weighted_residuals(params) for l in self.likelihoods])
@@ -90,8 +93,9 @@ class LikelihoodSum():
 
     def draw(self, params):
         for l in self.likelihoods:
-            l.draw(params) 
-    
+            l.draw(params)
+
+
 class MuMeasurements(Chi2):
     def __init__(self, z_cmb, mu, mu_err):
         self.z_cmb = jnp.atleast_1d(z_cmb)
@@ -102,45 +106,46 @@ class MuMeasurements(Chi2):
         return mu(params, self.z_cmb) + params["M"]
 
     def initial_guess(self, params):
-        return dict(params, M=0.)
+        return dict(params, M=0.0)
 
 
 class GeometricCMBLikelihood(Chi2):
-   def __init__(self, mean, covariance):
-       """An easy-to-work-with summary of CMB measurements
+    def __init__(self, mean, covariance):
+        """An easy-to-work-with summary of CMB measurements
 
-       Parameters:
-       -----------
-       mean: best-fit values for Omega_bh2, Omega_c_h2, and 100tetha_MC
+        Parameters:
+        -----------
+        mean: best-fit values for Omega_bh2, Omega_c_h2, and 100tetha_MC
 
-       covariance: covariance matrix of vector mean
-       """
-       self.mean = jnp.array(mean)
-       self.cov = jnp.array(covariance)
-       self.W = jnp.linalg.inv(self.cov)
-       self.L = jnp.linalg.cholesky(self.W)
+        covariance: covariance matrix of vector mean
+        """
+        self.mean = jnp.array(mean)
+        self.cov = jnp.array(covariance)
+        self.W = jnp.linalg.inv(self.cov)
+        self.L = jnp.linalg.cholesky(self.W)
 
-   def model(self, params):
-       Omega_c_h2 = Omega_c(params) * (params["H0"] ** 2 * 1e-4)
-       zstar = z_star(params)
-       rsstar = rs(params, zstar)
-       thetastar = rsstar / dM(params, zstar) * 100.0
-       return jnp.array([params["Omega_b_h2"], Omega_c_h2, thetastar])
+    def model(self, params):
+        Omega_c_h2 = Omega_c(params) * (params["H0"] ** 2 * 1e-4)
+        zstar = z_star(params)
+        rsstar = rs(params, zstar)
+        thetastar = rsstar / dM(params, zstar) * 100.0
+        return jnp.array([params["Omega_b_h2"], Omega_c_h2, thetastar])
 
-   def residuals(self, params):
-       return self.mean - self.model(params)
+    def residuals(self, params):
+        return self.mean - self.model(params)
 
-   def weighted_residuals(self, params):
-       return self.L @ self.residuals(params)
+    def weighted_residuals(self, params):
+        return self.L @ self.residuals(params)
 
-   def likelihood(self, params):
-       r = self.weighted_residuals(params)
-       return r.T @ r
+    def likelihood(self, params):
+        r = self.weighted_residuals(params)
+        return r.T @ r
 
-   def draw(self, params):
-       m = self.model(params)
-       n = jnp.linalg.solve(self.L, randn(1, n=len(m)))
-       self.mean = m+n
+    def draw(self, params):
+        m = self.model(params)
+        n = jnp.linalg.solve(self.L, randn(1, n=len(m)))
+        self.mean = m + n
+
 
 def DES5yr():
     from cosmologix.tools import load_csv_from_url
@@ -151,7 +156,7 @@ def DES5yr():
     return MuMeasurements(des_data["zCMB"], des_data["MU"], des_data["MUERR_FINAL"])
 
 
-#Extracted from
+# Extracted from
 def Planck2018Prior():
     planck2018_prior = GeometricCMBLikelihood(
         [2.2337930e-02, 1.2041740e-01, 1.0409010e00],
@@ -162,3 +167,16 @@ def Planck2018Prior():
         ],
     )
     return planck2018_prior
+
+
+# Best fit cosomologies
+Planck18 = {
+    "Omega_m": 0.30966,
+    "Tcmb": 2.7255,
+    "Omega_b_h2": 0.0224178,
+    "Omega_k": 0.0,
+    "w": -1.0,
+    "H0": 67.66,
+    "m_nu": 0.06,
+    "Neff": 3.046,
+}

@@ -14,32 +14,37 @@ def control_fitter_bias_and_coverage(likelihoods, point, fitter, ndraw=50):
     params = Planck18.copy()
     params.update(point)
     likelihood = LikelihoodSum(likelihoods)
+
     def draw():
         likelihood.draw(params)
-        loss, start = restrict_to(likelihood.negative_log_likelihood, params, list(point.keys()), flat=False)
+        loss, start = restrict_to(
+            likelihood.negative_log_likelihood, params, list(point.keys()), flat=False
+        )
         bestfit, extra = newton(loss, start)
         return flatten_vector(bestfit)
+
     results = jnp.array([draw() for _ in range(ndraw)])
     bias = jnp.mean(results, axis=0) - flatten_vector(point)
     sigma = jnp.std(results, axis=0) / jnp.sqrt(ndraw)
     assert (jnp.abs(bias / sigma) < 3).all()
 
+
 def test_newton_fitter():
     des = DES5yr()
-    point = {'Omega_m': 0.3,
-             'M': 0.}
+    point = {"Omega_m": 0.3, "M": 0.0}
     control_fitter_bias_and_coverage([des], point, newton, ndraw=50)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     des = DES5yr()
     pl = Planck2018Prior()
-    point = {'Omega_m': 0.3,
-             'M':0,
-             }
-             #'M': 0.}
+    point = {
+        "Omega_m": 0.3,
+        "M": 0,
+    }
+    #'M': 0.}
     control_fitter_bias_and_coverage([des, pl], point, newton, ndraw=50)
-    
+
 
 #    fixed_params = Planck18.copy()
 #    fixed_params.pop("Omega_m")
@@ -50,4 +55,3 @@ if __name__ == '__main__':
 #
 #    starting_point = Planck18
 #
-    

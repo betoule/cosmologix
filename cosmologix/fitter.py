@@ -6,6 +6,8 @@ import jax
 import jax.numpy as jnp
 import time
 from typing import Callable
+from .likelihoods import LikelihoodSum, Planck18
+
 
 def flatten_vector(v):
     """Transforms a vector with a pytree structure into a standard array"""
@@ -21,6 +23,7 @@ def unflatten_vector(p, v):
         st[k] = jnp.reshape(v[i:j], jnp.shape(p[k]))
         i = j
     return st
+
 
 def restrict(f: Callable, fixed_params: dict = {}) -> Callable:
     """
@@ -53,34 +56,35 @@ def restrict(f: Callable, fixed_params: dict = {}) -> Callable:
 
     return g
 
+
 def restrict_to(func, complete, varied, flat=True):
     """Create a new function by restricting the input parameters of `func` to a subset.
 
     This utility function allows you to fix some parameters of `func` while allowing
-    others to vary. It effectively turns a function with multiple parameters into one 
+    others to vary. It effectively turns a function with multiple parameters into one
     where only a subset of those parameters can be changed, with the others fixed.
 
     Parameters:
-    - func (callable): The original function to be modified. It should accept a dictionary 
+    - func (callable): The original function to be modified. It should accept a dictionary
       of parameters as its argument.
-    - complete (dict): A dictionary containing all parameters that `func` could accept, 
+    - complete (dict): A dictionary containing all parameters that `func` could accept,
       with their values set to what should be used when not varied.
     - varied (list or tuple): A list of parameter names that should be allowed to vary.
-    - flat (bool): If True, the input to the returned lambda will be expected as a 
-      flat vector (list or array) which will be converted into the dictionary form 
-      for `func`. If False, the input should already be a dictionary containing 
+    - flat (bool): If True, the input to the returned lambda will be expected as a
+      flat vector (list or array) which will be converted into the dictionary form
+      for `func`. If False, the input should already be a dictionary containing
       the varied parameters. Default is True.
 
     Returns:
     - callable: A lambda function that either:
-        - If `flat` is True, takes a flat vector of values for the `varied` parameters 
-          and returns the result of calling `func` with those values and the fixed 
+        - If `flat` is True, takes a flat vector of values for the `varied` parameters
+          and returns the result of calling `func` with those values and the fixed
           parameters combined.
-        - If `flat` is False, takes a dictionary with keys matching `varied`, merges 
+        - If `flat` is False, takes a dictionary with keys matching `varied`, merges
           it with `fixed`, and calls `func` with this merged dictionary.
 
     Notes:
-    - This function is particularly useful in optimization routines where you need to 
+    - This function is particularly useful in optimization routines where you need to
       hold some parameters constant while optimizing others.
     - See also `restrict` for another way to restrict the function by
       specifying only the parameter to fix.
@@ -103,20 +107,92 @@ def restrict_to(func, complete, varied, flat=True):
     else:
         return lambda x: func(dict(x, **fixed)), V
 
+
 def partial(func, param_subset):
     def _func(x, point):
         return func(dict(unflatten_vector(param_subset, x), **point))
+
     return _func
+
 
 def newton_prep(func, params_subset):
     f = jax.jit(partial(func, params_subset))
     return f, jax.jit(jax.grad(f)), jax.jit(jax.hessian(f))
 
+
 def gauss_newton_prep(func, params_subset):
     f = partial(func, params_subset)
     return f, jax.jit(jax.jacfwd(f))
 
-def newton(func, x0, g=None, H=None, niter=1000, tol=1e-3):
+
+def fit(likelihoods, fixed={}):
+    """Fit a set of likelihoods using the Gauss-Newton method with partial parameter fixing.
+
+    This function combines multiple likelihoods, optimizes the
+    parameters using an initial guess possibly augmented by fixed
+    parameters, and then applies the Gauss-Newton optimization method.
+
+    Parameters:
+    - likelihoods: A list of likelihood object, each expected to
+      provide a weighted_residuals function of parameters as a
+      dictionary and return weighted residuals or similar metrics.
+    - fixed (dict): A dictionary of parameters to be fixed during the optimization
+      process. Keys are parameter names, values are their fixed values. Default is an
+      empty dictionary.
+
+    Returns:
+    - dict: A dictionary containing:
+        - 'x': The optimized parameter values in a flattened form.
+        - 'bestfit': The best-fit parameters as a dictionary matching the initial guess format.
+        - 'FIM': An approximation of the Fisher Information Matrix (FIM) at the best fit.
+        - 'loss': The progression of loss values during optimization (from `gauss_newton_partial`).
+        - 'timings': The time taken for each iteration of the optimization (from `gauss_newton_partial`).
+
+    Notes:
+    - The function uses `LikelihoodSum` to combine multiple likelihoods into one,
+      which must be a class that can call `.initial_guess()` with `Planck18` for a starting point.
+
+    The optimization process involves:
+    1. Determining an initial guess from the combined likelihoods, updating with fixed parameters.
+    2. Preparing the weighted residuals and Jacobian for optimization.
+    3. Using a partial Gauss-Newton method for minimization, where only non-fixed parameters are optimized.
+    4. Computing the Fisher Information Matrix for the best fit, providing insight into parameter uncertainties.
+
+    Example:
+    >>> priors = [likelihoods.Planck2018Prior(), likelihoods.DES5yr()]
+    >>> fixed = {'Omega_k':0., 'm_nu':0.06, 'Neff':3.046, 'Tcmb': 2.7255}
+    >>> result = fit(priors, fixed=fixed)
+    >>> print(result['bestfit'])
+    """
+    likelihood = LikelihoodSum(likelihoods)
+
+    # Pick up a good starting point
+    params = likelihood.initial_guess(Planck18)
+    initial_guess = params.copy()
+    for p in fixed:
+        assert p in params, "Unknow parameter name {p}"
+        initial_guess.pop(p)
+    params.update(fixed)
+    # Restrict the function to free parameters and jit compilation
+    wres, wjac = gauss_newton_prep(likelihood.weighted_residuals, initial_guess)
+
+    # Minimization
+    x0 = flatten_vector(initial_guess)
+    xbest, extra = gauss_newton_partial(wres, wjac, x0, fixed)
+
+    # Compute approximation of the FIM
+    J = wjac(xbest, fixed)
+    FIM = jnp.linalg.inv(J.T @ J)
+    extra["FIM"] = FIM
+
+    # Unflatten the vectors for conveniency
+    extra["x"] = xbest
+    extra["bestfit"] = unflatten_vector(initial_guess, xbest)
+
+    return extra
+
+
+def newton(func, x0, g=None, H=None, niter=50, tol=1e-3):
     xi = flatten_vector(x0)
     loss = lambda x: func(unflatten_vector(x0, x))
     losses = [loss(xi)]
@@ -128,12 +204,12 @@ def newton(func, x0, g=None, H=None, niter=1000, tol=1e-3):
     print(x0)
     h = H(xi)
     print(h)
-    G =g(xi)
+    G = g(xi)
     print(G)
     print(jnp.linalg.solve(h, G))
     timings = [0]
     for i in range(niter):
-        print(f'{i}/{niter}')
+        print(f"{i}/{niter}")
         xi -= jnp.linalg.solve(H(xi), g(xi))
         print(xi)
         losses.append(loss(xi))
@@ -143,12 +219,13 @@ def newton(func, x0, g=None, H=None, niter=1000, tol=1e-3):
     timings = jnp.array(timings)
     return unflatten_vector(x0, xi), {"loss": losses, "timings": timings}
 
-def gauss_newton_partial(wres, jac, x0, fixed, niter=1000, tol=1e-3,full=False):
+
+def gauss_newton_partial(wres, jac, x0, fixed, niter=50, tol=1e-3, full=False):
     """
     Perform partial Gauss-Newton optimization for non-linear least squares problems.
 
-    This function implements the Gauss-Newton method with partial updates, where some 
-    parameters are fixed during optimization. It iteratively minimizes the sum of 
+    This function implements the Gauss-Newton method with partial updates, where some
+    parameters are fixed during optimization. It iteratively minimizes the sum of
     squared residuals by approximating the Hessian matrix.
 
     Parameters:
@@ -172,11 +249,11 @@ def gauss_newton_partial(wres, jac, x0, fixed, niter=1000, tol=1e-3,full=False):
       - 'FIM' (array-like, optional): Fisher Information Matrix if `full` is True.
 
     Notes:
-    - The function uses the Gauss-Newton method, which assumes that the Hessian of 
+    - The function uses the Gauss-Newton method, which assumes that the Hessian of
       the sum of squares can be approximated by J^T*J, where J is the Jacobian.
-    - Convergence is determined when the decrease in loss between iterations is 
+    - Convergence is determined when the decrease in loss between iterations is
       less than `tol`.
-    - This method is particularly useful for parameter estimation in non-linear 
+    - This method is particularly useful for parameter estimation in non-linear
       least squares problems where some parameters are known or fixed.
 
     Raises:
@@ -190,22 +267,23 @@ def gauss_newton_partial(wres, jac, x0, fixed, niter=1000, tol=1e-3,full=False):
     """
     timings = [time.time()]
     x = x0
-    losses=[]
+    losses = []
     for i in range(niter):
         R = wres(x, fixed)
         losses.append((R**2).sum())
         if i > 1:
-            if (losses[-2] - losses[-1] < tol):
+            if losses[-2] - losses[-1] < tol:
                 break
         J = jac(x, fixed)
-        g = J.T@R
-        dx = jnp.linalg.solve(J.T@J, g)
+        g = J.T @ R
+        dx = jnp.linalg.solve(J.T @ J, g)
         x = x - dx
         timings.append(time.time())
-    extra = {'loss':losses, 'timings':timings}
+    extra = {"loss": losses, "timings": timings}
     if full:
-        extra['FIM'] = jnp.linalg.inv(J.T@J)
+        extra["FIM"] = jnp.linalg.inv(J.T @ J)
     return x, extra
+
 
 def newton_partial(loss, x0, g, H, fixed, niter=1000, tol=1e-3):
     xi = x0

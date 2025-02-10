@@ -5,6 +5,8 @@ from typing import Callable, Tuple, Dict
 from .tools import linear_interpolation, Constants
 from .radiation import Omega_n_mass, Omega_n_rel, Tcmb_to_Omega_gamma
 
+jax.config.update("jax_enable_x64", True)
+
 
 def Omega_c(params: Dict[str, float]) -> float:
     """Compute Omega_c from the total matter density minus baryonic and neutrino contributions."""

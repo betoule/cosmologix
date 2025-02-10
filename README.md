@@ -30,19 +30,34 @@ Note: Make sure you have JAX installed, along with its dependencies. If you're u
 Here's a quick example to get you started:
 
 ```python
-from cosmologix import mu, planck2018
+from cosmologix import mu, Planck18
 import jax.numpy as jnp
 
-# flat Λ-CDM best-fit parameters to Planck 2018 are:
-print(planck2018)
+# Best-fit parameters to Planck 2018 are:
+print(Planck18)
 
 # Redshift values for supernovae
 z_values = jnp.linspace(0.1, 1.0, 10)
 
 # Compute distance modulus 
 distance_modulus = mu(params, z_values)
-
 print(distance_modulus)
+
+# Find bestfit flat w-CDM cosmology
+from cosmologix import likelihoods, fit
+priors = [likelihoods.Planck2018Prior(), likelihoods.DES5yr()]
+fixed = {'Omega_k':0., 'm_nu':0.06, 'Neff':3.046, 'Tcmb': 2.7255}
+result = fit(priors, fixed=fixed)
+print(result['bestfit'])
+
+# Compute frequentist confidence contours
+grid = contours.frequentist_contour_2D(
+     priors,
+	 grid={'Omega_m': [0.18, 0.48, 30], 'w': [-0.6, -1.5, 30]},
+	 fixed=fixed
+	 )
+contours.plot_contours(grid)
+
 ```
 
 ## Dependencies
@@ -54,12 +69,12 @@ print(distance_modulus)
 
 ## Documentation
 
-Detailed documentation for each function and module can be found in the source code or the docs (link-to-docs-if-available).
+Detailed documentation for each function and module can be found in the source code or the docs (link?).
 
 ## Contributing
 Contributions are welcome! Please fork the repository, make changes, and submit a pull request. Here are some guidelines:
 
-- Follow PEP 8 style.
+- Follow PEP 8 style. The commited code has to go through black.
 - Write clear commit messages.
 - Include tests for new features or bug fixes.
 
@@ -71,9 +86,18 @@ This project is licensed under the GPLV2 License - see the LICENSE.md file for d
 
 For any questions or suggestions, please open an issue.
 
-
 ## Acknowledgments
 
-Thanks to the JAX team for providing such an incredible tool for numerical computation in Python.
-To the cosmology and astronomy community for the valuable datasets and research that inform this package.
+Thanks to the JAX team for providing such an incredible tool for
+numerical computation in Python.  To the cosmology and astronomy
+community for the valuable datasets and research that inform this
+package. We are especially grateful to the contributors to the Core
+Cosmology Library (CCL)[https://github.com/LSSTDESC/CCL] against which
+the accuracy of this code has been tested,
+(astropy.cosmology)[https://docs.astropy.org/en/stable/cosmology/index.html]
+for its clean and inspiring interface and of course
+(jax-cosmo)[https://github.com/DifferentiableUniverseInitiative/jax_cosmo],
+pioneer and much more advanced in differentiable cosmology
+computations.
+
 
