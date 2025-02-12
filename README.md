@@ -18,10 +18,10 @@ distances. It has been tested against the CCL.
 
 ## Installation
 
-To install JaxCosmo, you need Python 3.7 or newer. Use pip:
+To install `cosmologix`, you need Python 3.10 or newer. Use pip:
 
 ```sh
-pip install jaxcosmo
+pip install cosmologix
 ```
 
 Note: Make sure you have JAX installed, along with its dependencies. If you're using GPU acceleration, ensure CUDA and cuDNN are properly set up.
