@@ -34,6 +34,13 @@ def test_newton_fitter():
     point = {"Omega_m": 0.3, "M": 0.0}
     control_fitter_bias_and_coverage([des], point, newton, ndraw=50)
 
+def test_fit():
+    from cosmologix import likelihoods, fit
+    priors = [likelihoods.Planck2018Prior()]
+    fixed = {'Omega_k':0., 'm_nu':0.06, 'Neff':3.046, 'Tcmb': 2.7255, 'w':-1.}
+    result = fit(priors, fixed=fixed)
+    print(result['bestfit'])
+
 
 if __name__ == "__main__":
     des = DES5yr()
@@ -43,8 +50,8 @@ if __name__ == "__main__":
         "M": 0,
     }
     #'M': 0.}
-    control_fitter_bias_and_coverage([des, pl], point, newton, ndraw=50)
-
+    #control_fitter_bias_and_coverage([des, pl], point, newton, ndraw=50)
+    test_fit()
 
 #    fixed_params = Planck18.copy()
 #    fixed_params.pop("Omega_m")

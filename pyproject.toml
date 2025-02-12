@@ -40,6 +40,7 @@ test = [
     "pyyaml",
     "black",
     "scipy",
+    "camb",
 ]
 [project.urls]
 "Source Code" = "https://gitlab.in2p3.fr/lemaitre/cosmologix"

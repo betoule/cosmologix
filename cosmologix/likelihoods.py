@@ -1,5 +1,5 @@
 from cosmologix import mu
-from cosmologix.distances import Omega_c, dM
+from cosmologix.distances import Omega_c
 from cosmologix.acoustic_scale import z_star, rs
 import jax.numpy as jnp
 from cosmologix.tools import randn
@@ -126,10 +126,8 @@ class GeometricCMBLikelihood(Chi2):
 
     def model(self, params):
         Omega_c_h2 = Omega_c(params) * (params["H0"] ** 2 * 1e-4)
-        zstar = z_star(params)
-        rsstar = rs(params, zstar)
-        thetastar = rsstar / dM(params, zstar) * 100.0
-        return jnp.array([params["Omega_b_h2"], Omega_c_h2, thetastar])
+        thetaMC = rsstar / dM(params, zstar) * 100.0
+        return jnp.array([params["Omega_b_h2"], Omega_c_h2, thetaMC])
 
     def residuals(self, params):
         return self.mean - self.model(params)
@@ -170,13 +168,27 @@ def Planck2018Prior():
 
 
 # Best fit cosomologies
+
+# Base-ΛCDM cosmological parameters from Planck
+# TT,TE,EE+lowE+lensing. Taken from Table 1. in
+# 10.1051/0004-6361/201833910
 Planck18 = {
-    "Omega_m": 0.30966,
-    "Tcmb": 2.7255,
-    "Omega_b_h2": 0.0224178,
-    "Omega_k": 0.0,
-    "w": -1.0,
-    "H0": 67.66,
+    "Tcmb": 2.7255, # Check this number and report the exact origin
+    "Omega_m": 0.3147, # ±0.0074
+    "H0": 67.37, # ±0.54
+    "Omega_b_h2":0.02233, # ±0.00015
+    "Omega_k": 0.,
+    "w": -1.,
     "m_nu": 0.06,
     "Neff": 3.046,
-}
+    }
+#Planck18 = {
+#    "Omega_m": 0.30966,
+#    "Tcmb": 2.7255,
+#    "Omega_b_h2": 0.0224178,
+#    "Omega_k": 0.0,
+#    "w": -1.0,
+#    "H0": 67.66,
+#    "m_nu": 0.06,
+#    "Neff": 3.046,
+#}

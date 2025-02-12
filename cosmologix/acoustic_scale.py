@@ -5,7 +5,7 @@ Fitting formulae for the acoustic scale
 import jax.numpy as jnp
 from typing import Callable, Tuple, Dict
 from .tools import Constants
-from .distances import Omega_c, Omega_de
+from .distances import Omega_c, Omega_de, dM
 from .radiation import Omega_n_mass, Omega_n_rel, Tcmb_to_Omega_gamma
 
 
@@ -44,7 +44,7 @@ def a4H2(params, a):
     h = params["H0"] / 100
     Omega_b0 = params["Omega_b_h2"] / h**2
     Omega_c0 = Omega_c(params)
-    Omega_nu_mass = jnp.array([Omega_n_mass(params, jnp.sqrt(aa)) for aa in a])
+    #Omega_nu_mass = jnp.array([Omega_n_mass(params, jnp.sqrt(aa)) for aa in a])
     Omega_nu_mass = Omega_n_mass(params, jnp.sqrt(a))
     Omega_nu_rel = Omega_n_rel(params)
     Omega_de0 = Omega_de(params, Omega_nu_rel)
@@ -60,7 +60,7 @@ def a4H2(params, a):
 
 
 def dsound_da_approx(params, a):
-    """Approximate form of the sound horizon used by cosmomc
+    """Approximate form of the sound horizon used by cosmomc for theta
 
     Notes
     -----
@@ -78,10 +78,21 @@ def rs(params, z):
     """The comoving sound horizon size in Mpc"""
     nstep = 1000
     a = 1.0 / (1.0 + z)
-    _a = jnp.linspace(0, a, nstep)
+    _a = jnp.linspace(1e-8, a, nstep)
     _a = 0.5 * (_a[1:] + _a[:-1])
     step = _a[1] - _a[0]
     # step = a / nstep
     # _a = jnp.arange(0.5 * step, a, step)
     R = Constants.c * 1e-3 / jnp.sqrt(3) * dsound_da_approx(params, _a).sum() * step
     return R
+
+def theta_MC(params):
+    """CosmoMC approximation of acoustic scale angle
+
+    The code returns 100 θ_MC which is the sampling variable in Planck
+    chains.
+    """
+    zstar = z_star(params)
+    rsstar = rs(params, zstar)
+    return rsstar / dM(params, zstar) * 100.0
+    
