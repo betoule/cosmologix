@@ -40,14 +40,27 @@ def params_to_ccl(params):
 def params_to_CAMB(params):
     omegac = float(Omega_c(params))
     h = params["H0"] / 100
-    pars = camb.set_params(H0=params['H0'], ombh2=params['Omega_b_h2'], omch2=omegac*h**2, mnu=params['m_nu'], omk=params['Omega_k'], tau=0.0540, As=jnp.exp(3.043)/10**10, ns=0.9652, halofit_version='mead', lmax=3000)
+    pars = camb.set_params(
+        H0=params["H0"],
+        ombh2=params["Omega_b_h2"],
+        omch2=omegac * h**2,
+        mnu=params["m_nu"],
+        omk=params["Omega_k"],
+        tau=0.0540,
+        As=jnp.exp(3.043) / 10**10,
+        ns=0.9652,
+        halofit_version="mead",
+        lmax=3000,
+    )
     return pars
+
 
 def mu_camb(params, z):
     pars = params_to_CAMB(params)
     results = camb.get_results(pars)
     return 5 * jnp.log10(results.luminosity_distance(z)) + 25
-    
+
+
 def mu_ccl(params, z):
     cclcosmo = ccl.Cosmology(**params_to_ccl(params))
     return ccl.distance_modulus(cclcosmo, 1 / (1 + z))

@@ -173,16 +173,16 @@ def Planck2018Prior():
 # TT,TE,EE+lowE+lensing. Taken from Table 1. in
 # 10.1051/0004-6361/201833910
 Planck18 = {
-    "Tcmb": 2.7255, # Check this number and report the exact origin
-    "Omega_m": 0.3147, # ±0.0074
-    "H0": 67.37, # ±0.54
-    "Omega_b_h2":0.02233, # ±0.00015
-    "Omega_k": 0.,
-    "w": -1.,
+    "Tcmb": 2.7255,  # Check this number and report the exact origin
+    "Omega_m": 0.3147,  # ±0.0074
+    "H0": 67.37,  # ±0.54
+    "Omega_b_h2": 0.02233,  # ±0.00015
+    "Omega_k": 0.0,
+    "w": -1.0,
     "m_nu": 0.06,
     "Neff": 3.046,
-    }
-#Planck18 = {
+}
+# Planck18 = {
 #    "Omega_m": 0.30966,
 #    "Tcmb": 2.7255,
 #    "Omega_b_h2": 0.0224178,
@@ -191,4 +191,4 @@ Planck18 = {
 #    "H0": 67.66,
 #    "m_nu": 0.06,
 #    "Neff": 3.046,
-#}
+# }

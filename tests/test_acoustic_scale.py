@@ -6,6 +6,7 @@ import jax
 import camb
 import jax.numpy as jnp
 
+
 def test_acoustic_scale():
     assert abs(z_star(Planck18) - 1091.73) < 1e-2
     assert abs(z_drag(Planck18) - 1020.715) < 1e-2
@@ -14,6 +15,7 @@ def test_acoustic_scale():
     # ThetaMC = 1.04089 ± 0.00031 for the base-LCDM bestfit cosmology
     # corresponding to the parameters in Planck18
     assert abs(theta_MC(planck18) - 1.04089) < 0.0001
+
 
 def timings():
     zs = jax.jit(z_star)
@@ -27,16 +29,17 @@ def timings():
     rsj(Planck18, zs(Planck18))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from cosmologix.tools import Constants
+
     params = lcdm_deviation(m_nu=0)
     pars = params_to_CAMB(params)
     zstar = z_star(params)
-    astar = 1/(1+zstar)
+    astar = 1 / (1 + zstar)
     results = camb.get_results(pars)
     thetastar = theta_MC(params)
-    print(f'CAMB: {100*results.cosmomc_theta()}')
-    print(f'Cosmologix: {thetastar}')
+    print(f"CAMB: {100*results.cosmomc_theta()}")
+    print(f"Cosmologix: {thetastar}")
     print(Constants.c * 1e-3 / jnp.sqrt(3) * dsound_da_approx(params, 1e-8))
-    print(Constants.c * 1e-3 / jnp.sqrt(3) * dsound_da_approx(params, astar/2))
+    print(Constants.c * 1e-3 / jnp.sqrt(3) * dsound_da_approx(params, astar / 2))
     print(Constants.c * 1e-3 / jnp.sqrt(3) * dsound_da_approx(params, astar))

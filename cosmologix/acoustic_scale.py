@@ -44,7 +44,7 @@ def a4H2(params, a):
     h = params["H0"] / 100
     Omega_b0 = params["Omega_b_h2"] / h**2
     Omega_c0 = Omega_c(params)
-    #Omega_nu_mass = jnp.array([Omega_n_mass(params, jnp.sqrt(aa)) for aa in a])
+    # Omega_nu_mass = jnp.array([Omega_n_mass(params, jnp.sqrt(aa)) for aa in a])
     Omega_nu_mass = Omega_n_mass(params, jnp.sqrt(a))
     Omega_nu_rel = Omega_n_rel(params)
     Omega_de0 = Omega_de(params, Omega_nu_rel)
@@ -86,6 +86,7 @@ def rs(params, z):
     R = Constants.c * 1e-3 / jnp.sqrt(3) * dsound_da_approx(params, _a).sum() * step
     return R
 
+
 def theta_MC(params):
     """CosmoMC approximation of acoustic scale angle
 
@@ -95,4 +96,3 @@ def theta_MC(params):
     zstar = z_star(params)
     rsstar = rs(params, zstar)
     return rsstar / dM(params, zstar) * 100.0
-    
