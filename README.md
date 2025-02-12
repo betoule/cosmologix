@@ -40,7 +40,7 @@ print(Planck18)
 z_values = jnp.linspace(0.1, 1.0, 10)
 
 # Compute distance modulus 
-distance_modulus = mu(params, z_values)
+distance_modulus = mu(Planck18, z_values)
 print(distance_modulus)
 
 # Find bestfit flat w-CDM cosmology
