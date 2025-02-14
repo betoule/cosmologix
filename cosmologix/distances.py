@@ -121,6 +121,11 @@ def dA(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarr
     """
     return dM(params, z, nstep) / (1 + z)
 
+def dH(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
+    """Compute the Hubble distance in Mpc.
+    """
+    return Constants.c * 1e-3 / H(params, z)
+
 
 def mu(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
     """Compute the distance modulus."""
@@ -128,14 +133,21 @@ def mu(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarr
 
 
 def dVc(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
-    """Calculate the differential comoving volume."""
+    """Calculate the differential comoving volume.
+    """
     dh = Constants.c / params["H0"] * 1e-3
-    toto = 1 + z
+    u = 1. / jnp.sqrt(1 + z)
     return (
         4
         * jnp.pi
         * (dC(params, z) ** 2)
         * dh
-        * dzoveru3H(params, 1 / jnp.sqrt(toto))
-        / (toto ** (3 / 2))
+        * dzoveru3H(params, u) * u**3
     )
+
+def dV(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
+    """Calculate the volumic distance.
+    See formula 2.6 in DESI 1yr cosmological results arxiv:2404.03002
+    """
+    return (z * dM(params, z)**2 * dH(params, z))**(1/3)
+
