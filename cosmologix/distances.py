@@ -21,6 +21,22 @@ def Omega_de(params: Dict[str, float], Omega_n_rel: float) -> float:
     omg = Tcmb_to_Omega_gamma(params["Tcmb"], params["H0"])
     return 1 - params["Omega_m"] - omg - Omega_n_rel - params["Omega_k"]
 
+def H(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
+    """Hubble rate in km/s/Mpc.
+
+    Parameters:
+    -----------
+    params: pytree containing the background cosmological parameters
+    z: scalar or array
+       redshift at which to compute the comoving distance
+
+
+    u = 1/sqrt(1+z)
+
+    """
+    u = 1. / jnp.sqrt(1 + z)
+    return params["H0"] * u**(-3) / dzoveru3H(params, u)
+
 
 def dzoveru3H(params: Dict[str, float], u: jnp.ndarray) -> jnp.ndarray:
     """Integrand for inverse expansion rate integrals.
