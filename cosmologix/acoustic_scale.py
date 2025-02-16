@@ -86,6 +86,15 @@ def rs(params, z):
     R = Constants.c * 1e-3 / jnp.sqrt(3) * dsound_da_approx(params, _a).sum() * step
     return R
 
+def rd_approx(params):
+    """
+    The comoving sound horizon size at drag redshift in Mpc
+    Formula from DESI 1yr cosmological result paper arxiv:2404.03002
+    """
+    omega_b = params["Omega_b_h2"]
+    omega_m = params["Omega_m"] * (params["H0"]/100)**2
+    return 147.05*(omega_m/0.1432)**(-0.23)*(params["Neff"]/3.04)**(-0.1)*(omega_b/0.02236)**-0.13
+
 
 def theta_MC(params):
     """CosmoMC approximation of acoustic scale angle
