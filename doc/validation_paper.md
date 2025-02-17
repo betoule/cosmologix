@@ -107,9 +107,16 @@ can rewrite equation under its most common form:
   \frac{H^2}{H_0^2} = \Omega_0 \frac{\rho}{\rho_0} + \Omega_k (1+z)^2
 \end{equation}
 
-We split the universe content into several components characterized by
-there reduced density today and their equation of state.  For a
-perfect fluid $X$ with equation of state $\rho_X = w_x p_x$, the
+
+## Densities
+
+We split the universe content into several components. Most of them
+are characterized by there reduced density today and their equation of
+state, but for neutrinos which, in the general case, transition from ultra-relativistic to non-relativistic over the period of interest.
+
+### Equations of state
+
+For a perfect fluid $X$ with equation of state $\rho_X = w_x p_x$, the
 energy conservation writes:
 
 \begin{equation}
@@ -123,29 +130,22 @@ which can be integrated to give:
   \log \frac{\rho_x}{\rho_x^0} = 3 \int_0^z \frac{1+w_x(z)}{1+z}dz
 \end{equation}
 
-In the code we consider the following components:
+In the code the following components follow this description, with simplification made when appropriate:
+
 - Baryonic matter: $\Omega_b, w_b=0 \rightarrow \frac{\rho_b}{\rho_b^0} = (1+z)^3$,
 - Cold dark matter: $\Omega_c, w_c=0 \rightarrow \frac{\rho_b}{\rho_b^0} = (1+z)^3$,
-- Photons: $\Omega_\gamma(T_\text{cmb}, h), w_\gamma=\frac13 \rightarrow
-  \frac{\rho_\gamma}{\rho_\gamma^0} = (1+z)^4$, 
-- Neutrinos, $\Omega_n$,
 - and dark energy $\Omega_x$.
 
-## Dark energy
-
-Varying EoS: $w(z) = w + \frac{z}{1+z} w_a \rightarrow \rho/\rho_0 =
+We allow dark energy to have a variable equation of state according to the parametrization: $w(z) = w + \frac{z}{1+z} w_a \rightarrow \rho/\rho_0 =
   \exp\left(3 (1 + w + w_a) \log(1+z) - 3 w_a \frac{z}{1+z}\right)$,
-  with $w$ and $w_a$ as a free parameter.
+  with $w$ and $w_a$ as free parameters.
   
 ## Radiation
 
-The energy density of specie $i$ is obtained by integration over the
-distribution function:
-\begin{equation}
-  \label{eq:12}
-  \rho_i c^2= g_i  \int N_i(p) E(p) \frac{4\pi p^2dp}{h^3}
-\end{equation}
-where $g_i$ is the degeneracy number of the species. 
+In the more general case, the energy density of specie $i$ is obtained
+by integration over the distribution function: \begin{equation}
+\label{eq:12} \rho_i c^2= g_i \int N_i(p) E(p) \frac{4\pi p^2dp}{h^3}
+\end{equation} where $g_i$ is the degeneracy number of the species.
 
 ### Photon
 
@@ -161,8 +161,12 @@ which gives, with the variable change $x=\frac{cp}{k_BT_\gamma}$:
   &=\frac{8\pi^5(k_B T_\gamma)^4}{15 c^3 h^3} 
 \end{align}
 where we have used the result $\int_0^\infty u^{s-1}/(e^u - 1) du =
-\Gamma(s) \zeta(s)$. The photon density today is fixed in the code
-from $T_\gamma^0 = 2.7255 K$ 2009ApJ...707..916F.
+\Gamma(s) \zeta(s)$. 
+
+Which brings use to the previous case with $w_\gamma=\frac13 \rightarrow
+  \frac{\rho_\gamma}{\rho_\gamma^0} = (1+z)^4$. However instead of providing $\Omega_\gamma^0$ the code expects $T_{cmb}$ to be given and computes:
+$\Omega_\gamma(T_\text{cmb}, h) =$
+As a default value the code uses $T_\gamma^0 = 2.7255 K$ 2009ApJ...707..916F.
 
 ### Neutrinos
 
@@ -304,8 +308,11 @@ and one has:
 
 # Numerical results
 
+![Computation speed of the distance modulus](mu_speed.png)
+
 
 # Differentiability and likelihood maximization
+
 
 
 # Citations

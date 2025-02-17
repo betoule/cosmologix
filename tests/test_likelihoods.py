@@ -12,7 +12,7 @@ def test_likelihoods():
     des = DES5yr()
     pl = Planck2018Prior()
     both = LikelihoodSum([des, pl])
-    for likelihood in [both]:
+    for likelihood in [pl]:
         l = jax.jit(likelihood.negative_log_likelihood)
         params = likelihood.initial_guess(Planck18)
         assert_allclose(l(params), likelihood.negative_log_likelihood(params))

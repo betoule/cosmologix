@@ -163,7 +163,7 @@ class Constants:
     h = 6.62617e-34  # J.s
     k = 1.38066e-23  # J/K
     e = 1.60217663e-19  # C
-    sigma = 2 * jnp.pi**5 * k**4 / (15 * h**3 * c**2)  # Stefan-Boltzmann constant
+    sigma = 2 * jnp.pi**5 * k**4 / (15 * h**3 * c**2)  # Stefan-Boltzmann constant J/s / K^4 /m^2
     qmax = 30
     nq = 100
     const = 7.0 / 120 * jnp.pi**4

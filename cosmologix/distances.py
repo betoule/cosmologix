@@ -42,28 +42,42 @@ def dzoveru3H(params: Dict[str, float], u: jnp.ndarray) -> jnp.ndarray:
     )
 
 
-def dC(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
-    """Compute the comoving distance at redshift z.
+#def dC(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
+#    """Compute the comoving distance at redshift z.
+#
+#    Distance between comoving object and observer that stay
+#    constant with time (coordinate).
+#
+#    Parameters:
+#    -----------
+#    params: pytree containing the background cosmological parameters
+#    z: scalar or array
+#       redshift at which to compute the comoving distance
+#
+#    Returns:
+#    --------
+#    Comoving distance in Mpc
+#    """
+#    dh = Constants.c / params["H0"] * 1e-3  # Hubble radius in kpc
+#    u = 1 / jnp.sqrt(1 + z)
+#    umin = 0.02
+#    step = (1 - umin) / nstep
+#    _u = jnp.arange(umin + 0.5 * step, 1, step)
+#    csum = jnp.cumsum(dzoveru3H(params, _u[-1::-1]))[-1::-1]
+#    return linear_interpolation(u, csum, _u - 0.5 * step) * 2 * step * dh
 
-    Distance between comoving object and observer that stay
-    constant with time (coordinate).
+from cosmologix.densities import Omega
+def distance_integrand(params, u):
+    z = 1/u**2 - 1
+    return 1/(u**3 * jnp.sqrt(Omega(params, z)))
 
-    Parameters:
-    -----------
-    params: pytree containing the background cosmological parameters
-    z: scalar or array
-       redshift at which to compute the comoving distance
-
-    Returns:
-    --------
-    Comoving distance in Mpc
-    """
-    dh = Constants.c / params["H0"] * 1e-3  # Hubble radius in kpc
+def dC(params, z, nstep=1000):
+    dh = Constants.c / params["H0"] * 1e-3 # in Mpc
     u = 1 / jnp.sqrt(1 + z)
     umin = 0.02
     step = (1 - umin) / nstep
     _u = jnp.arange(umin + 0.5 * step, 1, step)
-    csum = jnp.cumsum(dzoveru3H(params, _u[-1::-1]))[-1::-1]
+    csum = jnp.cumsum(distance_integrand(params, _u[-1::-1]))[-1::-1]
     return linear_interpolation(u, csum, _u - 0.5 * step) * 2 * step * dh
 
 
