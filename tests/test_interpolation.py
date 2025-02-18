@@ -1,88 +1,35 @@
 import jax
 import jax.numpy as jnp
+import cosmologix.interpolation
+from cosmologix.tools import speed_measurement
 
-def barycentric_weights(x):
-    """Compute barycentric weights for interpolation points x."""
-    n = len(x)
-    w = jnp.ones(n)
+def jnp_interpolant(func, a, b, n=10):
+    nodes = jnp.linspace(a, b, n)
+    return lambda x: jnp.interp(x, nodes, func(nodes))
+
+def interpolation_accuracy(func, method, a=0, b=1, n=10):
+    interp = method(func, a, b, n)
+    x = jnp.linspace(a, b, 4000)
+    y = func(x)
+    yi = interp(x)
+    speed = speed_measurement(interp, x) 
+    results = {'first_call': speed[0],
+               'subsequent': speed[1],
+               'first_call(j)':speed[3],
+               'subsequent(j)': speed[4],
+               'accuracy': (yi-y).ptp()}
+    return results
+
+def test_interpolation():
+    def x2(x):
+        return x**2
+    for func in [x2]:
+        for method, n in [(cosmologix.interpolation.newton_interpolant, 10),
+                          (cosmologix.interpolation.barycentric_interpolant, 10),
+                          (cosmologix.interpolation.linear_interpolant, 1000),
+                          (jnp_interpolant, 1000)]:
+            print(interpolation_accuracy(func, method, n=n))
+            
+if __name__ == '__main__':
+    test_interpolation()
     
-    # Compute weights using a numerically stable approach
-    for j in range(n):
-        # Product of (x_j - x_i) for i != j
-        product = 1.0
-        for i in range(n):
-            if i != j:
-                diff = x[j] - x[i]
-                product *= diff
-        # The weight is 1 / product to avoid overflow in the product
-        w = w.at[j].set(1.0 / product if product != 0 else 1.0)
-    
-    return w
-
-def chebyshev_nodes(n, a, b):
-    """Compute n Chebyshev nodes of the second kind on the interval [a, b]."""
-    # Compute indices k = 0, 1, ..., n
-    k = jnp.arange(n+1)
-    
-    # Compute Chebyshev nodes on [-1, 1]
-    x_cheb = jnp.cos(k * jnp.pi/n)#jnp.cos((2 * k + 1) * jnp.pi / (2 * (n + 1)))
-    
-    # Map to [a, b]
-    x_mapped = (b - a) / 2 * x_cheb + (a + b) / 2
-    
-    return x_mapped
-
-def barycentric_weights_chebyshev(n):
-    """Compute barycentric weights for n+1 Chebyshev nodes."""
-    j = jnp.arange(n + 1)
-    w = (-1.) ** j
-    w = w.at[0].set(w[0]/2.)
-    w = w.at[n].set(w[n]/2.)
-    return w
-
-def barycentric_interp(x_tab, y_tab, x_query, w=None):
-    """Perform barycentric interpolation at x_query given tabulated points (x_tab, y_tab).
-
-    This is reputed to be more stable numerically than Newton's
-    formulae but can causes issues regarding to differentiability.
-    """
-    if w is None:
-        w = barycentric_weights(x_tab)
-
-    xq = jnp.atleast_1d(x_query)
-    exact_matches = x_tab == xq[0]
-    exact_match = (exact_matches.any()).astype(int)
-    exact_idx = exact_matches.argmax()
-    def exact_case():
-        return y_tab[exact_idx]
-    
-    def interp_case():
-        # Compute numerator and denominator of barycentric formula
-        diffs = xq[0] - x_tab
-        # Avoid division by zero by setting a large weight for exact matches
-        terms = w * y_tab / diffs
-        num = jnp.sum(terms)
-        den = jnp.sum(w / diffs)
-        return num / den
-    
-    return jax.lax.switch(exact_match, [interp_case, exact_case])
-
-
-
-# Example usage
-#x_tab = jnp.array([0.0, 1.0, 2.0, 3.0])
-n = 10
-x_tab = chebyshev_nodes(n, 0, 10)
-y_tab = x_tab ** 2
-#y_tab = jnp.array([0.0, 1.0, 4.0, 9.0])  # Example: f(x) = x^2
-
-# Precompute weights
-#w = barycentric_weights(x_tab)
-w = barycentric_weights_chebyshev(n)
-# Query points
-x_query = jnp.array([0.5, 1.5, 2.5])
-
-# Interpolate
-y_interp = jax.vmap(lambda x: barycentric_interp(x_tab, y_tab, x, w), in_axes=(0,))(x_query)
-
-print("Interpolated values:", y_interp)  # Should be close to [0.25, 2.25, 6.25]

@@ -1,6 +1,6 @@
 from cosmologix import densities
-from cosmologix.tools import Constants, trapezoidal_rule_integration, safe_vmap, linear_interpolation
-from cosmologix.polynomial_interpolation import chebyshev_nodes, newton_interp, newton_divided_differences
+from cosmologix.tools import Constants, trapezoidal_rule_integration, safe_vmap
+from cosmologix.interpolation import chebyshev_nodes, newton_interp, newton_divided_differences
 import jax.numpy as jnp
 import jax
 

@@ -2,7 +2,8 @@ import jax.numpy as jnp
 from jax import lax
 import jax
 from typing import Callable, Tuple, Dict
-from .tools import linear_interpolation, Constants
+from .tools import Constants
+from .interpolation import linear_interpolation
 from .radiation import Omega_n_mass, Omega_n_rel, Tcmb_to_Omega_gamma
 
 jax.config.update("jax_enable_x64", True)

@@ -82,21 +82,85 @@ def newton_divided_differences(x, y):
     # Return the coefficients (first row of the table)
     return coeffs[0, :]
 
-def newton_interp(x_tab, y_tab, x_query, coeffs=None):
-    """Evaluate Newton's interpolation polynomial at x_query."""
+def newton_interp(x_tab, y_tab, coeffs=None):
+    """Evaluate Newton's interpolation polynomial."""
     if coeffs is None:
         coeffs = newton_divided_differences(x_tab, y_tab)
     
     n = len(x_tab)
     
-    def eval_single(xq):
-        # Initialize result with the first coefficient
-        result = coeffs[0]
-        # Compute the product term (x - x_0)(x - x_1)...
-        product = 1.0
-        for i in range(1, n):
-            product *= (xq - x_tab[i - 1])
-            result += coeffs[i] * product
+    #def eval_single(xq):
+    #    # Initialize result with the first coefficient
+    #    result = coeffs[0]
+    #    # Compute the product term (x - x_0)(x - x_1)...
+    #    product = 1.0
+    #    for i in range(1, n):
+    #        product *= (xq - x_tab[i - 1])
+    #        result += coeffs[i] * product
+    #    return result
+    
+    @jax.jit
+    def eval_horner(xq):
+        def body_fun(i, val):
+            return jnp.multiply(val, xq - x_tab[n-i]) + coeffs[n-i]
+    
+        result = jnp.full(xq.shape, coeffs[-1])
+        result = jax.lax.fori_loop(2, n+1, body_fun, result)
         return result
     
-    return eval_single(x_query)
+    #def eval_single_horner(xq):
+    #    result = coeffs[-1]
+    #    for i in range(n - 2, -1, -1):
+    #        result = jnp.multiply(result, xq - x_tab[i]) + coeffs[i]
+    #    return result
+
+    #return eval_single(x_query)
+    #return eval_single_horner(x_query)
+    return eval_horner
+
+def linear_interpolation(
+    x: jnp.ndarray, y_bins: jnp.ndarray, x_bins: jnp.ndarray
+) -> jnp.ndarray:
+    """
+    Perform linear interpolation between set points.
+
+    Parameters:
+    -----------
+    x: jnp.ndarray
+        x coordinates for interpolation.
+    y_bins, x_bins: jnp.ndarray
+        y and x coordinates of the set points.
+
+    Returns:
+    --------
+    jnp.ndarray: Interpolated y values.
+    """
+    bin_index = jnp.digitize(x, x_bins) - 1
+    w = (x - x_bins[bin_index]) / (x_bins[bin_index + 1] - x_bins[bin_index])
+    return (1 - w) * y_bins[bin_index] + w * y_bins[bin_index + 1]
+
+def newton_interpolant(func, a, b, n=10):
+    ''' Return a polynomial interpolant of the provided function on interval [a, b] using n chebyshev_nodes
+
+    The polynomial is evaluated using the Newton formula whose precomputation is in O(n²).
+    '''
+    nodes = chebyshev_nodes(n, a, b)
+    #coeffs = newton_divided_differences(nodes, func(nodes))
+    #return lambda x: newton_interp(nodes, None, x, coeffs=coeffs)
+    return newton_interp(nodes, func(nodes))
+    
+def barycentric_interpolant(func, a, b, n=10):
+    '''Return a polynomial interpolant of the provided function on interval [a, b] using n chebyshev nodes.
+
+    The polynomial is evaluated using the barycentric formula which is
+    faster to precompute for chebyshev nodes than the newton formula
+    and should be more stable numerically. However the jax
+    implementation is not fully differentiable.
+    '''
+    nodes = chebyshev_nodes(n, a, b)
+    weights = barycentric_weights_chebyshev(n)
+    return jax.vmap(lambda x: barycentric_interp(nodes, func(nodes), x, weights), in_axes=(0,))
+
+def linear_interpolant(func, a, b, n=10):
+    nodes = jnp.linspace(a, b*(1+1e-6), n)
+    return lambda x: linear_interpolation(x, func(nodes), nodes)

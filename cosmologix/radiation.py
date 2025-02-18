@@ -20,8 +20,8 @@ from .tools import (
     Constants,
     safe_vmap,
     trapezoidal_rule_integration,
-    linear_interpolation,
 )
+from .interpolation import linear_interpolation
 
 
 def rhoc(H: float) -> float:
