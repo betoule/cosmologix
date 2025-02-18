@@ -10,6 +10,7 @@ from pathlib import Path
 import shutil
 import time
 
+
 def get_cache_dir():
     """Determine the appropriate cache directory based on the OS."""
     if os.name == "nt":  # Windows
@@ -141,7 +142,9 @@ class Constants:
     h = 6.62617e-34  # J.s
     k = 1.38066e-23  # J/K
     e = 1.60217663e-19  # C
-    sigma = 2 * jnp.pi**5 * k**4 / (15 * h**3 * c**2)  # Stefan-Boltzmann constant J/s / K^4 /m^2
+    sigma = (
+        2 * jnp.pi**5 * k**4 / (15 * h**3 * c**2)
+    )  # Stefan-Boltzmann constant J/s / K^4 /m^2
     qmax = 30
     nq = 100
     const = 7.0 / 120 * jnp.pi**4
@@ -278,6 +281,7 @@ def randn(sigma, n=None, key=None):
     gaussian_vector = jax.random.normal(subkey, n)
     return gaussian_vector * sigma
 
+
 def speed_measurement(func, *args, n=10):
     tstart = time.time()
     result = jax.block_until_ready(func(*args))
@@ -292,5 +296,11 @@ def speed_measurement(func, *args, n=10):
     for _ in range(n):
         result = jax.block_until_ready(func(*args))
     tstop2 = time.time()
-    #return (len(z), tcomp-tstart, (tstop-tcomp)/n)
-    return  (tcomp - tstart, (tstop1-tcomp)/n, tjit - tstop1, tcomp2-tjit, (tstop2 - tcomp2)/n)
+    # return (len(z), tcomp-tstart, (tstop-tcomp)/n)
+    return (
+        tcomp - tstart,
+        (tstop1 - tcomp) / n,
+        tjit - tstop1,
+        tcomp2 - tjit,
+        (tstop2 - tcomp2) / n,
+    )

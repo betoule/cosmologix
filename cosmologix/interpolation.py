@@ -1,11 +1,12 @@
 import jax
 import jax.numpy as jnp
 
+
 def barycentric_weights(x):
     """Compute barycentric weights for interpolation points x."""
     n = len(x)
     w = jnp.ones(n)
-    
+
     # Compute weights using a numerically stable approach
     for j in range(n):
         # Product of (x_j - x_i) for i != j
@@ -16,29 +17,32 @@ def barycentric_weights(x):
                 product *= diff
         # The weight is 1 / product to avoid overflow in the product
         w = w.at[j].set(1.0 / product if product != 0 else 1.0)
-    
+
     return w
+
 
 def chebyshev_nodes(n, a, b):
     """Compute n Chebyshev nodes of the second kind on the interval [a, b]."""
     # Compute indices k = 0, 1, ..., n
-    k = jnp.arange(n+1)
-    
+    k = jnp.arange(n + 1)
+
     # Compute Chebyshev nodes on [-1, 1]
-    x_cheb = jnp.cos(k * jnp.pi/n)#jnp.cos((2 * k + 1) * jnp.pi / (2 * (n + 1)))
-    
+    x_cheb = jnp.cos(k * jnp.pi / n)  # jnp.cos((2 * k + 1) * jnp.pi / (2 * (n + 1)))
+
     # Map to [a, b]
     x_mapped = (b - a) / 2 * x_cheb + (a + b) / 2
-    
+
     return x_mapped
+
 
 def barycentric_weights_chebyshev(n):
     """Compute barycentric weights for n+1 Chebyshev nodes."""
     j = jnp.arange(n + 1)
-    w = (-1.) ** j
-    w = w.at[0].set(w[0]/2.)
-    w = w.at[n].set(w[n]/2.)
+    w = (-1.0) ** j
+    w = w.at[0].set(w[0] / 2.0)
+    w = w.at[n].set(w[n] / 2.0)
     return w
+
 
 def barycentric_interp(x_tab, y_tab, x_query, w=None):
     """Perform barycentric interpolation at x_query given tabulated points (x_tab, y_tab).
@@ -53,9 +57,10 @@ def barycentric_interp(x_tab, y_tab, x_query, w=None):
     exact_matches = x_tab == xq[0]
     exact_match = (exact_matches.any()).astype(int)
     exact_idx = exact_matches.argmax()
+
     def exact_case():
         return y_tab[exact_idx]
-    
+
     def interp_case():
         # Compute numerator and denominator of barycentric formula
         diffs = xq[0] - x_tab
@@ -64,8 +69,9 @@ def barycentric_interp(x_tab, y_tab, x_query, w=None):
         num = jnp.sum(terms)
         den = jnp.sum(w / diffs)
         return num / den
-    
+
     return jax.lax.switch(exact_match, [interp_case, exact_case])
+
 
 def newton_divided_differences(x, y):
     """Compute the divided differences for Newton's interpolation."""
@@ -73,50 +79,36 @@ def newton_divided_differences(x, y):
     # Initialize the divided difference table with y values
     coeffs = jnp.zeros((n, n))
     coeffs = coeffs.at[:, 0].set(y)
-    
+
     # Compute divided differences
     for j in range(1, n):
         for i in range(n - j):
-            coeffs = coeffs.at[i, j].set((coeffs[i + 1, j - 1] - coeffs[i, j - 1]) / (x[i + j] - x[i]))
-    
+            coeffs = coeffs.at[i, j].set(
+                (coeffs[i + 1, j - 1] - coeffs[i, j - 1]) / (x[i + j] - x[i])
+            )
+
     # Return the coefficients (first row of the table)
     return coeffs[0, :]
+
 
 def newton_interp(x_tab, y_tab, coeffs=None):
     """Evaluate Newton's interpolation polynomial."""
     if coeffs is None:
         coeffs = newton_divided_differences(x_tab, y_tab)
-    
+
     n = len(x_tab)
-    
-    #def eval_single(xq):
-    #    # Initialize result with the first coefficient
-    #    result = coeffs[0]
-    #    # Compute the product term (x - x_0)(x - x_1)...
-    #    product = 1.0
-    #    for i in range(1, n):
-    #        product *= (xq - x_tab[i - 1])
-    #        result += coeffs[i] * product
-    #    return result
-    
+
     @jax.jit
     def eval_horner(xq):
         def body_fun(i, val):
-            return jnp.multiply(val, xq - x_tab[n-i]) + coeffs[n-i]
-    
-        result = jnp.full(xq.shape, coeffs[-1])
-        result = jax.lax.fori_loop(2, n+1, body_fun, result)
-        return result
-    
-    #def eval_single_horner(xq):
-    #    result = coeffs[-1]
-    #    for i in range(n - 2, -1, -1):
-    #        result = jnp.multiply(result, xq - x_tab[i]) + coeffs[i]
-    #    return result
+            return jnp.multiply(val, xq - x_tab[n - i]) + coeffs[n - i]
 
-    #return eval_single(x_query)
-    #return eval_single_horner(x_query)
+        result = jnp.full(xq.shape, coeffs[-1])
+        result = jax.lax.fori_loop(2, n + 1, body_fun, result)
+        return result
+
     return eval_horner
+
 
 def linear_interpolation(
     x: jnp.ndarray, y_bins: jnp.ndarray, x_bins: jnp.ndarray
@@ -139,28 +131,34 @@ def linear_interpolation(
     w = (x - x_bins[bin_index]) / (x_bins[bin_index + 1] - x_bins[bin_index])
     return (1 - w) * y_bins[bin_index] + w * y_bins[bin_index + 1]
 
+
 def newton_interpolant(func, a, b, n=10):
-    ''' Return a polynomial interpolant of the provided function on interval [a, b] using n chebyshev_nodes
+    """Return a polynomial interpolant of the provided function on interval [a, b] using n chebyshev_nodes
 
     The polynomial is evaluated using the Newton formula whose precomputation is in O(n²).
-    '''
+    """
     nodes = chebyshev_nodes(n, a, b)
-    #coeffs = newton_divided_differences(nodes, func(nodes))
-    #return lambda x: newton_interp(nodes, None, x, coeffs=coeffs)
+    # coeffs = newton_divided_differences(nodes, func(nodes))
+    # return lambda x: newton_interp(nodes, None, x, coeffs=coeffs)
     return newton_interp(nodes, func(nodes))
-    
+
+
 def barycentric_interpolant(func, a, b, n=10):
-    '''Return a polynomial interpolant of the provided function on interval [a, b] using n chebyshev nodes.
+    """Return a polynomial interpolant of the provided function on interval [a, b] using n chebyshev nodes.
 
     The polynomial is evaluated using the barycentric formula which is
     faster to precompute for chebyshev nodes than the newton formula
     and should be more stable numerically. However the jax
     implementation is not fully differentiable.
-    '''
+    """
     nodes = chebyshev_nodes(n, a, b)
     weights = barycentric_weights_chebyshev(n)
-    return jax.vmap(lambda x: barycentric_interp(nodes, func(nodes), x, weights), in_axes=(0,))
+    return jax.vmap(
+        lambda x: barycentric_interp(nodes, func(nodes), x, weights), in_axes=(0,)
+    )
+
 
 def linear_interpolant(func, a, b, n=10):
-    nodes = jnp.linspace(a, b*(1+1e-6), n)
+    """Return a linear interpolant of the provided function on interval [a, b] using n regularly spaced nodes."""
+    nodes = jnp.linspace(a, b * (1 + 1e-6), n)
     return lambda x: linear_interpolation(x, func(nodes), nodes)

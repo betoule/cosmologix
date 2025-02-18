@@ -43,7 +43,7 @@ def dzoveru3H(params: Dict[str, float], u: jnp.ndarray) -> jnp.ndarray:
     )
 
 
-#def dC(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
+# def dC(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
 #    """Compute the comoving distance at redshift z.
 #
 #    Distance between comoving object and observer that stay
@@ -68,12 +68,15 @@ def dzoveru3H(params: Dict[str, float], u: jnp.ndarray) -> jnp.ndarray:
 #    return linear_interpolation(u, csum, _u - 0.5 * step) * 2 * step * dh
 
 from cosmologix.densities import Omega
+
+
 def distance_integrand(params, u):
-    z = 1/u**2 - 1
-    return 1/(u**3 * jnp.sqrt(Omega(params, z)))
+    z = 1 / u**2 - 1
+    return 1 / (u**3 * jnp.sqrt(Omega(params, z)))
+
 
 def dC(params, z, nstep=1000):
-    dh = Constants.c / params["H0"] * 1e-3 # in Mpc
+    dh = Constants.c / params["H0"] * 1e-3  # in Mpc
     u = 1 / jnp.sqrt(1 + z)
     umin = 0.02
     step = (1 - umin) / nstep
