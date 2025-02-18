@@ -46,6 +46,15 @@ def I_m(m_bar):
 
     This function of the reduced mass \bar m evaluates:
     \int_0^\inf x^3 \sqrt(1 + (m_bar/x)^2)/(e^x + 1) dx
+
+    Notes:
+    ------
+    
+    This function admits expansions for the non-relativistics and
+    relativistic case. It is also very smooth in between so that it
+    can be sped-up by orders of magnitudes by combining the expansions
+    with a precomputed polynomial interpolant. This is what is done in
+    composite_I.
     """
 
     def integrand(x):
@@ -77,12 +86,10 @@ def analytical_m_large(m_bar):
 # Tabulated functions
 _mbar = jnp.logspace(-2, 2, 1000)
 _Imbar = I_m(_mbar)
-
 n_cheb = 35
 bar_nodes = chebyshev_nodes(n_cheb, -2, 3)
-coeffs = newton_divided_differences(bar_nodes, I_m(10**bar_nodes))
-interp2 = lambda x: newton_interp(bar_nodes, None, jnp.log10(x), coeffs=coeffs)
-
+_interp2 = newton_interp(bar_nodes, I_m(10**bar_nodes))
+interp2 = lambda x: _interp2(jnp.log10(x))
 
 def interpolated_I(m_bar):
     return linear_interpolation(jnp.log(m_bar), _Imbar, jnp.log(_mbar))
@@ -105,11 +112,6 @@ def composite_I(x):
 if __name__ == "__main__":
     from cosmologix import Planck18
     import matplotlib.pyplot as plt
-    from cosmologix.polynomial_interpolation import (
-        chebyshev_nodes,
-        barycentric_weights_chebyshev,
-        barycentric_interp,
-    )
 
     params = densities.params_to_density_params(Planck18.copy())
     params = T_nu(params)
@@ -121,18 +123,19 @@ if __name__ == "__main__":
     #
     #
 
-    # mbar = jnp.logspace(-3, 4, 1000)
-    # mlim = jnp.logspace(-2, 3, 1000)
-    # fig = plt.figure('Integral_accuracy')
-    # ax1, ax2 = fig.subplots(2,1,sharex=True)
-    # ax1.loglog(mbar, I_m(mbar))
-    # ax1.loglog(mlim, interp(mlim))
-    # ax1.loglog(mlim, interp2(mlim))
-    # ax2.plot(mbar, composite_I(mbar)/I_m(mbar))
-    # ax2.plot(mlim, interp(mlim)/I_m(mlim))
-    # ax2.plot(mlim, interp2(mlim)/I_m(mlim))
-    # plt.show()
+    mbar = jnp.logspace(-3, 4, 1000)
+    mlim = jnp.logspace(-2, 3, 1000)
+    fig = plt.figure('Integral_accuracy')
+    ax1, ax2 = fig.subplots(2,1,sharex=True)
+    ax1.loglog(mbar, I_m(mbar))
+    #ax1.loglog(mlim, interp(mlim))
+    ax1.loglog(mlim, interp2(mlim))
+    ax2.plot(mbar, composite_I(mbar)/I_m(mbar))
+    #ax2.plot(mlim, interp(mlim)/I_m(mlim))
+    #ax2.plot(mlim, interp2(mlim)/I_m(mlim))
+    plt.show()
 
+    plt.figure('neutrinos density')
     z = jnp.linspace(0.01, 1000, 1000)
     plt.plot(z, rho_nu(params, z))
     plt.show()
