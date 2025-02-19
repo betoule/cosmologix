@@ -283,6 +283,10 @@ def randn(sigma, n=None, key=None):
 
 
 def speed_measurement(func, *args, n=10):
+    '''Conveniency function to measure execution and jit speed of
+    functions in one go
+
+    '''
     tstart = time.time()
     result = jax.block_until_ready(func(*args))
     tcomp = time.time()
@@ -291,10 +295,10 @@ def speed_measurement(func, *args, n=10):
     tstop1 = time.time()
     jfunc = jax.jit(func)
     tjit = time.time()
-    result = jax.block_until_ready(func(*args))
+    result = jax.block_until_ready(jfunc(*args))
     tcomp2 = time.time()
     for _ in range(n):
-        result = jax.block_until_ready(func(*args))
+        result = jax.block_until_ready(jfunc(*args))
     tstop2 = time.time()
     # return (len(z), tcomp-tstart, (tstop-tcomp)/n)
     return (
