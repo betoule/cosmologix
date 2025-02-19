@@ -1,8 +1,7 @@
-from cosmologix import mu
+from cosmologix import mu, densities
 from cosmologix.acoustic_scale import z_star, theta_MC
 import jax.numpy as jnp
 from cosmologix.tools import randn
-
 
 class Chi2:
     """Abstract implementation of chi-squared (χ²) evaluation for statistical analysis.
@@ -124,6 +123,7 @@ class GeometricCMBLikelihood(Chi2):
         self.L = jnp.linalg.cholesky(self.W)
 
     def model(self, params):
+        params = densities.process_params(params)
         Omega_c_h2 = params["Omega_c"] * (params["H0"] ** 2 * 1e-4)
 
         return jnp.array([params["Omega_b_h2"], Omega_c_h2, theta_MC(params)])
