@@ -8,45 +8,45 @@ from cosmologix.interpolation import (
 import jax.numpy as jnp
 import jax
 
+jax.config.update("jax_enable_x64", True)
 
-def compute_cmb_photon_density(params):
+def compute_cmb_photon_density(Tcmb):
     """
     Compute the energy density of CMB photons today in kg/m^3.
 
     Parameters:
     -----------
-    params : dict
-        A dictionary containing cosmological parameters, including 'Tcmb' (CMB temperature in K).
+    Tcmb : float
+        CMB temperature today in K.
 
     Returns:
     --------
     float
         Energy density of CMB photons in kg/m^3.
     """
-    return 4 * Constants.sigma * params["Tcmb"] ** 4 / Constants.c**3
+    return 4 * Constants.sigma * Tcmb ** 4 / Constants.c**3
 
 
-def compute_neutrino_temperature(params):
+def compute_neutrino_temperature(Tcmb, Neff):
     """
     Calculate the neutrino distribution temperature today.
 
-    Based on the model described in 2005NuPhB.729..221M.
+    Based on the decoupling model described in 2005NuPhB.729..221M.
 
     Parameters:
     -----------
-    params : dict
-        A dictionary containing cosmological parameters, including 'Neff' (effective number of neutrino species) and 'Tcmb'.
+    Tcmb: float
+        CMB temperature today in K.
+    Neff: float
+        effective number of neutrino species.
 
     Returns:
     --------
-    dict
-        The input dictionary updated with 'T_nu' (neutrino temperature).
+    float
+        neutrino temperature today in K.
     """
-    params["T_nu"] = (
-        (4 / 11) ** (1.0 / 3) * (params["Neff"] / 3) ** (1.0 / 4) * params["Tcmb"]
-    )
-    return params
-
+    return (4 / 11) ** (1.0 / 3) * (Neff / 3) ** (1.0 / 4) * Tcmb
+    
 
 def compute_relativistic_neutrino_density(params):
     """
@@ -68,7 +68,7 @@ def compute_relativistic_neutrino_density(params):
         * params["Neff"]
         / 3
         * (4 / 11) ** (4.0 / 3)
-        * compute_cmb_photon_density(params)
+        * compute_cmb_photon_density(params['Tcmb'])
     )
 
 
@@ -128,26 +128,32 @@ def compute_fermion_distribution_integral(m_bar):
     return trapezoidal_rule_integration(integrand, 1e-3, 31, 10000)
 
 
-def convert_mass_to_reduced_parameter(params):
-    """
-    Convert neutrino masses from eV to the reduced energy parameter m_bar.
+def convert_mass_to_reduced_parameter(m_nu, T_nu):
+    """Convert neutrino masses from eV to the reduced energy parameter m_bar.
 
     m_bar = m c²/k_b T
 
+    While the rest of the code is generic, this function specifically
+    assume 2 massless species and 1 massive specie bearing the sum of
+    masses.
+
     Parameters:
     -----------
-    params : dict
-        A dictionary containing cosmological parameters, including 'm_nu' (neutrino mass in eV) and 'T_nu'.
+    m_nu: float
+        sum of neutrino masses in eV
+    T_nu: float
+        neutrino temperature today in K.
 
     Returns:
     --------
     jnp.array
         Array of reduced mass parameters for neutrinos.
+
     """
     return (
-        jnp.array([params["m_nu"], 0.0, 0.0])
+        jnp.array([m_nu, 0.0, 0.0])
         * Constants.e
-        / (Constants.k * params["T_nu"])
+        / (Constants.k * T_nu)
     )
 
 

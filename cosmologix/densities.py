@@ -160,9 +160,8 @@ def Omega_nu(params, z):
     )
 
 
-def params_to_density_params(params):
-    """
-    Convert cosmological parameters to density parameters.
+def process_params(params):
+    """Process the set of primary parameters to add a set of derived quantities.
 
     This function updates the input dictionary with calculated density parameters
     based on the given cosmological parameters.
@@ -176,25 +175,44 @@ def params_to_density_params(params):
     --------
     dict
         Updated dictionary with density parameters.
+
+    Note:
+    -----
+    
+    The Planck and CCL convention to count Omega_nu_massive as a
+    contribution to Omega_m is very inconvenient in the context of our
+    jax computations because it causes branching issues around m_nu =
+    0. Therefore we follow the convention that Omega_m = Omega_c +
+    Omega_b. To count Omega_nu_massive and Omega_nu_massless, use the
+    function derived_parameters.
     """
-    params["Omega_b"] = params["Omega_b_h2"] / (params["H0"] / 100) ** 2
-    params["Omega_gamma"] = neutrinos.compute_cmb_photon_density(params) / rhoc(
+    derived_params = params.copy()
+    derived_params["Omega_b"] = params["Omega_b_h2"] / (params["H0"] / 100) ** 2
+    derived_params["Omega_gamma"] = neutrinos.compute_cmb_photon_density(params['Tcmb']) / rhoc(
         params["H0"]
     )
-    params = neutrinos.compute_neutrino_temperature(params)
-    params["m_nu_bar"] = neutrinos.convert_mass_to_reduced_parameter(params)
+    derived_params['T_nu'] = neutrinos.compute_neutrino_temperature(params['Tcmb'], params['Neff'])
+    derived_params["m_nu_bar"] = neutrinos.convert_mass_to_reduced_parameter(params['m_nu'], derived_params['T_nu'])
+    derived_params["Omega_c"] = params["Omega_m"] - derived_params["Omega_b"]
+    derived_params["Omega_nu"] = Omega_nu(derived_params, jnp.array([0]))[0]
+    derived_params["Omega_x"] = (
+        1
+        - derived_params["Omega_k"]
+        - derived_params["Omega_m"]
+        - derived_params["Omega_gamma"]
+        - derived_params["Omega_nu"]
+    )
+
+    return derived_params
+
+def derived_parameters(params):
+    ''' Further decomposition of Omega_nu between massless and massive_neutrinos
+    '''
+    params = process_params(params)
     rho_nu = neutrinos.compute_neutrino_density(params, jnp.array([0])) / rhoc(params["H0"])
     massless = params["m_nu_bar"] == 0
     params["Omega_nu_massless"] = rho_nu[:, massless].sum().item()
     params["Omega_nu_massive"] = rho_nu[:, ~massless].sum().item()
-    params["Omega_c"] = params["Omega_m"] - params["Omega_b"] - params["Omega_nu_massive"]
-    params["Omega_x"] = (
-        1
-        - params["Omega_k"]
-        - params["Omega_m"]
-        - params["Omega_gamma"]
-        - params["Omega_nu_massless"]
-    )
     return params
 
 
@@ -214,7 +232,7 @@ def Omega(params, z):
     float or array
         Total Omega at the given redshift(s).
     """
-    params = params_to_density_params(params)
+    params = process_params(params)
     return (
         Omega_c(params, z)
         + Omega_b(params, z)

@@ -4,78 +4,39 @@ import jax
 from typing import Callable, Tuple, Dict
 from .tools import Constants
 from .interpolation import linear_interpolation
-from .radiation import Omega_n_mass, Omega_n_rel, Tcmb_to_Omega_gamma
+from cosmologix.densities import Omega
 
 jax.config.update("jax_enable_x64", True)
 
 
-def Omega_c(params: Dict[str, float]) -> float:
-    """Compute Omega_c from the total matter density minus baryonic and neutrino contributions."""
-    h = params["H0"] / 100
-    Omega_b0 = params["Omega_b_h2"] / h**2
-    Omega_nu_mass = Omega_n_mass(params, jnp.atleast_1d(1.0))[0]
-    return params["Omega_m"] - Omega_b0 - Omega_nu_mass
-
-
-def Omega_de(params: Dict[str, float], Omega_n_rel: float) -> float:
-    """Calculate the dark energy density parameter."""
-    omg = Tcmb_to_Omega_gamma(params["Tcmb"], params["H0"])
-    return 1 - params["Omega_m"] - omg - Omega_n_rel - params["Omega_k"]
-
-
-def dzoveru3H(params: Dict[str, float], u: jnp.ndarray) -> jnp.ndarray:
-    """Integrand for inverse expansion rate integrals.
-
-    Return (1+z)^{-3/2} H0/H(z)
-    """
-    h = params["H0"] / 100
-    Omega_b0 = params["Omega_b_h2"] / h**2
-    Omega_c0 = Omega_c(params)
-    Omega_gamma = Tcmb_to_Omega_gamma(params["Tcmb"], params["H0"])
-    Omega_nu_rel = Omega_n_rel(params)
-    Omega_nu_mass = Omega_n_mass(params, u)
-    Omega_de0 = Omega_de(params, Omega_nu_rel)
-    return 1.0 / jnp.sqrt(
-        (Omega_c0 + Omega_b0)
-        + Omega_de0 * u ** (-6 * params["w"])
-        + (Omega_gamma + Omega_nu_rel + Omega_nu_mass) * u ** (-2)
-        + params["Omega_k"] * u**2
-    )
-
-
-# def dC(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
-#    """Compute the comoving distance at redshift z.
-#
-#    Distance between comoving object and observer that stay
-#    constant with time (coordinate).
-#
-#    Parameters:
-#    -----------
-#    params: pytree containing the background cosmological parameters
-#    z: scalar or array
-#       redshift at which to compute the comoving distance
-#
-#    Returns:
-#    --------
-#    Comoving distance in Mpc
-#    """
-#    dh = Constants.c / params["H0"] * 1e-3  # Hubble radius in kpc
-#    u = 1 / jnp.sqrt(1 + z)
-#    umin = 0.02
-#    step = (1 - umin) / nstep
-#    _u = jnp.arange(umin + 0.5 * step, 1, step)
-#    csum = jnp.cumsum(dzoveru3H(params, _u[-1::-1]))[-1::-1]
-#    return linear_interpolation(u, csum, _u - 0.5 * step) * 2 * step * dh
-
-from cosmologix.densities import Omega
-
-
 def distance_integrand(params, u):
+    """ Integrand for the computation of comoving distance
+
+    The use of a regular quadradure is possible with the variable change
+    u = 1 / sqrt(1+z)
+
+    the function return (1+z)^{-3/2} H0/H(z).
+    """
     z = 1 / u**2 - 1
     return 1 / (u**3 * jnp.sqrt(Omega(params, z)))
 
 
 def dC(params, z, nstep=1000):
+    """Compute the comoving distance at redshift z.
+    
+    Distance between comoving object and observer that stay
+    constant with time (coordinate).
+
+    Parameters:
+    -----------
+    params: pytree containing the background cosmological parameters
+    z: scalar or array
+       redshift at which to compute the comoving distance
+    
+    Returns:
+    --------
+    Comoving distance in Mpc
+    """
     dh = Constants.c / params["H0"] * 1e-3  # in Mpc
     u = 1 / jnp.sqrt(1 + z)
     umin = 0.02
@@ -83,9 +44,6 @@ def dC(params, z, nstep=1000):
     _u = jnp.arange(umin + 0.5 * step, 1, step)
     csum = jnp.cumsum(distance_integrand(params, _u[-1::-1]))[-1::-1]
     return jnp.interp(u, _u - 0.5 * step, csum) * 2 * step * dh
-
-
-# return linear_interpolation(u, csum, _u - 0.5 * step) * 2 * step * dh
 
 
 def dM(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:

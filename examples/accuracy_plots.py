@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 from cosmologix import mu, Planck18
 import pyccl as ccl
-from cosmologix.distances import Omega_c, Omega_de
 from cosmologix import neutrinos, densities
 import jax.numpy as jnp
 import numpy as np
@@ -15,7 +14,7 @@ from astropy import cosmology
 # Convenience functions to facilitate comparisons with CAMB and CCL
 #
 def params_to_ccl(params):
-    params = densities.params_to_density_params(params)
+    params = densities.derived_parameters(params)
     return {
         "Omega_c": params["Omega_c"],
         "Omega_b": params["Omega_b"],
@@ -32,7 +31,7 @@ def params_to_ccl(params):
 
 
 def params_to_CAMB(params):
-    params = densities.params_to_density_params(params)
+    params = densities.derived_parameters(params)
     h = params["H0"] / 100
     pars = camb.set_params(
         H0=params["H0"],
@@ -50,13 +49,13 @@ def params_to_CAMB(params):
 
 
 def params_to_astropy(params):
-    params = densities.params_to_density_params(params)
+    params = densities.derived_parameters(params)
     h = params["H0"] / 100.0
     # Omega_b = params['Omega_b_h2'] / h ** 2
     # Omega_nu_mass = float(Omega_n_mass(params, 1.)[0])
     return cosmology.LambdaCDM(
         H0=params["H0"],
-        Om0=params["Omega_m"]-params["Omega_nu_massive"],
+        Om0=params["Omega_m"],
         Ob0=params["Omega_b"],
         Ode0=params["Omega_x"],
         m_nu=[params["m_nu"], 0, 0],
@@ -118,7 +117,7 @@ def ccl_densities(params, z):
 
 
 def cosmologix_densities(params, z):
-    params = densities.params_to_density_params(params)
+    params = densities.derived_parameters(params)
     rho_nu = (
         neutrinos.compute_neutrino_density(params, z)
         * (1 + z[:, None]) ** 4

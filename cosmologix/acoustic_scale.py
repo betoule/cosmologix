@@ -7,7 +7,7 @@ from typing import Callable, Tuple, Dict
 from .tools import Constants
 from .distances import dM
 #from .radiation import Omega_n_mass, Omega_n_rel, Tcmb_to_Omega_gamma
-from .densities import Omega
+from cosmologix import densities
 
 #
 # Approximation for z_star and z_drag
@@ -16,7 +16,7 @@ def z_star(params):
     """Redshift of the recombination"""
     Obh2 = params["Omega_b_h2"]
     h2 = params["H0"] ** 2 * 1e-4
-    odm = params["Omega_m"]
+    odm = params["Omega_m"] + params["Omega_nu"]
     g1 = 0.0783 * Obh2**-0.238 / (1 + 39.5 * Obh2**0.763)
     g2 = 0.560 / (1 + 21.1 * Obh2**1.81)
     return 1048 * (1 + 0.00124 * Obh2**-0.738) * (1 + g1 * (odm * h2) ** g2)
@@ -60,7 +60,7 @@ def z_drag(params):
 
 def a4H2(params, a):
     z = 1/a - 1
-    return a ** 4 * Omega(params, z)
+    return a ** 4 * densities.Omega(params, z)
     
 def dsound_da_approx(params, a):
     """Approximate form of the sound horizon used by cosmomc for theta
@@ -96,6 +96,7 @@ def theta_MC(params):
     The code returns 100 θ_MC which is the sampling variable in Planck
     chains.
     """
+    params = densities.process_params(params)
     zstar = z_star(params)
     rsstar = rs(params, zstar)
     return rsstar / dM(params, zstar) * 100.0

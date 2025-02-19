@@ -22,7 +22,7 @@ closed = lcdm_deviation(Omega_k=-0.01)
 # Convenience functions to facilitate comparisons with CAMB and CCL
 #
 def params_to_ccl(params):
-    params = densities.params_to_density_params(params)
+    params = densities.derived_parameters(params)
     return {
         "Omega_c": params["Omega_c"],
         "Omega_b": params["Omega_b"],
@@ -39,7 +39,7 @@ def params_to_ccl(params):
 
 
 def params_to_CAMB(params):
-    params = densities.params_to_density_params(params)
+    params = densities.derived_parameters(params)
     h = params["H0"] / 100
     pars = camb.set_params(
         H0=params["H0"],
@@ -75,3 +75,6 @@ def test_distance_modulus():
             assert (
                 jnp.abs(delta_mu) < 1e-3
             ).all(), f"Distances differs for cosmology {params}, {mu_check}"
+
+if __name__ == '__main__':
+    test_distance_modulus()

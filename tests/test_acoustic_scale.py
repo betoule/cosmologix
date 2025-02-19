@@ -1,5 +1,6 @@
 from cosmologix.acoustic_scale import rs, z_star, z_drag, theta_MC, dM, dsound_da_approx
-from cosmologix import Planck18
+from cosmologix import Planck18, densities
+from cosmologix.tools import Constants
 from test_distances import params_to_CAMB, lcdm_deviation
 import pyccl as ccl
 import jax
@@ -8,13 +9,14 @@ import jax.numpy as jnp
 
 
 def test_acoustic_scale():
-    assert abs(z_star(Planck18) - 1091.95) < 1e-2
+    params = densities.process_params(Planck18)
+    assert abs(z_star(params) - 1091.95) < 1e-2
     #assert abs(z_drag(Planck18) - 1020.715) < 1e-2
     #assert abs(rs(Planck18, z_star(Planck18)) - 144.7884) < 1e-3
     # According to 10.1051/0004-6361/201833910 (Planck 2018 VI) 100
     # ThetaMC = 1.04089 ± 0.00031 for the base-LCDM bestfit cosmology
     # corresponding to the parameters in Planck18
-    assert abs(theta_MC(Planck18) - 1.04089) < 0.0001
+    assert abs(theta_MC(params) - 1.04089) < 0.0001
 
 
 def timings():
@@ -30,10 +32,8 @@ def timings():
 
 
 if __name__ == "__main__":
-    from cosmologix.tools import Constants
-
     #params = lcdm_deviation(m_nu=0)
-    params = lcdm_deviation()
+    params = densities.process_params(lcdm_deviation())
     pars = params_to_CAMB(params)
     zstar = z_star(params)
     astar = 1 / (1 + zstar)
