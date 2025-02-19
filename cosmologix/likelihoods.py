@@ -3,6 +3,7 @@ from cosmologix.acoustic_scale import z_star, theta_MC
 import jax.numpy as jnp
 from cosmologix.tools import randn
 
+
 class Chi2:
     """Abstract implementation of chi-squared (χ²) evaluation for statistical analysis.
 
