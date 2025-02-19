@@ -93,9 +93,9 @@ def test_distance_modulus():
 def test_hubble_rate():
     z = jnp.linspace(0.01, 1e3, 3000)
     for params in [Planck18, massless, opened, closed]:
-        h = H(params, z)/params["H0"]
+        h = H(params, z) / params["H0"]
         for h_check in [h_ccl, h_camb]:
             delta_h = h - h_check(params, z)
             assert (
-                jnp.abs(delta_h/h) < 1e-3
+                jnp.abs(delta_h / h) < 1e-3
             ).all(), f"Hubble rate differs for cosmology {params}, {h_check}"
