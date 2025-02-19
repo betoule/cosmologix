@@ -8,6 +8,7 @@ import os
 import hashlib
 from pathlib import Path
 import shutil
+import time
 
 
 def get_cache_dir():
@@ -133,28 +134,6 @@ def trapezoidal_rule_integration(
     return (h / 2) * (y[1:] + y[:-1]).sum()
 
 
-def linear_interpolation(
-    x: jnp.ndarray, y_bins: jnp.ndarray, x_bins: jnp.ndarray
-) -> jnp.ndarray:
-    """
-    Perform linear interpolation between set points.
-
-    Parameters:
-    -----------
-    x: jnp.ndarray
-        x coordinates for interpolation.
-    y_bins, x_bins: jnp.ndarray
-        y and x coordinates of the set points.
-
-    Returns:
-    --------
-    jnp.ndarray: Interpolated y values.
-    """
-    bin_index = jnp.digitize(x, x_bins) - 1
-    w = (x - x_bins[bin_index]) / (x_bins[bin_index + 1] - x_bins[bin_index])
-    return (1 - w) * y_bins[bin_index] + w * y_bins[bin_index + 1]
-
-
 class Constants:
     G = 6.67384e-11  # m^3/kg/s^2
     c = 299792458.0  # m/s
@@ -163,7 +142,9 @@ class Constants:
     h = 6.62617e-34  # J.s
     k = 1.38066e-23  # J/K
     e = 1.60217663e-19  # C
-    sigma = 2 * jnp.pi**5 * k**4 / (15 * h**3 * c**2)  # Stefan-Boltzmann constant
+    sigma = (
+        2 * jnp.pi**5 * k**4 / (15 * h**3 * c**2)
+    )  # Stefan-Boltzmann constant J/s / K^4 /m^2
     qmax = 30
     nq = 100
     const = 7.0 / 120 * jnp.pi**4
@@ -299,3 +280,31 @@ def randn(sigma, n=None, key=None):
         n = sigma.shape
     gaussian_vector = jax.random.normal(subkey, n)
     return gaussian_vector * sigma
+
+
+def speed_measurement(func, *args, n=10):
+    """Conveniency function to measure execution and jit speed of
+    functions in one go
+
+    """
+    tstart = time.time()
+    result = jax.block_until_ready(func(*args))
+    tcomp = time.time()
+    for _ in range(n):
+        result = jax.block_until_ready(func(*args))
+    tstop1 = time.time()
+    jfunc = jax.jit(func)
+    tjit = time.time()
+    result = jax.block_until_ready(jfunc(*args))
+    tcomp2 = time.time()
+    for _ in range(n):
+        result = jax.block_until_ready(jfunc(*args))
+    tstop2 = time.time()
+    # return (len(z), tcomp-tstart, (tstop-tcomp)/n)
+    return (
+        tcomp - tstart,
+        (tstop1 - tcomp) / n,
+        tjit - tstop1,
+        tcomp2 - tjit,
+        (tstop2 - tcomp2) / n,
+    )

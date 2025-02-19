@@ -18,6 +18,7 @@ distances. It has been tested against the CCL.
 
 ## Installation
 
+
 To install `cosmologix`, you need Python 3.10 or newer. Use pip:
 
 ```sh

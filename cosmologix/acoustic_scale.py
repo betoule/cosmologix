@@ -5,8 +5,10 @@ Fitting formulae for the acoustic scale
 import jax.numpy as jnp
 from typing import Callable, Tuple, Dict
 from .tools import Constants
-from .distances import Omega_c, Omega_de, dM
-from .radiation import Omega_n_mass, Omega_n_rel, Tcmb_to_Omega_gamma
+from .distances import dM
+
+# from .radiation import Omega_n_mass, Omega_n_rel, Tcmb_to_Omega_gamma
+from cosmologix import densities
 
 
 #
@@ -16,7 +18,7 @@ def z_star(params):
     """Redshift of the recombination"""
     Obh2 = params["Omega_b_h2"]
     h2 = params["H0"] ** 2 * 1e-4
-    odm = params["Omega_m"]
+    odm = params["Omega_m"] + params["Omega_nu"]
     g1 = 0.0783 * Obh2**-0.238 / (1 + 39.5 * Obh2**0.763)
     g2 = 0.560 / (1 + 21.1 * Obh2**1.81)
     return 1048 * (1 + 0.00124 * Obh2**-0.738) * (1 + g1 * (odm * h2) ** g2)
@@ -39,24 +41,29 @@ def z_drag(params):
     )
 
 
+# def a4H2(params, a):
+#    """Return a**4 * H(a)**2/H0**2"""
+#    h = params["H0"] / 100
+#    Omega_b0 = params["Omega_b_h2"] / h**2
+#    Omega_c0 = Omega_c(params)
+#    # Omega_nu_mass = jnp.array([Omega_n_mass(params, jnp.sqrt(aa)) for aa in a])
+#    Omega_nu_mass = Omega_n_mass(params, jnp.sqrt(a))
+#    Omega_nu_rel = Omega_n_rel(params)
+#    Omega_de0 = Omega_de(params, Omega_nu_rel)
+#    Omega_gamma = Tcmb_to_Omega_gamma(params["Tcmb"], params["H0"])
+#    return (
+#        (Omega_b0 + Omega_c0) * a
+#        + params["Omega_k"] * (a**2)
+#        + Omega_gamma
+#        + Omega_nu_rel
+#        + Omega_nu_mass
+#        + Omega_de0 * a ** (1 - 3.0 * params["w"])
+#    )
+
+
 def a4H2(params, a):
-    """Return a**4 * H(a)**2/H0**2"""
-    h = params["H0"] / 100
-    Omega_b0 = params["Omega_b_h2"] / h**2
-    Omega_c0 = Omega_c(params)
-    # Omega_nu_mass = jnp.array([Omega_n_mass(params, jnp.sqrt(aa)) for aa in a])
-    Omega_nu_mass = Omega_n_mass(params, jnp.sqrt(a))
-    Omega_nu_rel = Omega_n_rel(params)
-    Omega_de0 = Omega_de(params, Omega_nu_rel)
-    Omega_gamma = Tcmb_to_Omega_gamma(params["Tcmb"], params["H0"])
-    return (
-        (Omega_b0 + Omega_c0) * a
-        + params["Omega_k"] * (a**2)
-        + Omega_gamma
-        + Omega_nu_rel
-        + Omega_nu_mass
-        + Omega_de0 * a ** (1 - 3.0 * params["w"])
-    )
+    z = 1 / a - 1
+    return a**4 * densities.Omega(params, z)
 
 
 def dsound_da_approx(params, a):
@@ -102,6 +109,7 @@ def theta_MC(params):
     The code returns 100 θ_MC which is the sampling variable in Planck
     chains.
     """
+    params = densities.process_params(params)
     zstar = z_star(params)
     rsstar = rs(params, zstar)
     return rsstar / dM(params, zstar) * 100.0

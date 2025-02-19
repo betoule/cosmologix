@@ -1,6 +1,6 @@
-from cosmologix import mu
-from cosmologix.distances import Omega_c, dM, dH, dV
-from cosmologix.acoustic_scale import z_star, rs, z_drag
+from cosmologix.distances import dM, dH, dV
+from cosmologix.acoustic_scale import z_star, theta_MC, z_drag
+from cosmologix import mu, densities
 import jax.numpy as jnp
 from cosmologix.tools import randn
 from jax import lax, vmap
@@ -126,9 +126,10 @@ class GeometricCMBLikelihood(Chi2):
         self.L = jnp.linalg.cholesky(self.W)
 
     def model(self, params):
-        Omega_c_h2 = Omega_c(params) * (params["H0"] ** 2 * 1e-4)
-        thetaMC = rsstar / dM(params, zstar) * 100.0
-        return jnp.array([params["Omega_b_h2"], Omega_c_h2, thetaMC])
+        params = densities.process_params(params)
+        Omega_c_h2 = params["Omega_c"] * (params["H0"] ** 2 * 1e-4)
+
+        return jnp.array([params["Omega_b_h2"], Omega_c_h2, theta_MC(params)])
 
     def residuals(self, params):
         return self.mean - self.model(params)
@@ -293,12 +294,13 @@ def DESI2024Prior():
 # 10.1051/0004-6361/201833910
 Planck18 = {
     "Tcmb": 2.7255,  # Check this number and report the exact origin
-    "Omega_m": 0.3147,  # ±0.0074
+    "Omega_m": (0.02233 + 0.1198) / (67.37 / 100) ** 2,  # ±0.0074
     "H0": 67.37,  # ±0.54
     "Omega_b_h2": 0.02233,  # ±0.00015
     "Omega_k": 0.0,
     "w": -1.0,
-    "m_nu": 0.06,
+    "wa": 0.0,
+    "m_nu": 0.06,  # jnp.array([0.06, 0.0, 0.0]),
     "Neff": 3.046,
 }
 # Planck18 = {
