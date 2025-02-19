@@ -18,7 +18,8 @@ distances. It has been tested against the CCL.
 
 ## Installation
 
-To install cosmologix, you need Python 3.10 or newer. Use pip:
+
+To install `cosmologix`, you need Python 3.10 or newer. Use pip:
 
 ```sh
 pip install cosmologix
@@ -40,7 +41,7 @@ print(Planck18)
 z_values = jnp.linspace(0.1, 1.0, 10)
 
 # Compute distance modulus 
-distance_modulus = mu(params, z_values)
+distance_modulus = mu(Planck18, z_values)
 print(distance_modulus)
 
 # Find bestfit flat w-CDM cosmology

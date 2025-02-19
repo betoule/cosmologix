@@ -1,7 +1,9 @@
+from cosmologix.distances import dM, dH, dV
+from cosmologix.acoustic_scale import z_star, theta_MC, z_drag
 from cosmologix import mu, densities
-from cosmologix.acoustic_scale import z_star, theta_MC
 import jax.numpy as jnp
 from cosmologix.tools import randn
+from jax import lax, vmap
 
 
 class Chi2:
@@ -145,6 +147,81 @@ class GeometricCMBLikelihood(Chi2):
         self.mean = m + n
 
 
+class BAOLikelihood(Chi2):
+    def __init__(self, redshifts, distances, covariance, dist_type_labels):
+        """An easy-to-work-with summary of CMB measurements
+
+        Parameters:
+        -----------
+        redshifts: BAO redshifts
+
+        distances: BAO distances
+
+        covariance: covariance matrix of vector mean
+
+        dist_type_labels: list of labels for distances among ['DV_over_rd', 'DM_over_rd', 'DH_over_rd']
+        """
+        self.redshifts = jnp.asarray(redshifts)
+        self.distances = jnp.asarray(distances)
+        self.cov = jnp.asarray(covariance)
+        self.W = jnp.linalg.inv(self.cov)
+        self.L = jnp.linalg.cholesky(self.W)
+        self.dist_type_labels = dist_type_labels
+        if len(self.distances) != len(self.dist_type_labels):
+            raise ValueError(
+                f"Distance and dist_type_indices array must have the same length."
+            )
+        self.dist_type_indices = self._convert_labels_to_indices()
+
+    def _convert_labels_to_indices(self):
+        self.dist_type_indices = [0] * len(self.dist_type_labels)
+        for k, label in enumerate(self.dist_type_labels):
+            if label == "DV_over_rd":
+                self.dist_type_indices[k] = 0
+            elif label == "DM_over_rd":
+                self.dist_type_indices[k] = 1
+            elif label == "DH_over_rd":
+                self.dist_type_indices[k] = 2
+            else:
+                raise ValueError(f"Label {label} not recognized.")
+        return jnp.array(self.dist_type_indices)
+
+    def model(self, params) -> jnp.ndarray:
+        zdrag = z_drag(params)
+        rd = rs(params, zdrag)
+
+        def dV_over_rd(z):
+            return dV(params, z) / rd
+
+        def dM_over_rd(z):
+            return dM(params, z) / rd
+
+        def dH_over_rd(z):
+            return dH(params, z) / rd
+
+        branches = (dV_over_rd, dM_over_rd, dH_over_rd)
+        # dists = jnp.zeros_like(self.redshifts)
+        # for k, index in enumerate(self.dist_type_indices):
+        #      print(k, index, self.dist_type_labels[k], self.redshifts[k], branches[index](self.redshifts[k]))
+        #      dists = dists.at[k].set(branches[index](self.redshifts[k])[0])
+        zz = jnp.tile(self.redshifts, (len(branches), 1))
+        functions = vmap(lambda i, x: lax.switch(i, branches, x))
+        dists = functions(jnp.arange(len(branches)), zz)
+        return dists
+
+    def residuals(self, params):
+        dists = self.model(params)
+        dists = dists[self.dist_type_indices, jnp.arange(self.redshifts.size)]
+        return self.distances - dists
+
+    def weighted_residuals(self, params):
+        return self.L @ self.residuals(params)
+
+    def likelihood(self, params):
+        r = self.weighted_residuals(params)
+        return r.T @ r
+
+
 def DES5yr():
     from cosmologix.tools import load_csv_from_url
 
@@ -165,6 +242,72 @@ def Planck2018Prior():
         ],
     )
     return planck2018_prior
+
+
+def DESI2024Prior():
+    """
+    From DESI YR1 results https://arxiv.org/pdf/2404.03002 Table 1
+    :return:
+    """
+    desi2024_prior = BAOLikelihood(
+        redshifts=[
+            0.295,
+            0.510,
+            0.510,
+            0.706,
+            0.706,
+            0.930,
+            0.930,
+            1.317,
+            1.317,
+            1.491,
+            2.330,
+            2.330,
+        ],
+        distances=[
+            7.93,
+            13.62,
+            20.98,
+            16.85,
+            20.08,
+            21.71,
+            17.88,
+            27.79,
+            13.82,
+            26.07,
+            39.71,
+            8.52,
+        ],
+        covariance=[
+            [0.15**2] + [0] * 11,
+            [0, 0.25**2, -0.445 * 0.25 * 0.61] + [0] * 9,
+            [0, -0.445 * 0.25 * 0.61, 0.61**2] + [0] * 9,
+            [0] * 3 + [0.32**2, -0.420 * 0.32 * 0.60] + [0] * 7,
+            [0] * 3 + [-0.420 * 0.32 * 0.60, 0.60**2] + [0] * 7,
+            [0] * 5 + [0.28**2, -0.389 * 0.28 * 0.35] + [0] * 5,
+            [0] * 5 + [-0.389 * 0.28 * 0.35, 0.35**2] + [0] * 5,
+            [0] * 7 + [0.69**2, -0.444 * 0.69 * 0.42] + [0] * 3,
+            [0] * 7 + [-0.444 * 0.69 * 0.42, 0.42**2] + [0] * 3,
+            [0] * 9 + [0.67**2] + [0] * 2,
+            [0] * 10 + [0.94**2, -0.477 * 0.94 * 0.17],
+            [0] * 10 + [-0.477 * 0.94 * 0.17, 0.17**2],
+        ],
+        dist_type_labels=[
+            "DV_over_rd",
+            "DM_over_rd",
+            "DH_over_rd",
+            "DM_over_rd",
+            "DH_over_rd",
+            "DM_over_rd",
+            "DH_over_rd",
+            "DM_over_rd",
+            "DH_over_rd",
+            "DV_over_rd",
+            "DM_over_rd",
+            "DH_over_rd",
+        ],
+    )
+    return desi2024_prior
 
 
 # Best fit cosomologies

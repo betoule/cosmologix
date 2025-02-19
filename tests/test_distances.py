@@ -1,4 +1,5 @@
 from cosmologix import mu, Planck18, densities
+from cosmologix.distances import H
 import pyccl as ccl
 import jax.numpy as jnp
 import jax
@@ -63,9 +64,20 @@ def mu_camb(params, z):
     return 5 * jnp.log10(results.luminosity_distance(z)) + 25
 
 
+def h_camb(params, z):
+    pars = params_to_CAMB(params)
+    results = camb.get_results(pars)
+    return results.hubble_parameter(z) / pars.H0
+
+
 def mu_ccl(params, z):
     cclcosmo = ccl.Cosmology(**params_to_ccl(params))
     return ccl.distance_modulus(cclcosmo, 1 / (1 + z))
+
+
+def h_ccl(params, z):
+    cclcosmo = ccl.Cosmology(**params_to_ccl(params))
+    return ccl.h_over_h0(cclcosmo, 1 / (1 + z))
 
 
 def test_distance_modulus():
@@ -78,5 +90,12 @@ def test_distance_modulus():
             ).all(), f"Distances differs for cosmology {params}, {mu_check}"
 
 
-if __name__ == "__main__":
-    test_distance_modulus()
+def test_hubble_rate():
+    z = jnp.linspace(0.01, 1e3, 3000)
+    for params in [Planck18, massless, opened, closed]:
+        h = H(params, z) / params["H0"]
+        for h_check in [h_ccl, h_camb]:
+            delta_h = h - h_check(params, z)
+            assert (
+                jnp.abs(delta_h / h) < 1e-3
+            ).all(), f"Hubble rate differs for cosmology {params}, {h_check}"

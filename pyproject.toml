@@ -11,7 +11,7 @@ requires-python = ">=3.10"
 license = {file = "LICENSE"}
 authors = [
     {name = "Marc Betoule", email = "marc.betoule@lpnhe.in2p3.fr"},
-    {name = "Jérémy Neveu", email = "jeremy.neveau@lpnhe.in2p3.fr"},
+    {name = "Jérémy Neveu", email = "jeremy.neveu@lpnhe.in2p3.fr"},
     {name = "Dylan Kuhn", email = "dylan.kuhn@lpnhe.in2p3.fr"},
 ]
 classifiers = [

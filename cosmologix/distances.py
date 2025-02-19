@@ -15,6 +15,7 @@ def distance_integrand(params, u):
     The use of a regular quadradure is possible with the variable change
     u = 1 / sqrt(1+z)
 
+
     the function return (1+z)^{-3/2} H0/H(z).
     """
     z = 1 / u**2 - 1
@@ -85,6 +86,27 @@ def dA(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarr
     return dM(params, z, nstep) / (1 + z)
 
 
+def dH(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
+    """Compute the Hubble distance in Mpc."""
+    return Constants.c * 1e-3 / H(params, z)
+
+
+def H(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
+    """Hubble rate in km/s/Mpc.
+
+    Parameters:
+    -----------
+    params: pytree containing the background cosmological parameters
+    z: scalar or array
+       redshift at which to compute the comoving distance
+
+
+    u = 1/sqrt(1+z)
+
+    """
+    return params["H0"] * jnp.sqrt(Omega(params, z))
+
+
 def mu(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
     """Compute the distance modulus."""
     return 5 * jnp.log10(dL(params, z, nstep)) + 25
@@ -93,12 +115,12 @@ def mu(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarr
 def dVc(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
     """Calculate the differential comoving volume."""
     dh = Constants.c / params["H0"] * 1e-3
-    toto = 1 + z
-    return (
-        4
-        * jnp.pi
-        * (dC(params, z) ** 2)
-        * dh
-        * dzoveru3H(params, 1 / jnp.sqrt(toto))
-        / (toto ** (3 / 2))
-    )
+    u = 1.0 / jnp.sqrt(1 + z)
+    return 4 * jnp.pi * (dC(params, z) ** 2) * dh * dzoveru3H(params, u) * u**3
+
+
+def dV(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
+    """Calculate the volumic distance.
+    See formula 2.6 in DESI 1yr cosmological results arxiv:2404.03002
+    """
+    return (z * dM(params, z) ** 2 * dH(params, z)) ** (1 / 3)
