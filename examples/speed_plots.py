@@ -1,0 +1,54 @@
+from accuracy_plots import *
+import time
+import jax
+
+
+def speed_measurement(func, params, z, n=10):
+    tstart = time.time()
+    result = func(params, z)
+    tcomp = time.time()
+    for _ in range(n):
+        result = jax.block_until_ready(func(params, z))
+    tstop = time.time()
+    # return (len(z), tcomp-tstart, (tstop-tcomp)/n)
+    return (tcomp - tstart, (tstop - tcomp) / n)
+
+
+if __name__ == "__main__":
+    plt.ion()
+    tested = {
+        "cosmologix": mu,
+        "cosmologix (jit)": jax.jit(mu),
+        "cosmologix (grad)": jax.jacfwd(mu),
+        "cosmologix (grad-jit)": jax.jit(jax.jacfwd(mu)),
+        "ccl": mu_ccl,
+        "camb": mu_camb,
+        "astropy": mu_astropy,
+    }
+    params = Planck18.copy()
+    ns = jnp.array([10, 30, 100, 300, 1000, 3000, 10000])
+    result = {}
+    for func in tested:
+        result[func] = jnp.array(
+            [
+                speed_measurement(tested[func], params, np.linspace(0.01, 1, n))
+                for n in ns
+            ]
+        )
+
+    fig = plt.figure("mu_speed")
+    ax1, ax2 = fig.subplots(1, 2, sharey=True, sharex=True)
+    for func in tested:
+        ax2.plot(ns, result[func][:, 1], label=func)
+    for func in tested:
+        ax1.plot(ns, result[func][:, 0], label=func)
+    ax1.set_title("first call")
+    ax2.set_title("subsequent calls")
+    ax1.set_xscale("log")
+    ax1.set_yscale("log")
+    ax1.set_xlabel("len(z)")
+    ax2.set_xlabel("len(z)")
+    ax1.set_ylabel("time [s]")
+    ax1.legend(loc="best", frameon=False)
+    plt.tight_layout()
+    # plt.savefig('doc/mu_speed.png')
