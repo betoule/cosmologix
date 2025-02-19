@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from cosmologix import mu, Planck18
 import pyccl as ccl
 from cosmologix.distances import Omega_c, Omega_de
-from cosmologix.radiation import Omega_n_mass, Omega_n_rel
+from cosmologix import neutrinos, densities
 import jax.numpy as jnp
 import numpy as np
 import jax
@@ -15,9 +15,7 @@ from astropy import cosmology
 # Convenience functions to facilitate comparisons with CAMB and CCL
 #
 def params_to_ccl(params):
-    import cosmologix.densities
-
-    params = cosmologix.densities.params_to_density_params(params)
+    params = densities.params_to_density_params(params)
     return {
         "Omega_c": params["Omega_c"],
         "Omega_b": params["Omega_b"],
@@ -34,9 +32,7 @@ def params_to_ccl(params):
 
 
 def params_to_CAMB(params):
-    import cosmologix.densities
-
-    params = cosmologix.densities.params_to_density_params(params)
+    params = densities.params_to_density_params(params)
     h = params["H0"] / 100
     pars = camb.set_params(
         H0=params["H0"],
@@ -54,9 +50,7 @@ def params_to_CAMB(params):
 
 
 def params_to_astropy(params):
-    import cosmologix.densities
-
-    params = cosmologix.densities.params_to_density_params(params)
+    params = densities.params_to_density_params(params)
     h = params["H0"] / 100.0
     # Omega_b = params['Omega_b_h2'] / h ** 2
     # Omega_nu_mass = float(Omega_n_mass(params, 1.)[0])
@@ -91,8 +85,6 @@ def camb_densities(params, z):
     pars = params_to_CAMB(params)
     results = camb.get_results(pars)
     r = results.get_background_densities(1 / (1 + z))
-    # for s in r:
-    #    r[s] = r[s] * (1+z)**4 / (8 * jnp.pi * Constants.G)
     translate = {
         "curvature": r["K"] / r["tot"],
         "matter": (r["cdm"] + r["baryon"] + r["nu"]) / r["tot"],
@@ -126,22 +118,20 @@ def ccl_densities(params, z):
 
 
 def cosmologix_densities(params, z):
-    import cosmologix.densities
-
-    params = cosmologix.densities.params_to_density_params(params)
+    params = densities.params_to_density_params(params)
     rho_nu = (
-        cosmologix.densities.rho_nu(params, z)
+        neutrinos.compute_neutrino_density(params, z)
         * (1 + z[:, None]) ** 4
-        / cosmologix.densities.rhoc(params["H0"])
+        / densities.rhoc(params["H0"])
     )
     massless = params["m_nu_bar"] == 0
     return {
-        "matter": cosmologix.densities.Omega_c(params, z)
-        + cosmologix.densities.Omega_b(params, z)
+        "matter": densities.Omega_c(params, z)
+        + densities.Omega_b(params, z)
         + rho_nu[:, ~massless].sum(axis=1),
-        "dark_energy": cosmologix.densities.Omega_de(params, z),
-        "radiation": cosmologix.densities.Omega_gamma(params, z),
-        "curvature": cosmologix.densities.Omega_k(params, z),
+        "dark_energy": densities.Omega_de(params, z),
+        "radiation": densities.Omega_gamma(params, z),
+        "curvature": densities.Omega_k(params, z),
         "neutrinos_rel": rho_nu[:, massless].sum(
             axis=1
         ),  # cosmologix.densities.Omega_nu_massless(params, z),
@@ -171,7 +161,7 @@ def distance_accuracy(params=Planck18.copy(), title="distance_accuracy"):
     ax1.set_ylabel(r"$\mu$")
 
 
-def densities(params=Planck18.copy(), title="densities"):
+def plot_densities(params=Planck18.copy(), title="densities"):
     fig = plt.figure(title)
     ax1, ax2 = fig.subplots(2, 1, sharex=True)
     z = np.logspace(np.log10(0.01), np.log10(1000), 3000)
@@ -205,5 +195,5 @@ if __name__ == "__main__":
         lcdm_deviation(m_nu=0.0), title="distance_accuracy (massless neutrinos)"
     )
     # ref, dens = densities(lcdm_deviation(m_nu=0., wa=0.))
-    ref, dens = densities(lcdm_deviation(wa=0.0))
+    ref, dens = plot_densities(lcdm_deviation(wa=0.0))
     plt.show()

@@ -82,7 +82,10 @@ def dC(params, z, nstep=1000):
     step = (1 - umin) / nstep
     _u = jnp.arange(umin + 0.5 * step, 1, step)
     csum = jnp.cumsum(distance_integrand(params, _u[-1::-1]))[-1::-1]
-    return linear_interpolation(u, csum, _u - 0.5 * step) * 2 * step * dh
+    return jnp.interp(u, _u - 0.5 * step, csum) * 2 * step * dh
+
+
+# return linear_interpolation(u, csum, _u - 0.5 * step) * 2 * step * dh
 
 
 def dM(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
