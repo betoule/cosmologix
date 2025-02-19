@@ -178,20 +178,22 @@ def params_to_density_params(params):
         Updated dictionary with density parameters.
     """
     params["Omega_b"] = params["Omega_b_h2"] / (params["H0"] / 100) ** 2
-    params["Omega_c"] = params["Omega_m"] - params["Omega_b"]
     params["Omega_gamma"] = neutrinos.compute_cmb_photon_density(params) / rhoc(
         params["H0"]
     )
     params = neutrinos.compute_neutrino_temperature(params)
     params["m_nu_bar"] = neutrinos.convert_mass_to_reduced_parameter(params)
-    params["Omega_nu"] = Omega_nu(params, jnp.array([0]))  # At z=0 for baseline density
+    rho_nu = neutrinos.compute_neutrino_density(params, jnp.array([0])) / rhoc(params["H0"])
+    massless = params["m_nu_bar"] == 0
+    params["Omega_nu_massless"] = rho_nu[:, massless].sum().item()
+    params["Omega_nu_massive"] = rho_nu[:, ~massless].sum().item()
+    params["Omega_c"] = params["Omega_m"] - params["Omega_b"] - params["Omega_nu_massive"]
     params["Omega_x"] = (
         1
         - params["Omega_k"]
-        - params["Omega_c"]
-        - params["Omega_b"]
+        - params["Omega_m"]
         - params["Omega_gamma"]
-        - params["Omega_nu"]
+        - params["Omega_nu_massless"]
     )
     return params
 
@@ -222,10 +224,3 @@ def Omega(params, z):
         + Omega_k(params, z)
     )
 
-
-# if __name__ == "__main__":
-#    from cosmologix import Planck18
-#
-#    z = jnp.linspace(0.01, 1, 3000)
-#    Omega(lcdm_deviation(wa=0), z)
-#    toto = comoving_distance(lcdm_deviation(wa=0), z)

@@ -5,9 +5,9 @@ Fitting formulae for the acoustic scale
 import jax.numpy as jnp
 from typing import Callable, Tuple, Dict
 from .tools import Constants
-from .distances import Omega_c, Omega_de, dM
-from .radiation import Omega_n_mass, Omega_n_rel, Tcmb_to_Omega_gamma
-
+from .distances import dM
+#from .radiation import Omega_n_mass, Omega_n_rel, Tcmb_to_Omega_gamma
+from .densities import Omega
 
 #
 # Approximation for z_star and z_drag
@@ -39,26 +39,29 @@ def z_drag(params):
     )
 
 
+#def a4H2(params, a):
+#    """Return a**4 * H(a)**2/H0**2"""
+#    h = params["H0"] / 100
+#    Omega_b0 = params["Omega_b_h2"] / h**2
+#    Omega_c0 = Omega_c(params)
+#    # Omega_nu_mass = jnp.array([Omega_n_mass(params, jnp.sqrt(aa)) for aa in a])
+#    Omega_nu_mass = Omega_n_mass(params, jnp.sqrt(a))
+#    Omega_nu_rel = Omega_n_rel(params)
+#    Omega_de0 = Omega_de(params, Omega_nu_rel)
+#    Omega_gamma = Tcmb_to_Omega_gamma(params["Tcmb"], params["H0"])
+#    return (
+#        (Omega_b0 + Omega_c0) * a
+#        + params["Omega_k"] * (a**2)
+#        + Omega_gamma
+#        + Omega_nu_rel
+#        + Omega_nu_mass
+#        + Omega_de0 * a ** (1 - 3.0 * params["w"])
+#    )
+
 def a4H2(params, a):
-    """Return a**4 * H(a)**2/H0**2"""
-    h = params["H0"] / 100
-    Omega_b0 = params["Omega_b_h2"] / h**2
-    Omega_c0 = Omega_c(params)
-    # Omega_nu_mass = jnp.array([Omega_n_mass(params, jnp.sqrt(aa)) for aa in a])
-    Omega_nu_mass = Omega_n_mass(params, jnp.sqrt(a))
-    Omega_nu_rel = Omega_n_rel(params)
-    Omega_de0 = Omega_de(params, Omega_nu_rel)
-    Omega_gamma = Tcmb_to_Omega_gamma(params["Tcmb"], params["H0"])
-    return (
-        (Omega_b0 + Omega_c0) * a
-        + params["Omega_k"] * (a**2)
-        + Omega_gamma
-        + Omega_nu_rel
-        + Omega_nu_mass
-        + Omega_de0 * a ** (1 - 3.0 * params["w"])
-    )
-
-
+    z = 1/a - 1
+    return a ** 4 * Omega(params, z)
+    
 def dsound_da_approx(params, a):
     """Approximate form of the sound horizon used by cosmomc for theta
 

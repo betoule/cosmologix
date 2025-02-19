@@ -56,9 +56,9 @@ def params_to_astropy(params):
     # Omega_nu_mass = float(Omega_n_mass(params, 1.)[0])
     return cosmology.LambdaCDM(
         H0=params["H0"],
-        Om0=params["Omega_m"],
+        Om0=params["Omega_m"]-params["Omega_nu_massive"],
         Ob0=params["Omega_b"],
-        Ode0=params["Omega_x"][0],
+        Ode0=params["Omega_x"],
         m_nu=[params["m_nu"], 0, 0],
         Tcmb0=params["Tcmb"],
         Neff=params["Neff"],
