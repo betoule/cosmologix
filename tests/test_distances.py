@@ -18,6 +18,7 @@ massless = lcdm_deviation(m_nu=0)
 opened = lcdm_deviation(Omega_k=0.01)
 closed = lcdm_deviation(Omega_k=-0.01)
 
+
 #
 # Convenience functions to facilitate comparisons with CAMB and CCL
 #
@@ -76,5 +77,6 @@ def test_distance_modulus():
                 jnp.abs(delta_mu) < 1e-3
             ).all(), f"Distances differs for cosmology {params}, {mu_check}"
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     test_distance_modulus()

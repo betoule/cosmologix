@@ -10,7 +10,7 @@ jax.config.update("jax_enable_x64", True)
 
 
 def distance_integrand(params, u):
-    """ Integrand for the computation of comoving distance
+    """Integrand for the computation of comoving distance
 
     The use of a regular quadradure is possible with the variable change
     u = 1 / sqrt(1+z)
@@ -23,7 +23,7 @@ def distance_integrand(params, u):
 
 def dC(params, z, nstep=1000):
     """Compute the comoving distance at redshift z.
-    
+
     Distance between comoving object and observer that stay
     constant with time (coordinate).
 
@@ -32,7 +32,7 @@ def dC(params, z, nstep=1000):
     params: pytree containing the background cosmological parameters
     z: scalar or array
        redshift at which to compute the comoving distance
-    
+
     Returns:
     --------
     Comoving distance in Mpc

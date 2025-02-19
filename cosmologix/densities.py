@@ -178,7 +178,7 @@ def process_params(params):
 
     Note:
     -----
-    
+
     The Planck and CCL convention to count Omega_nu_massive as a
     contribution to Omega_m is very inconvenient in the context of our
     jax computations because it causes branching issues around m_nu =
@@ -188,11 +188,15 @@ def process_params(params):
     """
     derived_params = params.copy()
     derived_params["Omega_b"] = params["Omega_b_h2"] / (params["H0"] / 100) ** 2
-    derived_params["Omega_gamma"] = neutrinos.compute_cmb_photon_density(params['Tcmb']) / rhoc(
-        params["H0"]
+    derived_params["Omega_gamma"] = neutrinos.compute_cmb_photon_density(
+        params["Tcmb"]
+    ) / rhoc(params["H0"])
+    derived_params["T_nu"] = neutrinos.compute_neutrino_temperature(
+        params["Tcmb"], params["Neff"]
     )
-    derived_params['T_nu'] = neutrinos.compute_neutrino_temperature(params['Tcmb'], params['Neff'])
-    derived_params["m_nu_bar"] = neutrinos.convert_mass_to_reduced_parameter(params['m_nu'], derived_params['T_nu'])
+    derived_params["m_nu_bar"] = neutrinos.convert_mass_to_reduced_parameter(
+        params["m_nu"], derived_params["T_nu"]
+    )
     derived_params["Omega_c"] = params["Omega_m"] - derived_params["Omega_b"]
     derived_params["Omega_nu"] = Omega_nu(derived_params, jnp.array([0]))[0]
     derived_params["Omega_x"] = (
@@ -205,11 +209,13 @@ def process_params(params):
 
     return derived_params
 
+
 def derived_parameters(params):
-    ''' Further decomposition of Omega_nu between massless and massive_neutrinos
-    '''
+    """Further decomposition of Omega_nu between massless and massive_neutrinos"""
     params = process_params(params)
-    rho_nu = neutrinos.compute_neutrino_density(params, jnp.array([0])) / rhoc(params["H0"])
+    rho_nu = neutrinos.compute_neutrino_density(params, jnp.array([0])) / rhoc(
+        params["H0"]
+    )
     massless = params["m_nu_bar"] == 0
     params["Omega_nu_massless"] = rho_nu[:, massless].sum().item()
     params["Omega_nu_massive"] = rho_nu[:, ~massless].sum().item()
@@ -241,4 +247,3 @@ def Omega(params, z):
         + Omega_de(params, z)
         + Omega_k(params, z)
     )
-

@@ -10,6 +10,7 @@ import jax
 
 jax.config.update("jax_enable_x64", True)
 
+
 def compute_cmb_photon_density(Tcmb):
     """
     Compute the energy density of CMB photons today in kg/m^3.
@@ -24,7 +25,7 @@ def compute_cmb_photon_density(Tcmb):
     float
         Energy density of CMB photons in kg/m^3.
     """
-    return 4 * Constants.sigma * Tcmb ** 4 / Constants.c**3
+    return 4 * Constants.sigma * Tcmb**4 / Constants.c**3
 
 
 def compute_neutrino_temperature(Tcmb, Neff):
@@ -46,7 +47,7 @@ def compute_neutrino_temperature(Tcmb, Neff):
         neutrino temperature today in K.
     """
     return (4 / 11) ** (1.0 / 3) * (Neff / 3) ** (1.0 / 4) * Tcmb
-    
+
 
 def compute_relativistic_neutrino_density(params):
     """
@@ -68,7 +69,7 @@ def compute_relativistic_neutrino_density(params):
         * params["Neff"]
         / 3
         * (4 / 11) ** (4.0 / 3)
-        * compute_cmb_photon_density(params['Tcmb'])
+        * compute_cmb_photon_density(params["Tcmb"])
     )
 
 
@@ -150,11 +151,7 @@ def convert_mass_to_reduced_parameter(m_nu, T_nu):
         Array of reduced mass parameters for neutrinos.
 
     """
-    return (
-        jnp.array([m_nu, 0.0, 0.0])
-        * Constants.e
-        / (Constants.k * T_nu)
-    )
+    return jnp.array([m_nu, 0.0, 0.0]) * Constants.e / (Constants.k * T_nu)
 
 
 def analytical_small_mass_expansion(m_bar):

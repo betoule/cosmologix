@@ -124,7 +124,7 @@ class GeometricCMBLikelihood(Chi2):
         self.L = jnp.linalg.cholesky(self.W)
 
     def model(self, params):
-        Omega_c_h2 = params['Omega_c'] * (params["H0"] ** 2 * 1e-4)
+        Omega_c_h2 = params["Omega_c"] * (params["H0"] ** 2 * 1e-4)
 
         return jnp.array([params["Omega_b_h2"], Omega_c_h2, theta_MC(params)])
 
@@ -173,7 +173,7 @@ def Planck2018Prior():
 # 10.1051/0004-6361/201833910
 Planck18 = {
     "Tcmb": 2.7255,  # Check this number and report the exact origin
-    "Omega_m": (0.02233+0.1198)/(67.37/100)**2,  # ±0.0074
+    "Omega_m": (0.02233 + 0.1198) / (67.37 / 100) ** 2,  # ±0.0074
     "H0": 67.37,  # ±0.54
     "Omega_b_h2": 0.02233,  # ±0.00015
     "Omega_k": 0.0,

@@ -283,10 +283,10 @@ def randn(sigma, n=None, key=None):
 
 
 def speed_measurement(func, *args, n=10):
-    '''Conveniency function to measure execution and jit speed of
+    """Conveniency function to measure execution and jit speed of
     functions in one go
 
-    '''
+    """
     tstart = time.time()
     result = jax.block_until_ready(func(*args))
     tcomp = time.time()
