@@ -125,7 +125,7 @@ def gauss_newton_prep(func, params_subset):
     return f, jax.jit(jax.jacfwd(f))
 
 
-def fit(likelihoods, fixed={}):
+def fit(likelihoods, fixed={}, verbose=False):
     """Fit a set of likelihoods using the Gauss-Newton method with partial parameter fixing.
 
     This function combines multiple likelihoods, optimizes the
@@ -178,7 +178,9 @@ def fit(likelihoods, fixed={}):
 
     # Minimization
     x0 = flatten_vector(initial_guess)
-    xbest, extra = gauss_newton_partial(wres, wjac, x0, fixed)
+    if verbose:
+        print(initial_guess)
+    xbest, extra = gauss_newton_partial(wres, wjac, x0, fixed, verbose=verbose)
 
     # Compute approximation of the FIM
     J = wjac(xbest, fixed)
@@ -220,7 +222,9 @@ def newton(func, x0, g=None, H=None, niter=50, tol=1e-3):
     return unflatten_vector(x0, xi), {"loss": losses, "timings": timings}
 
 
-def gauss_newton_partial(wres, jac, x0, fixed, niter=50, tol=1e-3, full=False):
+def gauss_newton_partial(
+    wres, jac, x0, fixed, niter=50, tol=1e-3, full=False, verbose=False
+):
     """
     Perform partial Gauss-Newton optimization for non-linear least squares problems.
 
@@ -277,6 +281,9 @@ def gauss_newton_partial(wres, jac, x0, fixed, niter=50, tol=1e-3, full=False):
         J = jac(x, fixed)
         g = J.T @ R
         dx = jnp.linalg.solve(J.T @ J, g)
+        if verbose:
+            print(x)
+            print(dx)
         x = x - dx
         timings.append(time.time())
     extra = {"loss": losses, "timings": timings}
