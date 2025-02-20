@@ -39,8 +39,15 @@ def test_fit():
     from cosmologix import likelihoods, fit
 
     priors = [likelihoods.Planck2018Prior()]
-    fixed = {"Omega_k": 0.0, "m_nu": 0.06, "Neff": 3.046, "Tcmb": 2.7255, "w": -1.0}
-    result = fit(priors, fixed=fixed)
+    fixed = {
+        "Omega_k": 0.0,
+        "m_nu": 0.06,
+        "Neff": 3.046,
+        "Tcmb": 2.7255,
+        "w": -1.0,
+        "wa": 0.0,
+    }
+    result = fit(priors, fixed=fixed, verbose=True)
     print(result["bestfit"])
 
 

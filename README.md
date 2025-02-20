@@ -47,18 +47,18 @@ print(distance_modulus)
 # Find bestfit flat w-CDM cosmology
 from cosmologix import likelihoods, fit
 priors = [likelihoods.Planck2018Prior(), likelihoods.DES5yr()]
-fixed = {'Omega_k':0., 'm_nu':0.06, 'Neff':3.046, 'Tcmb': 2.7255}
-result = fit(priors, fixed=fixed)
+fixed = {'Omega_k':0., 'm_nu':0.06, 'Neff':3.046, 'Tcmb': 2.7255, 'wa':0.0}
+result = fit(priors, fixed=fixed, verbose=True)
 print(result['bestfit'])
 
 # Compute frequentist confidence contours
+from cosmologix import contours
 grid = contours.frequentist_contour_2D(
-     priors,
-	 grid={'Omega_m': [0.18, 0.48, 30], 'w': [-0.6, -1.5, 30]},
-	 fixed=fixed
-	 )
+    priors,
+    grid={'Omega_m': [0.18, 0.48, 30], 'w': [-0.6, -1.5, 30]},
+    fixed=fixed
+    )
 contours.plot_contours(grid)
-
 ```
 
 ## Dependencies

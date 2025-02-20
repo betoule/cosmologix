@@ -1,4 +1,4 @@
-from cosmologix import mu, Planck18, densities
+from cosmologix import mu, Planck18, densities, lcdm_deviation
 from cosmologix.distances import H
 import pyccl as ccl
 import jax.numpy as jnp
@@ -7,13 +7,6 @@ import camb
 
 # Set the default precision to float64 for all operations
 jax.config.update("jax_enable_x64", True)
-
-
-def lcdm_deviation(**keys):
-    params = Planck18.copy()
-    params.update(keys)
-    return params
-
 
 massless = lcdm_deviation(m_nu=0)
 opened = lcdm_deviation(Omega_k=0.01)
