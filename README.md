@@ -53,12 +53,17 @@ print(result['bestfit'])
 
 # Compute frequentist confidence contours
 from cosmologix import contours
-grid = contours.frequentist_contour_2D(
+grid = contours.frequentist_contour_2D_sparse(
     priors,
     grid={'Omega_m': [0.18, 0.48, 30], 'w': [-0.6, -1.5, 30]},
     fixed=fixed
     )
-contours.plot_contours(grid)
+
+import matplotlib.pyplot as plt
+contours.plot_contours(grid, filled=True, label='CMB+SN')
+plt.ion()
+plt.legend(loc='lower right', frameon=False)
+plt.show()
 ```
 
 ## Dependencies

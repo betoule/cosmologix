@@ -14,6 +14,8 @@ from cosmologix.tools import conflevel_to_delta_chi2
 from cosmologix import Planck18
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
+from collections import deque
+from tqdm import tqdm
 
 
 def frequentist_contour_2D(
@@ -59,12 +61,14 @@ def frequentist_contour_2D(
     x = flatten_vector(partial_bestfit)
     wres_, J = gauss_newton_prep(wres, partial_bestfit)
 
-    for i in range(grid_size[0]):
-        for j in range(grid_size[1]):
-            print(i, j)
-            point = {explored_params[0]: x_grid[i], explored_params[1]: y_grid[j]}
-            x, ploss = gauss_newton_partial(wres_, J, x, point)
-            chi2_grid = chi2_grid.at[i, j].set(ploss["loss"][-1])
+    total_points = grid_size[0] * grid_size[1]
+    with tqdm(total=total_points, desc="Exploring contour (approximate)") as pbar:
+        for i in range(grid_size[0]):
+            for j in range(grid_size[1]):
+                point = {explored_params[0]: x_grid[i], explored_params[1]: y_grid[j]}
+                x, ploss = gauss_newton_partial(wres_, J, x, point)
+                chi2_grid = chi2_grid.at[i, j].set(ploss["loss"][-1])
+                pbar.update(1)
     return {
         "params": explored_params,
         "x": x_grid,
@@ -75,9 +79,6 @@ def frequentist_contour_2D(
     }
 
 
-from collections import deque
-
-
 def frequentist_contour_2D_sparse(
     likelihoods,
     grid={"Omega_m": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]},
@@ -85,6 +86,23 @@ def frequentist_contour_2D_sparse(
     fixed=None,
     chi2_threshold=6.17,  # 95% confidence for 2 parameters; adjust as needed
 ):
+    """
+    Compute 2D confidence contours using sparse exploration.
+
+    Explores a grid starting from the best-fit point, stopping at a Δχ² threshold,
+    assuming a convex contour to optimize progress estimation. Unexplored points
+    are marked as NaN in the output grid.
+
+    Args:
+        likelihoods: List of likelihood functions.
+        grid: Dict defining parameter ranges and grid sizes (e.g., {"param": [min, max, n]}).
+        varied: Additional parameters to vary at each grid point (fixed can be provided instead).
+        fixed: Dict of fixed parameter values.
+        chi2_threshold: Δχ² threshold for contour boundary (default: 6.17, 95% for 2 params).
+
+    Returns:
+        Dict with params, x, y, chi2 grid, bestfit, and extra info.
+    """
     likelihood = LikelihoodSum(likelihoods)
 
     # Initial setup (same as before)
@@ -132,31 +150,38 @@ def frequentist_contour_2D_sparse(
     queue = deque([(x_idx, y_idx)])
     directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # Up, right, down, left
 
-    while queue:
-        i, j = queue.popleft()
-        if (
-            (i, j) in visited
-            or i < 0
-            or i >= grid_size[0]
-            or j < 0
-            or j >= grid_size[1]
-        ):
-            continue
+    # Total grid points as an upper bound
+    total_points = grid_size[0] * grid_size[1]
 
-        visited.add((i, j))
+    # Progress bar with estimated total
+    with tqdm(total=total_points, desc="Exploring contour") as pbar:
+        while queue:
+            i, j = queue.popleft()
+            if (
+                (i, j) in visited
+                or i < 0
+                or i >= grid_size[0]
+                or j < 0
+                or j >= grid_size[1]
+            ):
+                continue
 
-        # Calculate chi2 at this point
-        point = {explored_params[0]: x_grid[i], explored_params[1]: y_grid[j]}
-        x, ploss = gauss_newton_partial(wres_, J, x, point)
-        chi2_value = ploss["loss"][-1]
-        chi2_grid = chi2_grid.at[i, j].set(chi2_value)
+            visited.add((i, j))
 
-        # If chi2 is below threshold, explore neighbors
-        if (chi2_value - chi2_min) <= chi2_threshold:
-            for di, dj in directions:
-                next_i, next_j = i + di, j + dj
-                if (next_i, next_j) not in visited:
-                    queue.append((next_i, next_j))
+            # Calculate chi2 at this point
+            point = {explored_params[0]: x_grid[i], explored_params[1]: y_grid[j]}
+            x, ploss = gauss_newton_partial(wres_, J, x, point)
+            chi2_value = ploss["loss"][-1]
+            chi2_grid = chi2_grid.at[i, j].set(chi2_value)
+
+            pbar.update(1)
+
+            # If chi2 is below threshold, explore neighbors
+            if (chi2_value - chi2_min) <= chi2_threshold:
+                for di, dj in directions:
+                    next_i, next_j = i + di, j + dj
+                    if (next_i, next_j) not in visited:
+                        queue.append((next_i, next_j))
 
     # Convert unexplored points back to nan
     chi2_grid = jnp.where(chi2_grid == jnp.inf, jnp.nan, chi2_grid)
@@ -171,16 +196,72 @@ def frequentist_contour_2D_sparse(
     }
 
 
+latex_translation = {
+    "Tcmb": r"$T_{cmb}$",
+    "Omega_m": r"$\Omega_m$",
+    "H0": r"$H_0$",
+    "Omega_b_h2": r"$\Omega_b h^2$",
+    "Omega_k": r"$\Omega_k$",
+    "w": r"$w_0$",
+    "wa": r"$w_a$",
+    "m_nu": r"$\sum m_\nu$",
+    "Neff": r"$N_{eff}$",
+}
+
+color_theme = ["#fbb4ae", "#b3cde3", "#ccebc5", "#decbe4", "#fed9a6", "#ffffcc"]
+
+
 def plot_contours(
     grid,
     label=None,
     ax=None,
     bestfit=False,
-    base_color="blue",
+    base_color=color_theme[0],
     filled=False,
     levels=[68.3, 95.5],
     **keys,
 ):
+    """Plot 2D confidence contours from a chi-square grid.
+
+    Generates contour plots (optionally filled) for a 2D parameter space, using
+    Δχ² values derived from specified confidence levels. Shades are applied
+    within a single hue, with lighter shades for lower confidence levels.
+    Supports labeling for legends and plotting the best-fit point.
+
+    Parameters
+    ----------
+    grid : dict
+        Dictionary containing contour data, typically from `frequentist_contour_2D_sparse`.
+        Expected keys:
+        - 'params': List of two parameter names (e.g., ['Omega_m', 'w']).
+        - 'x', 'y': 1D arrays of grid coordinates for the two parameters.
+        - 'chi2': 2D array of χ² values (transposed in plotting).
+        - 'bestfit': Dict of best-fit parameter values (used if `bestfit=True`).
+        - 'extra': Dict with 'loss' key containing optimization results (last value used as χ²_min).
+    label : str, optional
+        Label for the contour set, used in the legend if provided.
+    ax : matplotlib.axes.Axes, optional
+        Axes object to plot on. If None, uses the current axes (`plt.gca()`).
+    bestfit : bool, default=False
+        If True, plots a black '+' at the best-fit point from `grid['bestfit']`.
+    base_color : str, default is a light red hue.
+        Base color hue for contours. Shades are derived by varying alpha.
+    filled : bool, default=False
+        If True, plots filled contours using `contourf` in addition to contour lines.
+    levels : list of float, default=[68.3, 95.5]
+        Confidence levels in percent (e.g., 68.3 for 1σ, 95.5 for 2σ). Converted to
+        Δχ² thresholds for 2 degrees of freedom using `conflevel_to_delta_chi2`.
+    **keys : dict
+        Additional keyword arguments passed to `contour` and `contourf` (e.g., `linewidths`, `linestyles`).
+
+    Notes
+    -----
+    - Δχ² is computed as `grid['chi2'].T - grid['extra']['loss'][-1]`,
+      which is the loss value corresponding to the global minimum
+      χ². This might be slightly smaller than `grid['chi2'].min()`.
+    - Parameter names in axes labels are translated to LaTeX if present in `latex_translation`.
+    - For filled contours, an invisible proxy patch is added for legend compatibility.
+    """
     from matplotlib.colors import to_rgba
 
     x, y = grid["params"]
@@ -213,42 +294,5 @@ def plot_contours(
 
     if bestfit:
         ax.plot(grid["bestfit"][x], grid["bestfit"][y], "k+")
-    ax.set_xlabel(x)
-    ax.set_ylabel(y)
-
-
-if __name__ == "__main__":
-    import jax
-
-    jax.config.update("jax_enable_x64", True)
-    from cosmologix import likelihoods
-
-    priors = [likelihoods.Planck2018Prior(), likelihoods.DES5yr()]
-    fixed = {"Omega_k": 0.0, "m_nu": 0.06, "Neff": 3.046, "Tcmb": 2.7255, "wa": 0.0}
-    n = 60
-    grid = frequentist_contour_2D_sparse(
-        priors, grid={"Omega_m": [0.18, 0.48, n], "w": [-0.6, -1.5, n]}, fixed=fixed
-    )
-    grid_sn = frequentist_contour_2D_sparse(
-        [likelihoods.DES5yr()],
-        grid={"Omega_m": [0.18, 0.48, n], "w": [-0.6, -1.5, n]},
-        fixed=dict(fixed, H0=Planck18["H0"], Omega_b_h2=Planck18["Omega_b_h2"]),
-    )
-
-    grid_cmb = frequentist_contour_2D_sparse(
-        [likelihoods.Planck2018Prior()],
-        grid={"Omega_m": [0.18, 0.48, n], "w": [-0.6, -1.5, n]},
-        fixed=fixed,
-    )
-    # varied=['M', 'Omega_b_h2', 'H0'])
-    # grid = frequentist_contour_2D([DES5yr()], varied=['M'])
-    plot_contours(grid)
-    import matplotlib.pyplot as plt
-
-    plot_contours(grid_cmb, base_color="green", filled=True, label="Planck")
-    plot_contours(grid_sn, base_color="blue", filled=True, label="DES5")
-    plot_contours(
-        grid, base_color="black", filled=False, label="Planck+DES5", bestfit=True
-    )
-    plt.legend(loc="lower right", frameon=False)
-    plt.show()
+    ax.set_xlabel(latex_translation[x] if x in latex_translation else x)
+    ax.set_ylabel(latex_translation[y] if y in latex_translation else y)
