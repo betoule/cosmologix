@@ -1,5 +1,11 @@
-from cosmologix.likelihoods import DES5yr, LikelihoodSum, Planck2018Prior
-from cosmologix import Planck18
+from cosmologix import (
+    Planck18,
+    likelihoods,
+    lcdm_deviation,
+    fit,
+    distances,
+    acoustic_scale,
+)
 from cosmologix.fitter import newton, flatten_vector, unflatten_vector, restrict_to
 import jax.numpy as jnp
 import jax
@@ -9,11 +15,11 @@ import time
 jax.config.update("jax_enable_x64", True)
 
 
-def control_fitter_bias_and_coverage(likelihoods, point, fitter, ndraw=50):
+def control_fitter_bias_and_coverage(priors, point, fitter, ndraw=50):
     # Simulated data
     params = Planck18.copy()
     params.update(point)
-    likelihood = LikelihoodSum(likelihoods)
+    likelihood = LikelihoodSum(priors)
 
     def draw():
         likelihood.draw(params)
@@ -30,14 +36,12 @@ def control_fitter_bias_and_coverage(likelihoods, point, fitter, ndraw=50):
 
 
 def test_newton_fitter():
-    des = DES5yr()
+    des = likelihoods.DES5yr()
     point = {"Omega_m": 0.3, "M": 0.0}
     control_fitter_bias_and_coverage([des], point, newton, ndraw=50)
 
 
 def test_fit():
-    from cosmologix import likelihoods, fit
-
     priors = [likelihoods.Planck2018Prior()]
     fixed = {
         "Omega_k": 0.0,
@@ -52,15 +56,14 @@ def test_fit():
 
 
 if __name__ == "__main__":
-    des = DES5yr()
-    pl = Planck2018Prior()
+    des = likelihoods.DES5yr()
+    pl = likelihoods.Planck2018Prior()
+    desiu = likelihoods.DESI2024Prior(True)
     point = {
         "Omega_m": 0.3,
-        "M": 0,
+        "M": 0.0,
     }
-    #'M': 0.}
-    # control_fitter_bias_and_coverage([des, pl], point, newton, ndraw=50)
-    test_fit()
+
 
 #    fixed_params = Planck18.copy()
 #    fixed_params.pop("Omega_m")

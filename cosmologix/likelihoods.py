@@ -147,7 +147,7 @@ class GeometricCMBLikelihood(Chi2):
         self.mean = m + n
 
 
-class BAOLikelihood(Chi2):
+class UncalibratedBAOLikelihood(Chi2):
     def __init__(self, redshifts, distances, covariance, dist_type_labels):
         """An easy-to-work-with summary of CMB measurements
 
@@ -187,8 +187,7 @@ class BAOLikelihood(Chi2):
         return jnp.array(self.dist_type_indices)
 
     def model(self, params) -> jnp.ndarray:
-        zdrag = z_drag(params)
-        rd = rs(params, zdrag)
+        rd = params["rd"]
 
         def dV_over_rd(z):
             return dV(params, z) / rd
@@ -200,10 +199,6 @@ class BAOLikelihood(Chi2):
             return dH(params, z) / rd
 
         branches = (dV_over_rd, dM_over_rd, dH_over_rd)
-        # dists = jnp.zeros_like(self.redshifts)
-        # for k, index in enumerate(self.dist_type_indices):
-        #      print(k, index, self.dist_type_labels[k], self.redshifts[k], branches[index](self.redshifts[k]))
-        #      dists = dists.at[k].set(branches[index](self.redshifts[k])[0])
         zz = jnp.tile(self.redshifts, (len(branches), 1))
         functions = vmap(lambda i, x: lax.switch(i, branches, x))
         dists = functions(jnp.arange(len(branches)), zz)
@@ -220,6 +215,27 @@ class BAOLikelihood(Chi2):
     def likelihood(self, params):
         r = self.weighted_residuals(params)
         return r.T @ r
+
+    def initial_guess(self, params):
+        """
+        Append relevant starting point for nuisance parameters to the parameter dictionary
+
+        """
+        return dict(params, rd=151.0)
+
+
+class CalibratedBAOLikelihood(UncalibratedBAOLikelihood):
+    def model(self, params):
+        zdrag = z_drag(params)
+        rd = rs(params, zdrag)
+        return super().model(dict(params, rd=rd))
+
+    def initial_guess(self, params):
+        """
+        Append relevant starting point for nuisance parameters to the parameter dictionary
+
+        """
+        return params
 
 
 def DES5yr():
@@ -244,12 +260,13 @@ def Planck2018Prior():
     return planck2018_prior
 
 
-def DESI2024Prior():
+def DESI2024Prior(uncalibrated=False):
     """
     From DESI YR1 results https://arxiv.org/pdf/2404.03002 Table 1
     :return:
     """
-    desi2024_prior = BAOLikelihood(
+    Prior = UncalibratedBAOLikelihood if uncalibrated else CalibratedBAOLikelihood
+    desi2024_prior = Prior(
         redshifts=[
             0.295,
             0.510,

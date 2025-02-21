@@ -62,7 +62,7 @@ def frequentist_contour_2D(
     wres_, J = gauss_newton_prep(wres, partial_bestfit)
 
     total_points = grid_size[0] * grid_size[1]
-    with tqdm(total=total_points, desc="Exploring contour (approximate)") as pbar:
+    with tqdm(total=total_points, desc="Exploring contour") as pbar:
         for i in range(grid_size[0]):
             for j in range(grid_size[1]):
                 point = {explored_params[0]: x_grid[i], explored_params[1]: y_grid[j]}
@@ -154,7 +154,9 @@ def frequentist_contour_2D_sparse(
     total_points = grid_size[0] * grid_size[1]
 
     # Progress bar with estimated total
-    with tqdm(total=total_points, desc="Exploring contour") as pbar:
+    with tqdm(
+        total=total_points, desc="Exploring contour (upper bound estimate)"
+    ) as pbar:
         while queue:
             i, j = queue.popleft()
             if (
