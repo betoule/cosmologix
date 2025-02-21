@@ -30,6 +30,7 @@ dependencies = [
     "numpy>=1.21.0",
     "matplotlib>=3.4.0",  # Optional, for examples and plotting
     "requests",
+    "tqdm",
 ]
 
 [project.optional-dependencies]

@@ -1,5 +1,5 @@
 from cosmologix.distances import dM, dH, dV
-from cosmologix.acoustic_scale import z_star, theta_MC, z_drag
+from cosmologix.acoustic_scale import z_star, theta_MC, z_drag, rs
 from cosmologix import mu, densities
 import jax.numpy as jnp
 from cosmologix.tools import randn

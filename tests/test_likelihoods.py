@@ -1,5 +1,4 @@
-from cosmologix.likelihoods import DES5yr, Planck2018Prior, LikelihoodSum
-from cosmologix import Planck18
+from cosmologix import Planck18, likelihoods
 from cosmologix.fitter import unflatten_vector, flatten_vector
 import jax
 import jax.numpy as jnp
@@ -41,12 +40,13 @@ def get_like_func(likelihood, fix=["Omega_k"]):
 
 
 def test_likelihoods(fix=["Omega_k"]):
-    likelihoods = {
-        "des": DES5yr(),
-        "planck": Planck2018Prior(),
+    priors = {
+        "desi": likelihoods.DESI2024Prior(),
+        "des": likelihoods.DES5yr(),
+        "planck": likelihoods.Planck2018Prior(),
     }
-    likelihoods["sum"] = LikelihoodSum(list(likelihoods.values()))
-    for name, likelihood in likelihoods.items():
+    priors["sum"] = likelihoods.LikelihoodSum(list(priors.values()))
+    for name, likelihood in priors.items():
         x, l, R = get_like_func(likelihood, fix=fix)
         func_and_derivatives(R, x, jac=True, funcname=f"{name}.wres")
         func_and_derivatives(l, x, funcname=f"{name}.likelihood")
