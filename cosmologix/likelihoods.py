@@ -187,7 +187,7 @@ class UncalibratedBAOLikelihood(Chi2):
         return jnp.array(self.dist_type_indices)
 
     def model(self, params) -> jnp.ndarray:
-        rd = params['rd']
+        rd = params["rd"]
 
         def dV_over_rd(z):
             return dV(params, z) / rd
@@ -215,13 +215,14 @@ class UncalibratedBAOLikelihood(Chi2):
     def likelihood(self, params):
         r = self.weighted_residuals(params)
         return r.T @ r
-    
+
     def initial_guess(self, params):
         """
         Append relevant starting point for nuisance parameters to the parameter dictionary
 
         """
-        return dict(params, rd=151.)
+        return dict(params, rd=151.0)
+
 
 class CalibratedBAOLikelihood(UncalibratedBAOLikelihood):
     def model(self, params):
@@ -235,7 +236,8 @@ class CalibratedBAOLikelihood(UncalibratedBAOLikelihood):
 
         """
         return params
-    
+
+
 def DES5yr():
     from cosmologix.tools import load_csv_from_url
 

@@ -154,7 +154,9 @@ def frequentist_contour_2D_sparse(
     total_points = grid_size[0] * grid_size[1]
 
     # Progress bar with estimated total
-    with tqdm(total=total_points, desc="Exploring contour (upper bound estimate)") as pbar:
+    with tqdm(
+        total=total_points, desc="Exploring contour (upper bound estimate)"
+    ) as pbar:
         while queue:
             i, j = queue.popleft()
             if (

@@ -1,4 +1,11 @@
-from cosmologix import Planck18, likelihoods, lcdm_deviation, fit, distances, acoustic_scale
+from cosmologix import (
+    Planck18,
+    likelihoods,
+    lcdm_deviation,
+    fit,
+    distances,
+    acoustic_scale,
+)
 from cosmologix.fitter import newton, flatten_vector, unflatten_vector, restrict_to
 import jax.numpy as jnp
 import jax
@@ -54,7 +61,7 @@ if __name__ == "__main__":
     desiu = likelihoods.DESI2024Prior(True)
     point = {
         "Omega_m": 0.3,
-        "M": 0.,
+        "M": 0.0,
     }
 
 
