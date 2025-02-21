@@ -1,5 +1,5 @@
 from cosmologix.distances import dM, dH, dV
-from cosmologix.acoustic_scale import z_star, theta_MC, z_drag, rs
+from cosmologix.acoustic_scale import theta_MC, rd_approx
 from cosmologix import mu, densities
 import jax.numpy as jnp
 from cosmologix.tools import randn
@@ -226,8 +226,7 @@ class UncalibratedBAOLikelihood(Chi2):
 
 class CalibratedBAOLikelihood(UncalibratedBAOLikelihood):
     def model(self, params):
-        zdrag = z_drag(params)
-        rd = rs(params, zdrag)
+        rd = rd_approx(params)
         return super().model(dict(params, rd=rd))
 
     def initial_guess(self, params):
@@ -333,7 +332,7 @@ def DESI2024Prior(uncalibrated=False):
 # TT,TE,EE+lowE+lensing. Taken from Table 1. in
 # 10.1051/0004-6361/201833910
 Planck18 = {
-    "Tcmb": 2.7255,  # Check this number and report the exact origin
+    "Tcmb": 2.7255,  # from Planck18 arxiv:1807.06209 footnote 14 citing Fixsen 2009
     "Omega_m": (0.02233 + 0.1198) / (67.37 / 100) ** 2,  # ±0.0074
     "H0": 67.37,  # ±0.54
     "Omega_b_h2": 0.02233,  # ±0.00015
@@ -356,8 +355,7 @@ DESI2024YR1_Fiducial = {
     "w": -1.0,
     "wa": 0.0,
     "m_nu": 0.06,  # jnp.array([0.06, 0.0, 0.0]),  # 0.00064420   2.0328
-    "Neff": 3.046,
-
+    "Neff": 3.04,
 }
 
 
