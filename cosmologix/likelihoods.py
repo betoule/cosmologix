@@ -326,6 +326,48 @@ def DESI2024Prior(uncalibrated=False):
     return desi2024_prior
 
 
+class BBNLikelihood(Chi2):
+    """
+    BBN measurement from https://arxiv.org/abs/2401.15054
+    """
+
+    def __init__(self, omega_b_h2, omega_b_h2_err):
+        self.data = jnp.asarray([omega_b_h2])
+        self.error = jnp.asarray([omega_b_h2_err])
+
+    def model(self, params):
+        return jnp.array([params["Omega_b_h2"]])
+
+
+class BBNNeffLikelihood(GeometricCMBLikelihood):
+
+    def __init__(self, mean, covariance):
+        GeometricCMBLikelihood.__init__(self, mean, covariance)
+
+    def model(self, params):
+        return jnp.array([params["Omega_b_h2"], params["Neff"]])
+
+
+def BBNNeffSchoneberg2024Prior():
+    """
+    BBN measurement from https://arxiv.org/abs/2401.15054
+    """
+
+    bbn_prior = BBNNeffLikelihood([0.02196, 3.034],
+                              [[4.03112260e-07, 7.30390042e-05],
+                                         [7.30390042e-05, 4.52831584e-02]])
+    return bbn_prior
+
+
+def BBNSchoneberg2024Prior():
+    """
+    BBN measurement from https://arxiv.org/abs/2401.15054
+    """
+
+    bbn_prior = BBNLikelihood(0.02218, 0.00055)
+    return bbn_prior
+
+
 # Best fit cosomologies
 
 # Base-ΛCDM cosmological parameters from Planck
