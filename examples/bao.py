@@ -11,10 +11,6 @@ import numpy as np
 import jax.numpy as jnp
 
 
-def rd(params):
-    return acoustic_scale.rs(params, acoustic_scale.z_drag(params))
-
-
 # Uncalibrated DESI prior
 desiu = likelihoods.DESI2024Prior(True)
 
@@ -64,12 +60,16 @@ for dist_type, distfunc, zscale, label in [
     )
     ax1.plot(
         z,
-        distfunc(Planck18, z) / (rd(Planck18) * z ** (zscale)),
+        distfunc(Planck18, z) / (acoustic_scale.rd(Planck18) * z ** (zscale)),
         color=l[0].get_color(),
         ls="--",
     )
     ax2.errorbar(
-        desiu.redshifts[goods], res[goods]/desiu.model(aparams)[goods], error[goods]/desiu.model(aparams)[goods], ls="None", marker="s"
+        desiu.redshifts[goods],
+        res[goods] / desiu.model(aparams)[goods],
+        error[goods] / desiu.model(aparams)[goods],
+        ls="None",
+        marker="s",
     )
 ax2.set_xlabel(r"$z$")
 ax2.set_ylabel("residuals/model")

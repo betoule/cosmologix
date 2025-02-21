@@ -41,26 +41,6 @@ def z_drag(params):
     )
 
 
-# def a4H2(params, a):
-#    """Return a**4 * H(a)**2/H0**2"""
-#    h = params["H0"] / 100
-#    Omega_b0 = params["Omega_b_h2"] / h**2
-#    Omega_c0 = Omega_c(params)
-#    # Omega_nu_mass = jnp.array([Omega_n_mass(params, jnp.sqrt(aa)) for aa in a])
-#    Omega_nu_mass = Omega_n_mass(params, jnp.sqrt(a))
-#    Omega_nu_rel = Omega_n_rel(params)
-#    Omega_de0 = Omega_de(params, Omega_nu_rel)
-#    Omega_gamma = Tcmb_to_Omega_gamma(params["Tcmb"], params["H0"])
-#    return (
-#        (Omega_b0 + Omega_c0) * a
-#        + params["Omega_k"] * (a**2)
-#        + Omega_gamma
-#        + Omega_nu_rel
-#        + Omega_nu_mass
-#        + Omega_de0 * a ** (1 - 3.0 * params["w"])
-#    )
-
-
 def a4H2(params, a):
     z = 1 / a - 1
     return a**4 * densities.Omega(params, z)
@@ -81,6 +61,22 @@ def dsound_da_approx(params, a):
     )
 
 
+def dsound_da(params, a):
+    """The exact integrand in the computation of rs
+
+    Notes
+    -----
+    see e.g. Komatsu et al. (2009) eq. 6
+    """
+    return 1.0 / (
+        jnp.sqrt(
+            a4H2(params, a)
+            * (1.0 + 0.75 * (params["Omega_b"] / params["Omega_gamma"]) * a)
+        )
+        * params["H0"]
+    )
+
+
 def rs(params, z):
     """The comoving sound horizon size in Mpc"""
     nstep = 1000
@@ -88,15 +84,37 @@ def rs(params, z):
     _a = jnp.linspace(1e-8, a, nstep)
     _a = 0.5 * (_a[1:] + _a[:-1])
     step = _a[1] - _a[0]
-    # step = a / nstep
-    # _a = jnp.arange(0.5 * step, a, step)
+    R = Constants.c * 1e-3 / jnp.sqrt(3) * dsound_da(params, _a).sum() * step
+    return R
+
+
+def rs_approx(params, z):
+    """The approximated comoving sound horizon size in Mpc
+
+    Notes
+    -----
+    Uses dsound_da_approx which is the formula in use to compute 100θ_MC in cosmomc
+    """
+    nstep = 1000
+    a = 1.0 / (1.0 + z)
+    _a = jnp.linspace(1e-8, a, nstep)
+    _a = 0.5 * (_a[1:] + _a[:-1])
+    step = _a[1] - _a[0]
     R = Constants.c * 1e-3 / jnp.sqrt(3) * dsound_da_approx(params, _a).sum() * step
     return R
 
 
-def rd_approx(params):
+def rd(params):
     """
     The comoving sound horizon size at drag redshift in Mpc
+    """
+    par = densities.process_params(params)
+    return rs(par, z_drag(par))
+
+
+def rd_approx(params):
+    """
+    Fit formula for the comoving sound horizon size at drag redshift in Mpc
     Formula from DESI 1yr cosmological result paper arxiv:2404.03002
     """
     omega_b = params["Omega_b_h2"]
@@ -117,5 +135,5 @@ def theta_MC(params):
     """
     params = densities.process_params(params)
     zstar = z_star(params)
-    rsstar = rs(params, zstar)
+    rsstar = rs_approx(params, zstar)
     return rsstar / dM(params, zstar) * 100.0
