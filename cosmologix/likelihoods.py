@@ -202,11 +202,10 @@ class UncalibratedBAOLikelihood(Chi2):
         zz = jnp.tile(self.redshifts, (len(branches), 1))
         functions = vmap(lambda i, x: lax.switch(i, branches, x))
         dists = functions(jnp.arange(len(branches)), zz)
-        return dists
+        return dists[self.dist_type_indices, jnp.arange(self.redshifts.size)]
 
     def residuals(self, params):
         dists = self.model(params)
-        dists = dists[self.dist_type_indices, jnp.arange(self.redshifts.size)]
         return self.distances - dists
 
     def weighted_residuals(self, params):

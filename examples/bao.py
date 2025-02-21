@@ -69,10 +69,10 @@ for dist_type, distfunc, zscale, label in [
         ls="--",
     )
     ax2.errorbar(
-        desiu.redshifts[goods], res[goods], error[goods], ls="None", marker="s"
+        desiu.redshifts[goods], res[goods]/desiu.model(aparams)[goods], error[goods]/desiu.model(aparams)[goods], ls="None", marker="s"
     )
 ax2.set_xlabel(r"$z$")
-ax2.set_ylabel("residuals")
+ax2.set_ylabel("residuals/model")
 ax2.axhline(0, color="k", label=rf"$\Omega_m = {Om:.3f} ± {eOm:.3f}$")
 ax1.legend(loc="lower right", frameon=False)
 ax2.legend(loc="lower right", frameon=False)
