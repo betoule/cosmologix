@@ -1,4 +1,4 @@
-from cosmologix import likelihoods
+from cosmologix import likelihoods, Planck18
 from cosmologix.contours import (
     frequentist_contour_2D_sparse,
     color_theme,
