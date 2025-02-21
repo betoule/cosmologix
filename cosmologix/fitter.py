@@ -125,7 +125,7 @@ def gauss_newton_prep(func, params_subset):
     return f, jax.jit(jax.jacfwd(f))
 
 
-def fit(likelihoods, fixed={}, verbose=False):
+def fit(likelihoods, fixed={}, verbose=False, initial_guess=Planck18):
     """Fit a set of likelihoods using the Gauss-Newton method with partial parameter fixing.
 
     This function combines multiple likelihoods, optimizes the
@@ -167,7 +167,7 @@ def fit(likelihoods, fixed={}, verbose=False):
     likelihood = LikelihoodSum(likelihoods)
 
     # Pick up a good starting point
-    params = likelihood.initial_guess(Planck18)
+    params = likelihood.initial_guess(initial_guess.copy())
     initial_guess = params.copy()
     for p in fixed:
         assert p in params, "Unknow parameter name {p}"

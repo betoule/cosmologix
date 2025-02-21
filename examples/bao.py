@@ -18,7 +18,7 @@ desiu = likelihoods.DESI2024Prior(True)
 fixed = lcdm_deviation()
 fixed.pop("Omega_m")
 
-results = fit([desiu], fixed=fixed, verbose=True)
+results = fit([desiu], fixed=fixed, verbose=True, initial_guess=lcdm_deviation())
 
 # Reconstruct the full vector of parameters
 aparams = lcdm_deviation(**results["bestfit"])
