@@ -42,6 +42,8 @@ def params_to_CAMB(params):
         omch2=params["Omega_c"] * h**2,
         mnu=params["m_nu"],
         omk=params["Omega_k"],
+        w=params["w"],
+        wa=params["wa"],
         tau=0.0540,
         As=jnp.exp(3.043) / 10**10,
         ns=0.9652,
@@ -64,6 +66,8 @@ def h_camb(params, z):
 
 
 def mu_ccl(params, z):
+    print(params)
+    print(params_to_ccl(params))
     cclcosmo = ccl.Cosmology(**params_to_ccl(params))
     return ccl.distance_modulus(cclcosmo, 1 / (1 + z))
 
