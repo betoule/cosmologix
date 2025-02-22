@@ -22,6 +22,8 @@ def params_to_ccl(params):
         "Omega_c": params["Omega_c"],
         "Omega_b": params["Omega_b"],
         "Omega_k": params["Omega_k"],
+        "w0": params["w"],
+        "wa": params["wa"],
         "h": params["H0"] / 100,
         "Neff": params["Neff"],
         "m_nu": [params["m_nu"], 0, 0],
