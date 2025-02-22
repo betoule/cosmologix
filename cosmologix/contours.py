@@ -121,15 +121,28 @@ def frequentist_contour_2D_sparse(
             flat=False,
         )
 
-    # Find global minimum (same as before)
+    # Find global minimum
     wres_, J = gauss_newton_prep(wres, initial_guess)
     x0 = flatten_vector(initial_guess)
     xbest, extra = gauss_newton_partial(wres_, J, x0, {})
     bestfit = unflatten_vector(initial_guess, xbest)
     chi2_min = extra["loss"][-1]
 
-    # Grid setup
     explored_params = list(grid.keys())
+
+    # Handle the specific case of degenerate contours by fixing one of
+    # the two explored parameters
+    if jnp.isnan(chi2_min):
+        partial_guess = initial_guess.copy()
+        first_param = explored_params[0]
+        point = {first_param: partial_guess.pop(first_param)}
+        wres_, J = gauss_newton_prep(wres, partial_guess)
+        x0 = flatten_vector(partial_guess)
+        xbest, extra = gauss_newton_partial(wres_, J, x0, point)
+        bestfit = dict(unflatten_vector(partial_guess, xbest), **point)
+        chi2_min = extra["loss"][-1]
+
+    # Grid setup
     grid_size = [grid[p][-1] for p in explored_params]
     chi2_grid = jnp.full(grid_size, jnp.inf)  # Initialize with infinity
     x_grid, y_grid = [jnp.linspace(*grid[p]) for p in explored_params]

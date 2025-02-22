@@ -82,6 +82,7 @@ class Chi2FullCov(Chi2):
     of the inverse of the covariance matrix of the measurements.
 
     """
+
     def weighted_residuals(self, params):
         """
         Calculate the weighted residuals, normalizing by the error.
@@ -93,7 +94,8 @@ class Chi2FullCov(Chi2):
         - numpy.ndarray: An array where each element is residual/error.
         """
         return self.U @ self.residuals(params)
-    
+
+
 class LikelihoodSum:
     def __init__(self, likelihoods):
         self.likelihoods = likelihoods
@@ -120,15 +122,16 @@ class MuMeasurements(Chi2FullCov):
     def __init__(self, z_cmb, mu, mu_cov):
         self.z_cmb = jnp.atleast_1d(z_cmb)
         self.data = jnp.atleast_1d(mu)
-        self.cov = jnp.atleast_1d(mu_cov)
+        self.cov = jnp.array(mu_cov)
         self.weights = jnp.linalg.inv(self.cov)
         self.U = jnp.linalg.cholesky(self.weights, upper=True)
-        
+
     def model(self, params):
         return mu(params, self.z_cmb) + params["M"]
 
     def initial_guess(self, params):
         return dict(params, M=0.0)
+
 
 class DiagMuMeasurements(Chi2):
     def __init__(self, z_cmb, mu, mu_err):
@@ -141,7 +144,8 @@ class DiagMuMeasurements(Chi2):
 
     def initial_guess(self, params):
         return dict(params, M=0.0)
-    
+
+
 class GeometricCMBLikelihood(Chi2FullCov):
     def __init__(self, mean, covariance):
         """An easy-to-work-with summary of CMB measurements
@@ -255,15 +259,23 @@ def DES5yr():
     )
     return DiagMuMeasurements(des_data["zCMB"], des_data["MU"], des_data["MUERR_FINAL"])
 
+
 def JLA():
-    from cosmologix.tools import load_csv_from_url
+    from cosmologix.tools import cached_download
     import numpy as np
     from astropy.io import fits
-    binned_distance_moduli = np.loadtxt(cached_download("https://cdsarc.cds.unistra.fr/ftp/J/A+A/568/A22/tablef1.dat"))
-    cov_mat = pyfits.get_data(cached_download("https://cdsarc.cds.unistra.fr/ftp/J/A+A/568/A22/tablef2.fit"))
-    return MuMeasurements(binned_distance_moduli[:, 0],
-                          binned_distance_moduli[:, 1],
-                          cov_mat)
+
+    binned_distance_moduli = np.loadtxt(
+        cached_download("https://cdsarc.cds.unistra.fr/ftp/J/A+A/568/A22/tablef1.dat")
+    )
+    cov_mat = fits.getdata(
+        cached_download("https://cdsarc.cds.unistra.fr/ftp/J/A+A/568/A22/tablef2.fit")
+    )
+    return MuMeasurements(
+        binned_distance_moduli[:, 0], binned_distance_moduli[:, 1], cov_mat
+    )
+
+
 # Extracted from
 def Planck2018Prior():
     planck2018_prior = GeometricCMBLikelihood(

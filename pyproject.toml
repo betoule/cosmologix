@@ -87,10 +87,11 @@ allow_redefinition = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
-    "slow: mark a test as slow-running (skipped by default)"
+    "slow: mark a test as slow-running (skipped by default)",
 ]
 addopts = [
+  #'-m "not slow"',
   "--cov=cosmologix",
   "--cov-report=term-missing",
-  "-m 'not slow'",
+  
 ]

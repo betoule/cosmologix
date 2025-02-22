@@ -34,6 +34,7 @@ def control_fitter_bias_and_coverage(priors, point, fitter, ndraw=50):
     sigma = jnp.std(results, axis=0) / jnp.sqrt(ndraw)
     assert (jnp.abs(bias / sigma) < 3).all()
 
+
 @pytest.mark.slow
 def test_newton_fitter():
     des = likelihoods.DES5yr()

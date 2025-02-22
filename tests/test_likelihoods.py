@@ -45,6 +45,7 @@ def test_likelihoods(fix=["Omega_k"]):
         "desi": likelihoods.DESI2024Prior(),
         "des": likelihoods.DES5yr(),
         "planck": likelihoods.Planck2018Prior(),
+        "jla": likelihoods.JLA(),
     }
     priors["sum"] = likelihoods.LikelihoodSum(list(priors.values()))
     for name, likelihood in priors.items():
