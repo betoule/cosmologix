@@ -95,7 +95,7 @@ def Omega_de(params, z):
     """
     return params["Omega_x"] * jnp.exp(
         3 * (1 + params["w"] + params["wa"]) * jnp.log(1 + z)
-        - 3 * params["wa"] / (1 + z)
+        - 3 * params["wa"] * z / (1 + z)
     )
 
 
