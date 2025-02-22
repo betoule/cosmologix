@@ -12,6 +12,9 @@ massless = lcdm_deviation(m_nu=0)
 opened = lcdm_deviation(Omega_k=0.01)
 closed = lcdm_deviation(Omega_k=-0.01)
 w0wa = lcdm_deviation(w=-0.9, wa=0.1)
+dark_energy = lcdm_deviation(w=-0.9)
+
+cosmologies = [Planck18, massless, opened, closed, dark_energy, w0wa]
 
 
 #
@@ -80,7 +83,7 @@ def h_ccl(params, z):
 
 def test_distance_modulus():
     z = jnp.linspace(0.01, 1, 3000)
-    for params in [Planck18, massless, opened, closed, w0wa]:
+    for params in cosmologies:
         for mu_check in [mu_ccl, mu_camb]:
             delta_mu = mu(params, z) - mu_check(params, z)
             assert (
@@ -90,7 +93,7 @@ def test_distance_modulus():
 
 def test_hubble_rate():
     z = jnp.linspace(0.01, 1e3, 3000)
-    for params in [Planck18, massless, opened, closed, w0wa]:
+    for params in cosmologies:
         h = H(params, z) / params["H0"]
         for h_check in [h_ccl, h_camb]:
             delta_h = h - h_check(params, z)

@@ -22,9 +22,9 @@ fixed = {"Omega_k": 0.0, "m_nu": 0.06, "Neff": 3.046, "Tcmb": 2.7255, "wa": 0.0}
 # Compute BAO constraints keeping Omega_b_h2 fixed to the best-fit
 # Planck value
 grid_bao = frequentist_contour_2D_sparse(
-    [likelihoods.DESI2024Prior()],
+    [likelihoods.DESI2024Prior(uncalibrated=True)],
     grid=param_space,
-    fixed=dict(fixed, Omega_b_h2=Planck18["Omega_b_h2"]),
+    fixed=dict(fixed, Omega_b_h2=Planck18["Omega_b_h2"], H0=Planck18["H0"]),
 )
 
 # Compute SN constraints. H0 is not constrained by the data, because
