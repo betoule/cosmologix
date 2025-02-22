@@ -14,7 +14,7 @@ cache:
   paths:
     - .cache/pip
 
-Linting stage to check code style with Black
+#Linting stage to check code style with Black
 lint:
   stage: lint
   script:
