@@ -353,9 +353,10 @@ def BBNNeffSchoneberg2024Prior():
     BBN measurement from https://arxiv.org/abs/2401.15054
     """
 
-    bbn_prior = BBNNeffLikelihood([0.02196, 3.034],
-                              [[4.03112260e-07, 7.30390042e-05],
-                                         [7.30390042e-05, 4.52831584e-02]])
+    bbn_prior = BBNNeffLikelihood(
+        [0.02196, 3.034],
+        [[4.03112260e-07, 7.30390042e-05], [7.30390042e-05, 4.52831584e-02]],
+    )
     return bbn_prior
 
 
