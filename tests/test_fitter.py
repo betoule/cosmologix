@@ -10,7 +10,7 @@ from cosmologix.fitter import newton, flatten_vector, unflatten_vector, restrict
 import jax.numpy as jnp
 import jax
 import time
-
+import pytest
 
 jax.config.update("jax_enable_x64", True)
 
@@ -34,7 +34,7 @@ def control_fitter_bias_and_coverage(priors, point, fitter, ndraw=50):
     sigma = jnp.std(results, axis=0) / jnp.sqrt(ndraw)
     assert (jnp.abs(bias / sigma) < 3).all()
 
-
+@pytest.mark.slow
 def test_newton_fitter():
     des = likelihoods.DES5yr()
     point = {"Omega_m": 0.3, "M": 0.0}

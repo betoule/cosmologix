@@ -130,7 +130,7 @@ class MuMeasurements(Chi2FullCov):
     def initial_guess(self, params):
         return dict(params, M=0.0)
 
-class DiagMuMeasurement(Chi2):
+class DiagMuMeasurements(Chi2):
     def __init__(self, z_cmb, mu, mu_err):
         self.z_cmb = jnp.atleast_1d(z_cmb)
         self.data = jnp.atleast_1d(mu)
