@@ -14,7 +14,7 @@ cache:
   paths:
     - .cache/pip
 
-# Linting stage to check code style with Black
+Linting stage to check code style with Black
 lint:
   stage: lint
   script:
@@ -65,7 +65,20 @@ pypi:
   script:
     - pip install twine
     - twine upload --non-interactive --repository pypi dist/*
-    
+
+pages:
+  stage: deploy
+  script:
+  - pip install .
+  - pip install --no-cache-dir sphinx
+  - cd doc
+  - sphinx-apidoc -s rst -e -o ./ ../cosmologix
+  - sphinx-build -b html . ../public
+  artifacts:
+    paths:
+    - public
+
+
 # Optional: Publish to PyPI (This step is commented out and should only be enabled for your main branch or when you're ready to publish)
 #publish:
 #  stage: deploy
