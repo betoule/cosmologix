@@ -19,7 +19,7 @@ def control_fitter_bias_and_coverage(priors, point, fitter, ndraw=50):
     # Simulated data
     params = Planck18.copy()
     params.update(point)
-    likelihood = LikelihoodSum(priors)
+    likelihood = likelihoods.LikelihoodSum(priors)
 
     def draw():
         likelihood.draw(params)

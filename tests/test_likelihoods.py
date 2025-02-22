@@ -42,7 +42,7 @@ def get_like_func(likelihood, fix=["Omega_k"]):
 def test_likelihoods(fix=["Omega_k"]):
     priors = {
         "desiu": likelihoods.DESI2024Prior(True),
-        "desiu": likelihoods.DESI2024Prior(),
+        "desi": likelihoods.DESI2024Prior(),
         "des": likelihoods.DES5yr(),
         "planck": likelihoods.Planck2018Prior(),
     }
