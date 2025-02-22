@@ -47,7 +47,7 @@ for dist_type, distfunc, zscale, label in [
 ]:
     goods = np.array(desiu.dist_type_labels) == dist_type
     zdata = desiu.redshifts[goods]
-    ydata = desiu.distances[goods]
+    ydata = desiu.data[goods]
     ey = error[goods]
     l = ax1.errorbar(
         zdata, ydata / zdata ** (zscale), ey / zdata ** (zscale), marker="o", ls="None"

@@ -75,6 +75,25 @@ class Chi2:
         self.data = self.model(params) + randn(self.error)
 
 
+class Chi2FullCov(Chi2):
+    """Same as Chi2 but with dense covariane instead of independant errors
+
+    The class assumes that self.U containts the upper cholesky factor
+    of the inverse of the covariance matrix of the measurements.
+
+    """
+    def weighted_residuals(self, params):
+        """
+        Calculate the weighted residuals, normalizing by the error.
+
+        Parameters:
+        - params: A dictionary or list of model parameters.
+
+        Returns:
+        - numpy.ndarray: An array where each element is residual/error.
+        """
+        return self.U @ self.residuals(params)
+    
 class LikelihoodSum:
     def __init__(self, likelihoods):
         self.likelihoods = likelihoods
@@ -97,7 +116,21 @@ class LikelihoodSum:
             l.draw(params)
 
 
-class MuMeasurements(Chi2):
+class MuMeasurements(Chi2FullCov):
+    def __init__(self, z_cmb, mu, mu_cov):
+        self.z_cmb = jnp.atleast_1d(z_cmb)
+        self.data = jnp.atleast_1d(mu)
+        self.cov = jnp.atleast_1d(mu_cov)
+        self.weights = jnp.linalg.inv(self.cov)
+        self.U = jnp.linalg.cholesky(self.weights, upper=True)
+        
+    def model(self, params):
+        return mu(params, self.z_cmb) + params["M"]
+
+    def initial_guess(self, params):
+        return dict(params, M=0.0)
+
+class DiagMuMeasurement(Chi2):
     def __init__(self, z_cmb, mu, mu_err):
         self.z_cmb = jnp.atleast_1d(z_cmb)
         self.data = jnp.atleast_1d(mu)
@@ -108,9 +141,8 @@ class MuMeasurements(Chi2):
 
     def initial_guess(self, params):
         return dict(params, M=0.0)
-
-
-class GeometricCMBLikelihood(Chi2):
+    
+class GeometricCMBLikelihood(Chi2FullCov):
     def __init__(self, mean, covariance):
         """An easy-to-work-with summary of CMB measurements
 
@@ -120,10 +152,10 @@ class GeometricCMBLikelihood(Chi2):
 
         covariance: covariance matrix of vector mean
         """
-        self.mean = jnp.array(mean)
+        self.data = jnp.array(mean)
         self.cov = jnp.array(covariance)
         self.W = jnp.linalg.inv(self.cov)
-        self.L = jnp.linalg.cholesky(self.W)
+        self.U = jnp.linalg.cholesky(self.W, upper=True)
 
     def model(self, params):
         params = densities.process_params(params)
@@ -131,23 +163,13 @@ class GeometricCMBLikelihood(Chi2):
 
         return jnp.array([params["Omega_b_h2"], Omega_c_h2, theta_MC(params)])
 
-    def residuals(self, params):
-        return self.mean - self.model(params)
-
-    def weighted_residuals(self, params):
-        return self.L @ self.residuals(params)
-
-    def likelihood(self, params):
-        r = self.weighted_residuals(params)
-        return r.T @ r
-
     def draw(self, params):
         m = self.model(params)
-        n = jnp.linalg.solve(self.L, randn(1, n=len(m)))
-        self.mean = m + n
+        n = jnp.linalg.solve(self.U, randn(1, n=len(m)))
+        self.data = m + n
 
 
-class UncalibratedBAOLikelihood(Chi2):
+class UncalibratedBAOLikelihood(Chi2FullCov):
     def __init__(self, redshifts, distances, covariance, dist_type_labels):
         """An easy-to-work-with summary of CMB measurements
 
@@ -162,12 +184,12 @@ class UncalibratedBAOLikelihood(Chi2):
         dist_type_labels: list of labels for distances among ['DV_over_rd', 'DM_over_rd', 'DH_over_rd']
         """
         self.redshifts = jnp.asarray(redshifts)
-        self.distances = jnp.asarray(distances)
+        self.data = jnp.asarray(distances)
         self.cov = jnp.asarray(covariance)
         self.W = jnp.linalg.inv(self.cov)
-        self.L = jnp.linalg.cholesky(self.W)
+        self.U = jnp.linalg.cholesky(self.W, upper=True)
         self.dist_type_labels = dist_type_labels
-        if len(self.distances) != len(self.dist_type_labels):
+        if len(self.data) != len(self.dist_type_labels):
             raise ValueError(
                 f"Distance and dist_type_indices array must have the same length."
             )
@@ -204,17 +226,6 @@ class UncalibratedBAOLikelihood(Chi2):
         dists = functions(jnp.arange(len(branches)), zz)
         return dists[self.dist_type_indices, jnp.arange(self.redshifts.size)]
 
-    def residuals(self, params):
-        dists = self.model(params)
-        return self.distances - dists
-
-    def weighted_residuals(self, params):
-        return self.L @ self.residuals(params)
-
-    def likelihood(self, params):
-        r = self.weighted_residuals(params)
-        return r.T @ r
-
     def initial_guess(self, params):
         """
         Append relevant starting point for nuisance parameters to the parameter dictionary
@@ -242,9 +253,17 @@ def DES5yr():
     des_data = load_csv_from_url(
         "https://github.com/des-science/DES-SN5YR/raw/refs/heads/main/4_DISTANCES_COVMAT/DES-SN5YR_HD+MetaData.csv"
     )
-    return MuMeasurements(des_data["zCMB"], des_data["MU"], des_data["MUERR_FINAL"])
+    return DiagMuMeasurements(des_data["zCMB"], des_data["MU"], des_data["MUERR_FINAL"])
 
-
+def JLA():
+    from cosmologix.tools import load_csv_from_url
+    import numpy as np
+    from astropy.io import fits
+    binned_distance_moduli = np.loadtxt(cached_download("https://cdsarc.cds.unistra.fr/ftp/J/A+A/568/A22/tablef1.dat"))
+    cov_mat = pyfits.get_data(cached_download("https://cdsarc.cds.unistra.fr/ftp/J/A+A/568/A22/tablef2.fit"))
+    return MuMeasurements(binned_distance_moduli[:, 0],
+                          binned_distance_moduli[:, 1],
+                          cov_mat)
 # Extracted from
 def Planck2018Prior():
     planck2018_prior = GeometricCMBLikelihood(
@@ -368,7 +387,9 @@ def BBNSchoneberg2024Prior():
     return bbn_prior
 
 
-# Best fit cosomologies
+#######################
+# Best fit cosmologies
+#######################
 
 # Base-ΛCDM cosmological parameters from Planck
 # TT,TE,EE+lowE+lensing. Taken from Table 1. in
@@ -399,15 +420,3 @@ DESI2024YR1_Fiducial = {
     "m_nu": 0.06,  # jnp.array([0.06, 0.0, 0.0]),  # 0.00064420   2.0328
     "Neff": 3.04,
 }
-
-
-# Planck18 = {
-#    "Omega_m": 0.30966,
-#    "Tcmb": 2.7255,
-#    "Omega_b_h2": 0.0224178,
-#    "Omega_k": 0.0,
-#    "w": -1.0,
-#    "H0": 67.66,
-#    "m_nu": 0.06,
-#    "Neff": 3.046,
-# }
