@@ -245,8 +245,9 @@ def plot_contours(
 
     Parameters
     ----------
-    grid : dict
-        Dictionary containing contour data, typically from `frequentist_contour_2D_sparse`.
+    grid : dict or str
+        Dictionary or path to a pickle file containing a dictionary.
+        The dictionary contains contour data, typically from `frequentist_contour_2D_sparse`.
         Expected keys:
         - 'params': List of two parameter names (e.g., ['Omega_m', 'w']).
         - 'x', 'y': 1D arrays of grid coordinates for the two parameters.
@@ -278,7 +279,9 @@ def plot_contours(
     - For filled contours, an invisible proxy patch is added for legend compatibility.
     """
     from matplotlib.colors import to_rgba
-
+    if isinstance(grid, str):
+        grid = load_contours(grid)
+    
     x, y = grid["params"]
     if ax is None:
         ax = plt.gca()
@@ -311,3 +314,17 @@ def plot_contours(
         ax.plot(grid["bestfit"][x], grid["bestfit"][y], "k+")
     ax.set_xlabel(latex_translation[x] if x in latex_translation else x)
     ax.set_ylabel(latex_translation[y] if y in latex_translation else y)
+
+def save_contours(grid, filename):
+    ''' Save contour data dictionary to a pickle file.
+    '''
+    import pickle
+    with open(filename, 'wb') as fid:
+        pickle.dump(grid, fid)
+
+def load_contours(filename):
+    ''' Load contour data dictionary from a pickle file.
+    '''
+    import pickle
+    with open(filename, 'rb') as fid:
+        return pickle.load(fid)
