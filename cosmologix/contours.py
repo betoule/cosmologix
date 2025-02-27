@@ -300,6 +300,8 @@ def plot_contours(
             **keys,
         )
         ax.add_patch(plt.Rectangle((jnp.nan, jnp.nan), 1, 1, fc=colors[0], label=label))
+    else:
+        ax.add_line(plt.Line2D((jnp.nan,), (jnp.nan,), color=colors[0], label=label))
     contours = ax.contour(
         grid["x"],
         grid["y"],
