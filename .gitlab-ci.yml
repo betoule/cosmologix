@@ -27,7 +27,7 @@ test:
   stage: test
   script:
     - pip install -e .[test]
-    - pytest -v --junitxml=report.xml --cov=wejax --cov-report=term --cov-report xml
+    - pytest -v --junitxml=report.xml --cov-report=term --cov-report xml
   coverage: '/TOTAL.*\s+(\d+%)$/'
   artifacts:
     when: always

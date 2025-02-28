@@ -90,8 +90,8 @@ markers = [
     "slow: mark a test as slow-running (skipped by default)",
 ]
 addopts = [
-  #'-m "not slow"',
+  '-m', "not slow",
   "--cov=cosmologix",
   "--cov-report=term-missing",
-  
+  "-p no:astropy", 
 ]
