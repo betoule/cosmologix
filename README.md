@@ -99,7 +99,7 @@ temperature), which explains the closer alignment. A comparison with
 the coarse quadrature (Cosmologix 1000) highlights the magnitude of
 numerical errors.
 
-![Distance modulus accuracy](doc/mu_accuracy.png)
+![Distance modulus accuracy](doc/mu_accuracy.svg)
 
 ## Speed test
 
@@ -113,7 +113,7 @@ overheads. For Cosmologix, this includes JIT-compilation times, which
 introduce a significant delay. Efforts are underway to optimize this
 aspect.
 
-![Distance modulus speed](doc/mu_speed.png)
+![Distance modulus speed](doc/mu_speed.svg)
 
 ## Contributing
 

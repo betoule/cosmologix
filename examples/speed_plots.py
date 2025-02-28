@@ -54,4 +54,4 @@ if __name__ == "__main__":
     ax1.set_ylabel("time [s]")
     ax1.legend(loc="best", frameon=False)
     plt.tight_layout()
-    plt.savefig('doc/mu_speed.png')
+    plt.savefig('doc/mu_speed.svg')
