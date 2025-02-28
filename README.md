@@ -52,6 +52,7 @@ result = fit(priors, fixed=fixed, verbose=True)
 print(result['bestfit'])
 
 # Compute frequentist confidence contours
+# As of today the progress bar 
 from cosmologix import contours
 grid = contours.frequentist_contour_2D_sparse(
     priors,
@@ -66,23 +67,37 @@ plt.legend(loc='lower right', frameon=False)
 plt.show()
 ```
 
+Further guidance can be found reading files in the examples directory.
+
 ## Dependencies
 
 - JAX for numerical computations and automatic differentiation.
 - NumPy for array operations (used indirectly via JAX).
-- Matplotlib for plotting (optional, for examples and testing).
+- Matplotlib for plotting.
+- Requests to retrieve external data files.
+- tqdm to display progression of contour computation
 
+## Roadmap
 
-## Documentation
-
-Detailed documentation for each function and module can be found in the source code or the docs (link?).
+- [ ] Improve speed, especially on first call as compilation time are currently a bit long (see graph below)
+- [ ] Make distances differentiable around the crossing Omega_k = 0 to allow fitting non flat universe
+- [ ] Add Union likelihood
+- [ ] Add proper weights to the DES-5y likelihood and check resulting constraints
+- [ ] Add computation of comoving volume
+- [ ] Improve the guess of contour computation time
 
 ## Contributing
+
 Contributions are welcome! Please fork the repository, make changes, and submit a pull request. Here are some guidelines:
 
 - Follow PEP 8 style. The commited code has to go through black.
 - Write clear commit messages.
 - Include tests for new features or bug fixes.
+
+## Documentation
+
+Detailed documentation for each function and module can be found in the source code. Autodocs is in preparation [here](https://cosmologix-7920a8.pages.in2p3.fr/).
+
 
 
 ## License

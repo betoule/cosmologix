@@ -115,7 +115,7 @@ def partial(func, param_subset):
     return _func
 
 
-#def newton_prep(func, params_subset):
+# def newton_prep(func, params_subset):
 #    f = jax.jit(partial(func, params_subset))
 #    return f, jax.jit(jax.grad(f)), jax.jit(jax.hessian(f))
 
@@ -194,7 +194,7 @@ def fit(likelihoods, fixed={}, verbose=False, initial_guess=Planck18):
     return extra
 
 
-#def newton(func, x0, g=None, H=None, niter=50, tol=1e-3):
+# def newton(func, x0, g=None, H=None, niter=50, tol=1e-3):
 #    xi = flatten_vector(x0)
 #    loss = lambda x: func(unflatten_vector(x0, x))
 #    losses = [loss(xi)]
@@ -292,7 +292,7 @@ def gauss_newton_partial(
     return x, extra
 
 
-#def newton_partial(loss, x0, g, H, fixed, niter=1000, tol=1e-3):
+# def newton_partial(loss, x0, g, H, fixed, niter=1000, tol=1e-3):
 #    xi = x0
 #    losses = [loss(xi, fixed)]
 #    tstart = time.time()

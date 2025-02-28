@@ -24,7 +24,7 @@ grid_bao = contours.frequentist_contour_2D_sparse(
     grid=param_space,
     fixed=dict(fixed, Omega_b_h2=Planck18["Omega_b_h2"], H0=Planck18["H0"]),
 )
-contours.save_contours(grid_bao, 'contour_desi.pkl')
+contours.save_contours(grid_bao, "contour_desi.pkl")
 # Compute SN constraints. H0 is not constrained by the data, because
 # it is totally degenerate with the (varied) absolute luminosity of
 # supernovae. Baryon and cold dark matter densities have exactly the
@@ -41,7 +41,7 @@ grid_jla = contours.frequentist_contour_2D_sparse(
     grid=param_space,
     fixed=dict(fixed, H0=Planck18["H0"], Omega_b_h2=Planck18["Omega_b_h2"]),
 )
-contours.save_contours(grid_jla, 'contour_jla.pkl')
+contours.save_contours(grid_jla, "contour_jla.pkl")
 
 # Compute CMB constraints. The "geometric" summary used in this code
 # only constrain the angular distance to the last diffusion surface.,
@@ -50,33 +50,41 @@ grid_cmb = contours.frequentist_contour_2D_sparse(
     grid=param_space,
     fixed=fixed,
 )
-contours.save_contours(grid_cmb, 'contour_planck.pkl')
+contours.save_contours(grid_cmb, "contour_planck.pkl")
 
 cmb_bao = contours.frequentist_contour_2D_sparse(
     [likelihoods.Planck2018Prior(), likelihoods.DESI2024Prior()],
     grid=param_space,
     fixed=fixed,
 )
-contours.save_contours(cmb_bao, 'contour_planck_desi.pkl')
+contours.save_contours(cmb_bao, "contour_planck_desi.pkl")
 
 cmb_sn = contours.frequentist_contour_2D_sparse(
     [likelihoods.Planck2018Prior(), likelihoods.JLA()],
     grid=param_space,
     fixed=fixed,
 )
-save_contours(cmb_bao, 'contour_planck_JLA.pkl')
+save_contours(cmb_bao, "contour_planck_JLA.pkl")
 
 
 # Plot the result
 plt.rc("text", usetex=True)
 plt.rc("axes.spines", top=False, right=False, bottom=False, left=False)
-contours.plot_contours(grid_bao, base_color=contours.color_theme[0], filled=True, label="DESI")
-contours.plot_contours(grid_cmb, base_color=contours.color_theme[1], filled=True, label="Planck")
-contours.plot_contours(grid_jla, base_color=contours.color_theme[2], filled=True, label="JLA")
+contours.plot_contours(
+    grid_bao, base_color=contours.color_theme[0], filled=True, label="DESI"
+)
+contours.plot_contours(
+    grid_cmb, base_color=contours.color_theme[1], filled=True, label="Planck"
+)
+contours.plot_contours(
+    grid_jla, base_color=contours.color_theme[2], filled=True, label="JLA"
+)
 contours.plot_contours(
     cmb_bao, base_color="red", filled=False, label="Planck+DESI", bestfit=True
 )
-contours.plot_contours(cmb_sn, base_color="green", filled=False, label="Planck+JLA", bestfit=True)
+contours.plot_contours(
+    cmb_sn, base_color="green", filled=False, label="Planck+JLA", bestfit=True
+)
 plt.axhline(-1, color="k", ls=":", lw=0.5)
 plt.text(0.48, -1, r"$\Lambda$-CDM", ha="right", va="bottom")
 plt.legend(loc="lower right", frameon=False)

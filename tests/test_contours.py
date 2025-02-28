@@ -3,6 +3,7 @@ import jax.numpy as jnp
 import numpy as np
 from numpy.testing import assert_allclose
 
+
 def compare_dicts(dict1, dict2):
     if dict1.keys() != dict2.keys():
         return False
@@ -20,29 +21,27 @@ def compare_dicts(dict1, dict2):
                 return False
     return True
 
+
 # NOTE: The coverage of this test function is a good way to see which
 # parts of the codebase are useless
 def test_contours(tmp_path):
-    fixed = {'Omega_k':0., 'm_nu':0.06, 'Neff':3.046, 'Tcmb': 2.7255, 'wa':0.0}
+    fixed = {"Omega_k": 0.0, "m_nu": 0.06, "Neff": 3.046, "Tcmb": 2.7255, "wa": 0.0}
     priors = [likelihoods.Planck2018Prior(), likelihoods.JLA()]
     grid = contours.frequentist_contour_2D_sparse(
-        priors,
-        grid={'Omega_m': [0.18, 0.48, 30], 'w': [-0.6, -1.5, 30]},
-        fixed=fixed
+        priors, grid={"Omega_m": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]}, fixed=fixed
     )
-    assert jnp.isfinite(grid['chi2'].any())
+    assert jnp.isfinite(grid["chi2"].any())
     temp_file = tmp_path / "test_file.txt"
     contours.save_contours(grid, temp_file)
     grid2 = contours.load_contours(temp_file)
     assert compare_dicts(grid, grid2)
     contours.plot_contours(grid)
     grid_coarse = contours.frequentist_contour_2D(
-        priors,
-        grid={'Omega_m': [0.18, 0.48, 10], 'w': [-0.6, -1.5, 10]},
-        fixed=fixed
+        priors, grid={"Omega_m": [0.18, 0.48, 10], "w": [-0.6, -1.5, 10]}, fixed=fixed
     )
-    assert jnp.isfinite(grid_coarse['chi2'].any())
+    assert jnp.isfinite(grid_coarse["chi2"].any())
     contours.plot_contours(temp_file, bestfit=True, filled=True)
-    
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     test_contours()

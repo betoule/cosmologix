@@ -1,4 +1,13 @@
-from cosmologix.acoustic_scale import rd, rs, z_star, z_drag, theta_MC, dM, dsound_da_approx, rd_approx
+from cosmologix.acoustic_scale import (
+    rd,
+    rs,
+    z_star,
+    z_drag,
+    theta_MC,
+    dM,
+    dsound_da_approx,
+    rd_approx,
+)
 from cosmologix import Planck18, densities
 from cosmologix.likelihoods import DESI2024YR1_Fiducial
 from cosmologix.tools import Constants
@@ -26,6 +35,7 @@ def test_acoustic_scale():
     # Computation made by dividing alpha by reported distance in
     # arxiv/2404.03000
     assert abs(rd_approx(DESI2024YR1_Fiducial) - 147.238) < 1e-2
+
 
 def timings():
     zs = jax.jit(z_star)
