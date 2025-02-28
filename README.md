@@ -113,7 +113,7 @@ overheads. For Cosmologix, this includes JIT-compilation times, which
 introduce a significant delay. Efforts are underway to optimize this
 aspect.
 
-![Distance modulus speed](doc/mu_accuracy.png)
+![Distance modulus speed](doc/mu_speed.png)
 
 ## Contributing
 
