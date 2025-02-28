@@ -1,3 +1,4 @@
+![Cosmologix Logo](doc/cosmologix_logo.png)
 # Cosmologix
 
 **Cosmologix** is a Python package for computing cosmological distances
