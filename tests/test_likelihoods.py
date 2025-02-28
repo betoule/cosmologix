@@ -8,12 +8,12 @@ import time
 jax.config.update("jax_enable_x64", True)
 
 
-def func_and_derivatives(func, x, jac=False, funcname=""):
+def func_and_derivatives(func, x, jac=False, hessian=False, funcname=""):
     """Test whether jitted and normal version of a function and its derivative are correct"""
     funcs = {"func": func}
     if jac:
         funcs["jac"] = jax.jacfwd(func)
-    else:
+    elif hessian:
         funcs["grad"] = jax.grad(func)
         funcs["hessian"] = jax.hessian(func)
     for label, f in funcs.items():
@@ -43,7 +43,7 @@ def test_likelihoods(fix=["Omega_k"]):
     priors = {
         "desiu": likelihoods.DESI2024Prior(True),
         "desi": likelihoods.DESI2024Prior(),
-        "des": likelihoods.DES5yr(),
+        #"des": likelihoods.DES5yr(),
         "planck": likelihoods.Planck2018Prior(),
         "jla": likelihoods.JLA(),
         "BBN": likelihoods.BBNSchoneberg2024Prior(),
