@@ -1,8 +1,9 @@
 from test_distances import params_to_ccl
 from cosmologix.tools import speed_measurement
-from cosmologix import densities, Planck18, mu
+from cosmologix import densities, Planck18, mu, neutrinos
 import jax.numpy as jnp
-
+import pyccl as ccl
+from numpy.testing import assert_allclose
 
 def ccl_densities(params, z):
     cclcosmo = ccl.Cosmology(**params_to_ccl(params))
@@ -45,6 +46,16 @@ def cosmologix_densities(params, z):
         "neutrinos_massive": rho_nu[:, ~massless].sum(axis=1),
     }
 
+def test_densities():
+    z = jnp.logspace(jnp.log10(0.01), jnp.log10(1000), 3000)
+    d1 = cosmologix_densities(Planck18, z)
+    d2 = ccl_densities(Planck18, z)
+    for specie in d1:
+        print(f'testing densities for {specie}')
+        # There is a rather large discrepancy in the handling of
+        # neutrino numbers. We agree with the treatment in CAMB.
+        # See examples/accuracy_plots.py
+        assert_allclose(d1[specie], d2[specie], rtol=2e-2)
 
 if __name__ == "__main__":
     params = densities.process_params(Planck18)
