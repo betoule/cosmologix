@@ -2,10 +2,8 @@ from cosmologix.likelihoods import LikelihoodSum
 from cosmologix.fitter import (
     restrict_to,
     restrict,
-    newton,
     partial,
     flatten_vector,
-    newton_partial,
     gauss_newton_partial,
     gauss_newton_prep,
     unflatten_vector,

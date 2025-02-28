@@ -6,7 +6,7 @@ from cosmologix import (
     distances,
     acoustic_scale,
 )
-from cosmologix.fitter import newton, flatten_vector, unflatten_vector, restrict_to
+from cosmologix.fitter import flatten_vector, unflatten_vector, restrict_to
 import jax.numpy as jnp
 import jax
 import time
@@ -35,11 +35,11 @@ def control_fitter_bias_and_coverage(priors, point, fitter, ndraw=50):
     assert (jnp.abs(bias / sigma) < 3).all()
 
 
-@pytest.mark.slow
-def test_newton_fitter():
-    des = likelihoods.DES5yr()
-    point = {"Omega_m": 0.3, "M": 0.0}
-    control_fitter_bias_and_coverage([des], point, newton, ndraw=50)
+#@pytest.mark.slow
+#def test_newton_fitter():
+#    des = likelihoods.DES5yr()
+#    point = {"Omega_m": 0.3, "M": 0.0}
+#    control_fitter_bias_and_coverage([des], point, newton, ndraw=50)
 
 
 def test_fit():

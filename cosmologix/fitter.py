@@ -115,9 +115,9 @@ def partial(func, param_subset):
     return _func
 
 
-def newton_prep(func, params_subset):
-    f = jax.jit(partial(func, params_subset))
-    return f, jax.jit(jax.grad(f)), jax.jit(jax.hessian(f))
+#def newton_prep(func, params_subset):
+#    f = jax.jit(partial(func, params_subset))
+#    return f, jax.jit(jax.grad(f)), jax.jit(jax.hessian(f))
 
 
 def gauss_newton_prep(func, params_subset):
@@ -194,32 +194,32 @@ def fit(likelihoods, fixed={}, verbose=False, initial_guess=Planck18):
     return extra
 
 
-def newton(func, x0, g=None, H=None, niter=50, tol=1e-3):
-    xi = flatten_vector(x0)
-    loss = lambda x: func(unflatten_vector(x0, x))
-    losses = [loss(xi)]
-    tstart = time.time()
-    if g is None:
-        g = jax.jit(jax.grad(loss))
-    if H is None:
-        H = jax.jit(jax.hessian(loss))
-    print(x0)
-    h = H(xi)
-    print(h)
-    G = g(xi)
-    print(G)
-    print(jnp.linalg.solve(h, G))
-    timings = [0]
-    for i in range(niter):
-        print(f"{i}/{niter}")
-        xi -= jnp.linalg.solve(H(xi), g(xi))
-        print(xi)
-        losses.append(loss(xi))
-        timings.append(time.time() - tstart)
-        if losses[-2] - losses[-1] < tol:
-            break
-    timings = jnp.array(timings)
-    return unflatten_vector(x0, xi), {"loss": losses, "timings": timings}
+#def newton(func, x0, g=None, H=None, niter=50, tol=1e-3):
+#    xi = flatten_vector(x0)
+#    loss = lambda x: func(unflatten_vector(x0, x))
+#    losses = [loss(xi)]
+#    tstart = time.time()
+#    if g is None:
+#        g = jax.jit(jax.grad(loss))
+#    if H is None:
+#        H = jax.jit(jax.hessian(loss))
+#    print(x0)
+#    h = H(xi)
+#    print(h)
+#    G = g(xi)
+#    print(G)
+#    print(jnp.linalg.solve(h, G))
+#    timings = [0]
+#    for i in range(niter):
+#        print(f"{i}/{niter}")
+#        xi -= jnp.linalg.solve(H(xi), g(xi))
+#        print(xi)
+#        losses.append(loss(xi))
+#        timings.append(time.time() - tstart)
+#        if losses[-2] - losses[-1] < tol:
+#            break
+#    timings = jnp.array(timings)
+#    return unflatten_vector(x0, xi), {"loss": losses, "timings": timings}
 
 
 def gauss_newton_partial(
@@ -292,16 +292,16 @@ def gauss_newton_partial(
     return x, extra
 
 
-def newton_partial(loss, x0, g, H, fixed, niter=1000, tol=1e-3):
-    xi = x0
-    losses = [loss(xi, fixed)]
-    tstart = time.time()
-    timings = [0]
-    for i in range(niter):
-        xi -= jnp.linalg.solve(H(xi, fixed), g(xi, fixed))
-        losses.append(loss(xi, fixed))
-        timings.append(time.time() - tstart)
-        if losses[-2] - losses[-1] < tol:
-            break
-    timings = jnp.array(timings)
-    return xi, {"loss": losses, "timings": timings}
+#def newton_partial(loss, x0, g, H, fixed, niter=1000, tol=1e-3):
+#    xi = x0
+#    losses = [loss(xi, fixed)]
+#    tstart = time.time()
+#    timings = [0]
+#    for i in range(niter):
+#        xi -= jnp.linalg.solve(H(xi, fixed), g(xi, fixed))
+#        losses.append(loss(xi, fixed))
+#        timings.append(time.time() - tstart)
+#        if losses[-2] - losses[-1] < tol:
+#            break
+#    timings = jnp.array(timings)
+#    return xi, {"loss": losses, "timings": timings}
