@@ -16,7 +16,7 @@ import jax.numpy as jnp
 import matplotlib.pyplot as plt
 from collections import deque
 from tqdm import tqdm
-
+from pathlib import Path
 
 def frequentist_contour_2D(
     likelihoods,
@@ -245,7 +245,7 @@ def plot_contours(
 
     Parameters
     ----------
-    grid : dict or str
+    grid : dict or str or path
         Dictionary or path to a pickle file containing a dictionary.
         The dictionary contains contour data, typically from `frequentist_contour_2D_sparse`.
         Expected keys:
@@ -279,7 +279,7 @@ def plot_contours(
     - For filled contours, an invisible proxy patch is added for legend compatibility.
     """
     from matplotlib.colors import to_rgba
-    if isinstance(grid, str):
+    if isinstance(grid, (str, Path)):
         grid = load_contours(grid)
     
     x, y = grid["params"]

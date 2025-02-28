@@ -1,5 +1,6 @@
-from cosmologix.acoustic_scale import rs, z_star, z_drag, theta_MC, dM, dsound_da_approx
+from cosmologix.acoustic_scale import rd, rs, z_star, z_drag, theta_MC, dM, dsound_da_approx, rd_approx
 from cosmologix import Planck18, densities
+from cosmologix.likelihoods import DESI2024YR1_Fiducial
 from cosmologix.tools import Constants
 from test_distances import params_to_CAMB, lcdm_deviation
 import pyccl as ccl
@@ -11,13 +12,20 @@ import jax.numpy as jnp
 def test_acoustic_scale():
     params = densities.process_params(Planck18)
     assert abs(z_star(params) - 1091.95) < 1e-2
-    # assert abs(z_drag(Planck18) - 1020.715) < 1e-2
-    # assert abs(rs(Planck18, z_star(Planck18)) - 144.7884) < 1e-3
+    # The following are not really used in practice, still testing
+    # them as they are provided for convenience.
+    assert abs(z_drag(params) - 1020.55) < 1e-2
+    assert abs(rs(params, z_star(params)) - 144.34) < 1e-2
+    assert abs(rd(params) - 150.84) < 1e-2
+    # What matters to contour accuracy is theta_MC and rd_approx
+
     # According to 10.1051/0004-6361/201833910 (Planck 2018 VI) 100
     # ThetaMC = 1.04089 ± 0.00031 for the base-LCDM bestfit cosmology
     # corresponding to the parameters in Planck18
     assert abs(theta_MC(params) - 1.04089) < 0.0001
-
+    # Computation made by dividing alpha by reported distance in
+    # arxiv/2404.03000
+    assert abs(rd_approx(DESI2024YR1_Fiducial) - 147.238) < 1e-2
 
 def timings():
     zs = jax.jit(z_star)
