@@ -43,7 +43,7 @@ def test_likelihoods(fix=["Omega_k"]):
     priors = {
         "desiu": likelihoods.DESI2024Prior(True),
         "desi": likelihoods.DESI2024Prior(),
-        #"des": likelihoods.DES5yr(),
+        # "des": likelihoods.DES5yr(),
         "planck": likelihoods.Planck2018Prior(),
         "jla": likelihoods.JLA(),
         "BBN": likelihoods.BBNSchoneberg2024Prior(),
