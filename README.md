@@ -52,7 +52,10 @@ result = fit(priors, fixed=fixed, verbose=True)
 print(result['bestfit'])
 
 # Compute frequentist confidence contours
-# As of today the progress bar 
+# The progress bar provides a rough upper bound on computation time because 
+# the actual size of the explored region is unknown at the start of the calculation.
+# Improvements to this feature are planned.
+
 from cosmologix import contours
 grid = contours.frequentist_contour_2D_sparse(
     priors,
