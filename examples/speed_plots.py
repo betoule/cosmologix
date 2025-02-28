@@ -16,6 +16,9 @@ def speed_measurement(func, params, z, n=10):
 
 if __name__ == "__main__":
     plt.ion()
+    plt.rc("text", usetex=True)
+    plt.rc("axes.spines", top=False, right=False, bottom=True, left=True)
+
     tested = {
         "cosmologix": mu,
         "cosmologix (jit)": jax.jit(mu),
@@ -51,4 +54,4 @@ if __name__ == "__main__":
     ax1.set_ylabel("time [s]")
     ax1.legend(loc="best", frameon=False)
     plt.tight_layout()
-    # plt.savefig('doc/mu_speed.png')
+    plt.savefig('doc/mu_speed.png')
