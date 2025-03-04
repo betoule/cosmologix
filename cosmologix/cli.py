@@ -14,31 +14,32 @@ AVAILABLE_PRIORS = {
 }
 
 # Default fixed parameters for flat w-CDM
-CMB_FREE = ['Omega_b_h2', 'H0']
+CMB_FREE = ["Omega_b_h2", "H0"]
 DEFAULT_FREE = {
-    'FLCDM': ['Omega_m'] + CMB_FREE,
-    'FwCDM': ['Omega_m', 'w'] + CMB_FREE,
-    'FwwaCDM': ['Omega_m', 'w', 'wa'] + CMB_FREE,
+    "FLCDM": ["Omega_m"] + CMB_FREE,
+    "FwCDM": ["Omega_m", "w"] + CMB_FREE,
+    "FwwaCDM": ["Omega_m", "w", "wa"] + CMB_FREE,
 }
 
 # Default ranges for the exploration of parameters
 DEFAULT_RANGE = {
-    'Omega_m': [0.18, 0.48],
-    'w': [-0.6, -1.5],
-    'wa': [-1, 1],
+    "Omega_m": [0.18, 0.48],
+    "w": [-0.6, -1.5],
+    "wa": [-1, 1],
 }
+
 
 def pretty_print(result):
     """Pretty-print best-fit parameters with uncertainties from the Fisher Information Matrix."""
-    bestfit = result['bestfit']
-    ifim = result['inverse_FIM']  # Fisher Information Matrix (inverse covariance)
-    
+    bestfit = result["bestfit"]
+    ifim = result["inverse_FIM"]  # Fisher Information Matrix (inverse covariance)
+
     # Uncertainties are sqrt of diagonal elements of covariance matrix
     uncertainties = jnp.sqrt(jnp.diag(ifim))
-    
+
     # Parameter names (assuming they match the order in FIM)
     param_names = list(bestfit.keys())
-    
+
     # Print each parameter with its uncertainty
     for i, (param, value) in enumerate(bestfit.items()):
         uncertainty = uncertainties[i]
@@ -50,6 +51,7 @@ def pretty_print(result):
         fmt = f"{{:.{precision}f}}"
         print(f"{param} = {fmt.format(value)} ± {fmt.format(uncertainty)}")
 
+
 def main():
     parser = argparse.ArgumentParser(description="Cosmologix Command Line Interface")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -57,114 +59,127 @@ def main():
     # --- 'fit' command ---
     fit_parser = subparsers.add_parser("fit", help="Fit a cosmological model to data")
     fit_parser.add_argument(
-        "-p", "--priors", 
-        nargs="*", 
-        choices=AVAILABLE_PRIORS.keys(), 
-        #required=True, 
-        help="Priors to use (e.g., Planck18 DESI2024)"
+        "-p",
+        "--priors",
+        nargs="*",
+        choices=AVAILABLE_PRIORS.keys(),
+        # required=True,
+        help="Priors to use (e.g., Planck18 DESI2024)",
     )
     fit_parser.add_argument(
-        "-c", "--cosmology", 
-        default="FwCDM", 
+        "-c",
+        "--cosmology",
+        default="FwCDM",
         choices=DEFAULT_FREE.keys(),  # Add more models as needed
-        help="Cosmological model (default: FwCDM)"
+        help="Cosmological model (default: FwCDM)",
     )
     fit_parser.add_argument(
-        "-v", "--verbose", 
-        default=False, 
-        help="Display the successive steps of the fit"
+        "-v", "--verbose", default=False, help="Display the successive steps of the fit"
     )
     fit_parser.add_argument(
-        "-o", "--output", 
-        help="Output file for best-fit parameters (e.g., planck_desi.pkl)"
+        "-o",
+        "--output",
+        help="Output file for best-fit parameters (e.g., planck_desi.pkl)",
     )
 
     # --- 'explore' command ---
-    explore_parser = subparsers.add_parser("explore", help="Explore a 2D parameter space")
-    explore_parser.add_argument(
-        "param1", 
-        help="First parameter to explore (e.g., Omega_m)"
+    explore_parser = subparsers.add_parser(
+        "explore", help="Explore a 2D parameter space"
     )
     explore_parser.add_argument(
-        "param2", 
-        help="Second parameter to explore (e.g., w)"
+        "param1", help="First parameter to explore (e.g., Omega_m)"
+    )
+    explore_parser.add_argument("param2", help="Second parameter to explore (e.g., w)")
+    explore_parser.add_argument(
+        "--resolution",
+        type=int,
+        default=30,
+        help="Number of grid points per dimension (default: 30)",
     )
     explore_parser.add_argument(
-        "--resolution", 
-        type=int, 
-        default=30, 
-        help="Number of grid points per dimension (default: 30)"
+        "-c",
+        "--cosmology",
+        default="FwCDM",
+        choices=DEFAULT_FREE.keys(),
+        help="Cosmological model (default: FwCDM)",
     )
     explore_parser.add_argument(
-        "-c", "--cosmology", 
-        default="FwCDM", 
-        choices=DEFAULT_FREE.keys(), 
-        help="Cosmological model (default: FwCDM)"
+        "-p",
+        "--priors",
+        nargs="*",
+        choices=AVAILABLE_PRIORS.keys(),
+        required=True,
+        help="Priors to use (e.g., Planck18)",
     )
     explore_parser.add_argument(
-        "-p", "--priors", 
-        nargs="*", 
-        choices=AVAILABLE_PRIORS.keys(), 
-        required=True, 
-        help="Priors to use (e.g., Planck18)"
+        "-l",
+        "--label",
+        default="",
+        help="Gives a label to the resulting contour, to be latter used in plots (e.g., CMB+SN)",
     )
     explore_parser.add_argument(
-        "-l", "--label", 
-        default="", 
-        help="Gives a label to the resulting contour, to be latter used in plots (e.g., CMB+SN)"
-    )
-    explore_parser.add_argument(
-        "-o", "--output", 
-        required=True, 
-        help="Output file for contour data (e.g., contour_planck.pkl)"
+        "-o",
+        "--output",
+        required=True,
+        help="Output file for contour data (e.g., contour_planck.pkl)",
     )
 
     # --- 'contour' command ---
-    contour_parser = subparsers.add_parser("contour", help="Plot a contour from explore output")
+    contour_parser = subparsers.add_parser(
+        "contour", help="Plot a contour from explore output"
+    )
     contour_parser.add_argument(
         "input_files",
         nargs="+",
-        help="Input file from explore (e.g., contour_planck.pkl)"
+        help="Input file from explore (e.g., contour_planck.pkl)",
     )
     contour_parser.add_argument(
-        "-o", "--output", 
-        help="Output file for contour plot (e.g., contour.png)"
+        "-o", "--output", help="Output file for contour plot (e.g., contour.png)"
     )
     contour_parser.add_argument(
-        "--not-filled", 
-        action='append',
+        "--not-filled",
+        action="append",
         type=int,
         metavar="INDEX",
         default=[],
-        help="Specify to use line contours instead of filled contour at INDEX (e.g, --not-filled 0)"
+        help="Specify to use line contours instead of filled contour at INDEX (e.g, --not-filled 0)",
     )
     contour_parser.add_argument(
-        "--color", 
-        action='append',
+        "--color",
+        action="append",
         nargs=2,
         default=[],
-        metavar=("INDEX", "COLOR"), 
-        help="Specify color for contour at INDEX (e.g., --color 0 red)"
+        metavar=("INDEX", "COLOR"),
+        help="Specify color for contour at INDEX (e.g., --color 0 red)",
     )
     contour_parser.add_argument(
-        "--label", 
-        action='append',
+        "--label",
+        action="append",
         nargs=2,
         default=[],
-        metavar=("INDEX", "LABEL"), 
-        help="Overide label for contour at INDEX (e.g., --label 0 CMB)"
+        metavar=("INDEX", "LABEL"),
+        help="Overide label for contour at INDEX (e.g., --label 0 CMB)",
     )
     contour_parser.add_argument(
         "--legend-loc",
         default="best",
-        choices=['best', 'upper left', 'upper right', 'lower left', 'lower right', 'center', 'outside'],
-        help="Legend location (default: 'best')"
+        choices=[
+            "best",
+            "upper left",
+            "upper right",
+            "lower left",
+            "lower right",
+            "center",
+            "outside",
+        ],
+        help="Legend location (default: 'best')",
     )
     contour_parser.add_argument(
-        "-s", "--show",
-        action='store_true',
+        "-s",
+        "--show",
+        action="store_true",
         default=False,
-        help="Display the contour plot even if the plot is saved (default False)"
+        help="Display the contour plot even if the plot is saved (default False)",
     )
 
     args = parser.parse_args()
@@ -180,6 +195,7 @@ def main():
     else:
         parser.print_help()
 
+
 def run_fit(args):
     """Fit the cosmological model and save the best-fit parameters."""
     priors = [AVAILABLE_PRIORS[p]() for p in args.priors]
@@ -189,9 +205,10 @@ def run_fit(args):
     result = fit(priors, fixed=fixed, verbose=args.verbose)
     pretty_print(result)
     if args.output:
-        with open(args.output, 'wb') as f:
+        with open(args.output, "wb") as f:
             pickle.dump(result, f)
         print(f"Best-fit parameters saved to {args.output}")
+
 
 def run_explore(args):
     """Explore a 2D parameter space and save the contour data."""
@@ -199,23 +216,20 @@ def run_explore(args):
     print(priors)
     grid_params = {
         args.param1: DEFAULT_RANGE[args.param1] + [args.resolution],
-        args.param2: DEFAULT_RANGE[args.param2] + [args.resolution]
+        args.param2: DEFAULT_RANGE[args.param2] + [args.resolution],
     }
     fixed = Planck18.copy()
     for par in DEFAULT_FREE[args.cosmology]:
         fixed.pop(par)
-    grid = contours.frequentist_contour_2D_sparse(
-        priors,
-        grid=grid_params,
-        fixed=fixed
-    )
+    grid = contours.frequentist_contour_2D_sparse(priors, grid=grid_params, fixed=fixed)
     if args.label:
-        grid['label'] = args.label
+        grid["label"] = args.label
     else:
         # Default label according to prior selection
-        grid["label"] = '+'.join(args.priors)
+        grid["label"] = "+".join(args.priors)
     contours.save_contours(grid, args.output)
     print(f"Contour data saved to {args.output}")
+
 
 def run_contour(args):
     """Generate and save a contour plot from explore output."""
@@ -224,7 +238,9 @@ def run_contour(args):
         grid = contours.load_contours(input_file)
         base_color = args.color.get(i, contours.color_theme[i])
         label = args.label.get(i, None)
-        contours.plot_contours(grid, filled=i not in args.not_filled, base_color=base_color, label=label)
+        contours.plot_contours(
+            grid, filled=i not in args.not_filled, base_color=base_color, label=label
+        )
     plt.legend(loc=args.legend_loc, frameon=False)
     if args.output:
         plt.savefig(args.output, dpi=300)
@@ -232,7 +248,5 @@ def run_contour(args):
         if args.show:
             plt.show()
     else:
-        plt.show()    
+        plt.show()
     plt.close()
-
-
