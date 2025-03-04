@@ -131,6 +131,23 @@ def main():
         help="Output file for contour plot (e.g., contour.png)"
     )
     contour_parser.add_argument(
+        "--not-filled", 
+        action='append',
+        type=int,
+        metavar="INDEX",
+        default=[],
+        help="Specify to use line contours instead of filled contour at INDEX (e.g, --not-filled 0)"
+    )
+    contour_parser.add_argument(
+        "--color", 
+        action='append',
+        nargs=2,
+        default=[],
+        metavar=("INDEX", "COLOR"), 
+        help="Specify color for contour at INDEX (e.g., --color 0 red)"
+    )
+
+    contour_parser.add_argument(
         "-s", "--show",
         action='store_true',
         default=False,
@@ -144,6 +161,7 @@ def main():
     elif args.command == "explore":
         run_explore(args)
     elif args.command == "contour":
+        args.color = {int(index): color for index, color in args.color}
         run_contour(args)
     else:
         parser.print_help()
@@ -188,9 +206,10 @@ def run_explore(args):
 def run_contour(args):
     """Generate and save a contour plot from explore output."""
     plt.figure()
-    for input_file in args.input_files:
+    for i, input_file in enumerate(args.input_files):
         grid = contours.load_contours(input_file)
-        contours.plot_contours(grid, filled=True)
+        base_color = args.color.get(i, contours.color_theme[i])
+        contours.plot_contours(grid, filled=i not in args.not_filled, base_color=base_color)
     plt.legend(loc='best', frameon=False)
     if args.output:
         plt.savefig(args.output, dpi=300)
