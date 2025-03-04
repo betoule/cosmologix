@@ -184,8 +184,8 @@ def fit(likelihoods, fixed={}, verbose=False, initial_guess=Planck18):
 
     # Compute approximation of the FIM
     J = wjac(xbest, fixed)
-    FIM = jnp.linalg.inv(J.T @ J)
-    extra["FIM"] = FIM
+    inverse_FIM = jnp.linalg.inv(J.T @ J)
+    extra["inverse_FIM"] = inverse_FIM
 
     # Unflatten the vectors for conveniency
     extra["x"] = xbest

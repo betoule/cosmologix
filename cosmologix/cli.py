@@ -28,6 +28,28 @@ DEFAULT_RANGE = {
     'wa': [-1, 1],
 }
 
+def pretty_print(result):
+    """Pretty-print best-fit parameters with uncertainties from the Fisher Information Matrix."""
+    bestfit = result['bestfit']
+    ifim = result['inverse_FIM']  # Fisher Information Matrix (inverse covariance)
+    
+    # Uncertainties are sqrt of diagonal elements of covariance matrix
+    uncertainties = jnp.sqrt(jnp.diag(ifim))
+    
+    # Parameter names (assuming they match the order in FIM)
+    param_names = list(bestfit.keys())
+    
+    # Print each parameter with its uncertainty
+    for i, (param, value) in enumerate(bestfit.items()):
+        uncertainty = uncertainties[i]
+        if uncertainty == 0:  # Avoid log(0)
+            precision = 3  # Default if no uncertainty
+        else:
+            # Number of decimal places to align with first significant digit of uncertainty
+            precision = max(0, -int(jnp.floor(jnp.log10(abs(uncertainty)))) + 1)
+        fmt = f"{{:.{precision}f}}"
+        print(f"{param} = {fmt.format(value)} ± {fmt.format(uncertainty)}")
+
 def main():
     parser = argparse.ArgumentParser(description="Cosmologix Command Line Interface")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -48,8 +70,12 @@ def main():
         help="Cosmological model (default: FwCDM)"
     )
     fit_parser.add_argument(
+        "-v", "--verbose", 
+        default=False, 
+        help="Display the successive steps of the fit"
+    )
+    fit_parser.add_argument(
         "-o", "--output", 
-        required=True, 
         help="Output file for best-fit parameters (e.g., planck_desi.pkl)"
     )
 
@@ -118,11 +144,12 @@ def run_fit(args):
     fixed = Planck18.copy()
     for par in DEFAULT_FREE[args.cosmology]:
         fixed.pop(par)
-    result = fit(priors, fixed=fixed, verbose=True)
-    print(result['bestfit'])
-    with open(args.output, 'wb') as f:
-        pickle.dump(result, f)
-    print(f"Best-fit parameters saved to {args.output}")
+    result = fit(priors, fixed=fixed, verbose=args.verbose)
+    pretty_print(result)
+    if args.output:
+        with open(args.output, 'wb') as f:
+            pickle.dump(result, f)
+        print(f"Best-fit parameters saved to {args.output}")
 
 def run_explore(args):
     """Explore a 2D parameter space and save the contour data."""
@@ -154,5 +181,3 @@ def run_contour(args):
     plt.close()
     print(f"Contour plot saved to {args.output}")
 
-if __name__ == "__main__":
-    main()
