@@ -2,7 +2,7 @@
 
 import argparse
 import pickle
-from cosmologix import mu, fit, contours, likelihoods, Planck18
+from cosmologix import mu, fit, contours, likelihoods, Planck18, fitter
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 
@@ -74,7 +74,15 @@ def main():
         help="Cosmological model (default: FwCDM)",
     )
     fit_parser.add_argument(
-        "-v", "--verbose", default=False, help="Display the successive steps of the fit"
+        "-v", "--verbose",
+        action='store_true',
+        default=False, help="Display the successive steps of the fit"
+    )
+    fit_parser.add_argument(
+        "-A", "--auto-constrain",
+        action='store_true',
+        default=False,
+        help="Attempt to impose hard priors on parameters not constrained by the selected dataset"
     )
     fit_parser.add_argument(
         "-o",
@@ -202,7 +210,19 @@ def run_fit(args):
     fixed = Planck18.copy()
     for par in DEFAULT_FREE[args.cosmology]:
         fixed.pop(par)
-    result = fit(priors, fixed=fixed, verbose=args.verbose)
+
+    for retry in range(3):
+        try:
+            result = fit(priors, fixed=fixed, verbose=args.verbose)
+            break
+        except fitter.UnconstrainedParameterError as e:
+            for param in e.params:
+                print(f'Fixing unconstrained parameter {param[0]}')
+                fixed[param[0]] = Planck18[param[0]]
+        except fitter.DegenerateParametersError as e:
+            print(f'Try again fixing H0')
+            fixed['H0'] = Planck18['H0']
+    
     pretty_print(result)
     if args.output:
         with open(args.output, "wb") as f:
