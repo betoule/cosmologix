@@ -74,6 +74,17 @@ plt.show()
 
 Further guidance can be found reading files in the examples directory.
 
+
+## Command line interface
+
+There is also a simple command line interface to the library. You can perform fit, contour exploration and contour plotting as follows:
+
+```bash
+cosmologix fit --priors Planck18 DESI2024 --cosmology FwCDM
+cosmologix explore Omega_m w --priors Planck18 DESI2024 --cosmology FwCDM -o contours.pkl
+cosmologix contour contours.pkl -o contour.png
+```
+
 ## Dependencies
 
 - JAX for numerical computations and automatic differentiation.
@@ -83,11 +94,10 @@ Further guidance can be found reading files in the examples directory.
 - tqdm to display progression of contour computation
 
 ## Roadmap
-
+- [ ] Add proper weights to the DES-5y likelihood and check resulting constraints
 - [ ] Improve speed, especially on first call as compilation time are currently a bit long (see graph below)
 - [ ] Make distances differentiable around the crossing Omega_k = 0 to allow fitting non flat universe
 - [ ] Add Union likelihood
-- [ ] Add proper weights to the DES-5y likelihood and check resulting constraints
 - [ ] Add computation of comoving volume
 - [ ] Improve the guess of contour computation time
 

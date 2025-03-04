@@ -123,8 +123,13 @@ def main():
     )
     contour_parser.add_argument(
         "-o", "--output", 
-        required=True, 
         help="Output file for contour plot (e.g., contour.png)"
+    )
+    contour_parser.add_argument(
+        "-s", "--show",
+        action='store_true',
+        default=False,
+        help="Display the contour plot even if the plot is saved (default False)"
     )
 
     args = parser.parse_args()
@@ -177,7 +182,13 @@ def run_contour(args):
         grid = contours.load_contours(input_file)
         contours.plot_contours(grid, filled=True)
     plt.legend(loc='best', frameon=False)
-    plt.savefig(args.output, dpi=300)
+    if args.output:
+        plt.savefig(args.output, dpi=300)
+        print(f"Contour plot saved to {args.output}")
+        if args.show:
+            plt.show()
+    else:
+        plt.show()    
     plt.close()
-    print(f"Contour plot saved to {args.output}")
+
 
