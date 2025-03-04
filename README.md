@@ -49,6 +49,7 @@ print(distance_modulus)
 from cosmologix import likelihoods, fit
 priors = [likelihoods.Planck2018Prior(), likelihoods.DES5yr()]
 fixed = {'Omega_k':0., 'm_nu':0.06, 'Neff':3.046, 'Tcmb': 2.7255, 'wa':0.0}
+
 result = fit(priors, fixed=fixed, verbose=True)
 print(result['bestfit'])
 

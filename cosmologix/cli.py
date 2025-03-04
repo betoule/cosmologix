@@ -13,10 +13,11 @@ AVAILABLE_PRIORS = {
 }
 
 # Default fixed parameters for flat w-CDM
+CMB_FREE = ['Omega_b_h2', 'H0']
 DEFAULT_FREE = {
-    'FLCDM': ['Omega_m'],
-    'FwCDM': ['Omega_m', 'w'],
-    'FwwaCDM': ['Omega_m', 'w', 'wa'],
+    'FLCDM': ['Omega_m'] + CMB_FREE,
+    'FwCDM': ['Omega_m', 'w'] + CMB_FREE,
+    'FwwaCDM': ['Omega_m', 'w', 'wa'] + CMB_FREE,
 }
 
 # Default ranges for the exploration of parameters
@@ -89,7 +90,8 @@ def main():
     # --- 'contour' command ---
     contour_parser = subparsers.add_parser("contour", help="Plot a contour from explore output")
     contour_parser.add_argument(
-        "input_file", 
+        "input_files",
+        nargs="+",
         help="Input file from explore (e.g., contour_planck.pkl)"
     )
     contour_parser.add_argument(
@@ -112,10 +114,12 @@ def main():
 def run_fit(args):
     """Fit the cosmological model and save the best-fit parameters."""
     priors = [AVAILABLE_PRIORS[p]() for p in args.priors]
+    print(priors)
     fixed = Planck18.copy()
     for par in DEFAULT_FREE[args.cosmology]:
         fixed.pop(par)
-    result = fit(priors, fixed=fixed)
+    print(fixed)
+    result = fit(priors, fixed=fixed, verbose=True)
     print(result['bestfit'])
     with open(args.output, 'wb') as f:
         pickle.dump(result, f)
@@ -124,19 +128,22 @@ def run_fit(args):
 def run_explore(args):
     """Explore a 2D parameter space and save the contour data."""
     priors = [AVAILABLE_PRIORS[p]() for p in args.priors]
+    print(priors)
     grid_params = {
         args.param1: DEFAULT_RANGE[args.param1] + [args.resolution],
-        args.param2: DEFAULT_RANGE[args.param1] + [args.resolution]
+        args.param2: DEFAULT_RANGE[args.param2] + [args.resolution]
     }
+    print(grid_params)
     fixed = Planck18.copy()
     for par in DEFAULT_FREE[args.cosmology]:
         fixed.pop(par)
-    fixed.pop(args.param1)
-    fixed.pop(args.param2)
+    #fixed.pop(args.param1)
+    #fixed.pop(args.param2)
+    print(fixed)
     grid = contours.frequentist_contour_2D_sparse(
         priors,
         grid=grid_params,
-        fixed=DEFAULT_FIXED
+        fixed=fixed
     )
     contours.save_contours(grid, args.output)
     print(f"Contour data saved to {args.output}")
@@ -145,7 +152,7 @@ def run_contour(args):
     """Generate and save a contour plot from explore output."""
     plt.figure()
     for input_file in args.input_files:
-        contours.load_contours(input_file)
+        grid = contours.load_contours(input_file)
         contours.plot_contours(grid, filled=True)
     plt.legend(loc='best', frameon=False)
     plt.savefig(args.output, dpi=300)
