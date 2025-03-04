@@ -109,6 +109,11 @@ def main():
         help="Priors to use (e.g., Planck18)"
     )
     explore_parser.add_argument(
+        "-l", "--label", 
+        default="", 
+        help="Gives a label to the resulting contour, to be latter used in plots (e.g., CMB+SN)"
+    )
+    explore_parser.add_argument(
         "-o", "--output", 
         required=True, 
         help="Output file for contour data (e.g., contour_planck.pkl)"
@@ -172,6 +177,11 @@ def run_explore(args):
         grid=grid_params,
         fixed=fixed
     )
+    if args.label:
+        grid['label'] = args.label
+    else:
+        # Default label according to prior selection
+        grid["label"] = '+'.join(args.priors)
     contours.save_contours(grid, args.output)
     print(f"Contour data saved to {args.output}")
 

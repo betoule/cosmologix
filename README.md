@@ -77,7 +77,7 @@ Further guidance can be found reading files in the examples directory.
 
 ## Command line interface
 
-There is also a simple command line interface to the library. You can perform fit, contour exploration and contour plotting as follows:
+For most common use cases, there is also a simple command line interface to the library. You can perform fit, contour exploration and contour plotting as follows:
 
 ```bash
 cosmologix fit --priors Planck18 DESI2024 --cosmology FwCDM

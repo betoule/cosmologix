@@ -288,6 +288,8 @@ def plot_contours(
     shades = jnp.linspace(1, 0.5, len(levels))
     colors = [to_rgba(base_color, alpha=alpha.item()) for alpha in shades]
 
+    if ('label' in grid) and label is None:
+        label = grid['label']
     _levels = [conflevel_to_delta_chi2(l) for l in jnp.array(levels)]
     if filled:
         contours = ax.contourf(
