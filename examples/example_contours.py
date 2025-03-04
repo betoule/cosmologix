@@ -1,7 +1,4 @@
 from cosmologix import likelihoods, Planck18, contours
-from cosmologix.contours import (
-    save_contours,
-)
 import matplotlib.pyplot as plt
 
 plt.ion()
@@ -30,7 +27,7 @@ contours.save_contours(grid_bao, "contour_desi.pkl")
 # supernovae. Baryon and cold dark matter densities have exactly the
 # same impact on the expansion rate, so that only the sum of the two
 # is constrained by the luminosity distance measurement.
-grid_sn = countours.frequentist_contour_2D_sparse(
+grid_sn = contours.frequentist_contour_2D_sparse(
     [likelihoods.DES5yr()],
     grid=param_space,
     fixed=dict(fixed, H0=Planck18["H0"], Omega_b_h2=Planck18["Omega_b_h2"]),
@@ -64,7 +61,7 @@ cmb_sn = contours.frequentist_contour_2D_sparse(
     grid=param_space,
     fixed=fixed,
 )
-save_contours(cmb_bao, "contour_planck_JLA.pkl")
+contours.save_contours(cmb_bao, "contour_planck_JLA.pkl")
 
 
 # Plot the result
