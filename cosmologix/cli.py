@@ -9,7 +9,8 @@ import matplotlib.pyplot as plt
 # Define available priors (extend this as needed)
 AVAILABLE_PRIORS = {
     "Planck18": likelihoods.Planck2018Prior,
-    "DESI2024": likelihoods.DESI2024Prior, 
+    "DESI2024": likelihoods.DESI2024Prior,
+    "DES-5yr": likelihoods.DES5yr,
 }
 
 # Default fixed parameters for flat w-CDM
@@ -114,11 +115,9 @@ def main():
 def run_fit(args):
     """Fit the cosmological model and save the best-fit parameters."""
     priors = [AVAILABLE_PRIORS[p]() for p in args.priors]
-    print(priors)
     fixed = Planck18.copy()
     for par in DEFAULT_FREE[args.cosmology]:
         fixed.pop(par)
-    print(fixed)
     result = fit(priors, fixed=fixed, verbose=True)
     print(result['bestfit'])
     with open(args.output, 'wb') as f:
@@ -133,13 +132,9 @@ def run_explore(args):
         args.param1: DEFAULT_RANGE[args.param1] + [args.resolution],
         args.param2: DEFAULT_RANGE[args.param2] + [args.resolution]
     }
-    print(grid_params)
     fixed = Planck18.copy()
     for par in DEFAULT_FREE[args.cosmology]:
         fixed.pop(par)
-    #fixed.pop(args.param1)
-    #fixed.pop(args.param2)
-    print(fixed)
     grid = contours.frequentist_contour_2D_sparse(
         priors,
         grid=grid_params,
