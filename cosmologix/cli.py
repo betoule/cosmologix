@@ -146,7 +146,20 @@ def main():
         metavar=("INDEX", "COLOR"), 
         help="Specify color for contour at INDEX (e.g., --color 0 red)"
     )
-
+    contour_parser.add_argument(
+        "--label", 
+        action='append',
+        nargs=2,
+        default=[],
+        metavar=("INDEX", "LABEL"), 
+        help="Overide label for contour at INDEX (e.g., --label 0 CMB)"
+    )
+    contour_parser.add_argument(
+        "--legend-loc",
+        default="best",
+        choices=['best', 'upper left', 'upper right', 'lower left', 'lower right', 'center', 'outside'],
+        help="Legend location (default: 'best')"
+    )
     contour_parser.add_argument(
         "-s", "--show",
         action='store_true',
@@ -162,6 +175,7 @@ def main():
         run_explore(args)
     elif args.command == "contour":
         args.color = {int(index): color for index, color in args.color}
+        args.label = {int(index): label for index, label in args.label}
         run_contour(args)
     else:
         parser.print_help()
@@ -209,8 +223,9 @@ def run_contour(args):
     for i, input_file in enumerate(args.input_files):
         grid = contours.load_contours(input_file)
         base_color = args.color.get(i, contours.color_theme[i])
-        contours.plot_contours(grid, filled=i not in args.not_filled, base_color=base_color)
-    plt.legend(loc='best', frameon=False)
+        label = args.label.get(i, None)
+        contours.plot_contours(grid, filled=i not in args.not_filled, base_color=base_color, label=label)
+    plt.legend(loc=args.legend_loc, frameon=False)
     if args.output:
         plt.savefig(args.output, dpi=300)
         print(f"Contour plot saved to {args.output}")
