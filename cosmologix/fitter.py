@@ -148,12 +148,12 @@ def analyze_FIM_for_degeneracies(fim, param_names):
             if abs(corr[i, j]) > degeneracy_threshold:
                 degeneracies.append((param_names[i], param_names[j], float(corr[i, j])))
     
-    if degeneracies:
-        print("\nPerfect Degeneracies Detected (|correlation| > 0.999):")
-        for param1, param2, corr_val in degeneracies:
-            print(f"  {param1} <-> {param2}: correlation = {corr_val:.4f}")
-    else:
-        print("\nNo perfect degeneracies detected.")
+    #if degeneracies:
+    #    print("\nPerfect Degeneracies Detected (|correlation| > 0.999):")
+    #    for param1, param2, corr_val in degeneracies:
+    #        print(f"  {param1} <-> {param2}: correlation = {corr_val:.4f}")
+    #else:
+    #    print("\nNo perfect degeneracies detected.")
     return degeneracies
 # def newton_prep(func, params_subset):
 #    f = jax.jit(partial(func, params_subset))

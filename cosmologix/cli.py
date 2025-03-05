@@ -62,7 +62,7 @@ def main():
         "-p",
         "--priors",
         nargs="*",
-        choices=AVAILABLE_PRIORS.keys(),
+        choices=list(AVAILABLE_PRIORS.keys()),
         # required=True,
         help="Priors to use (e.g., Planck18 DESI2024)",
     )
@@ -70,7 +70,7 @@ def main():
         "-c",
         "--cosmology",
         default="FwCDM",
-        choices=DEFAULT_FREE.keys(),  # Add more models as needed
+        choices=list(DEFAULT_FREE.keys()),  # Add more models as needed
         help="Cosmological model (default: FwCDM)",
     )
     fit_parser.add_argument(
@@ -79,10 +79,18 @@ def main():
         default=False, help="Display the successive steps of the fit"
     )
     fit_parser.add_argument(
+        "-F", "--fix",
+        action='append',
+        default=[],
+        metavar='PARAM',
+        choices=list(Planck18.keys()),
+        help="Fix the specified PARAM (e.g. -F H0 -F Omega_b_h2)."
+    )
+    fit_parser.add_argument(
         "-A", "--auto-constrain",
         action='store_true',
         default=False,
-        help="Attempt to impose hard priors on parameters not constrained by the selected dataset"
+        help="Attempt to impose hard priors on parameters not constrained by the selected dataset. Use with caution."
     )
     fit_parser.add_argument(
         "-o",
@@ -204,16 +212,10 @@ def main():
         parser.print_help()
 
 
-def run_fit(args):
-    """Fit the cosmological model and save the best-fit parameters."""
-    priors = [AVAILABLE_PRIORS[p]() for p in args.priors]
-    fixed = Planck18.copy()
-    for par in DEFAULT_FREE[args.cosmology]:
-        fixed.pop(par)
-
+def auto_restricted_fit(priors, fixed, verbose):
     for retry in range(3):
         try:
-            result = fit(priors, fixed=fixed, verbose=args.verbose)
+            result = fit(priors, fixed=fixed, verbose=verbose)
             break
         except fitter.UnconstrainedParameterError as e:
             for param in e.params:
@@ -222,7 +224,23 @@ def run_fit(args):
         except fitter.DegenerateParametersError as e:
             print(f'Try again fixing H0')
             fixed['H0'] = Planck18['H0']
-    
+    return result
+
+def run_fit(args):
+    """Fit the cosmological model and save the best-fit parameters."""
+    priors = [AVAILABLE_PRIORS[p]() for p in args.priors]
+    fixed = Planck18.copy()
+    to_free = DEFAULT_FREE[args.cosmology].copy()
+    for par in args.fix:
+        if par in to_free:
+            print(f'{par} kept fixed')
+            to_free.remove(par)
+    for par in to_free:
+        fixed.pop(par)
+    if args.auto_constrain:
+        result = auto_restricted_fit(priors, fixed, args.verbose)
+    else:
+        result = fit(priors, fixed=fixed, verbose=args.verbose)
     pretty_print(result)
     if args.output:
         with open(args.output, "wb") as f:
