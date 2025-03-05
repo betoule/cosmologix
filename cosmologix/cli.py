@@ -221,6 +221,13 @@ def main():
         default=False,
         help="Display the contour plot even if the plot is saved (default False)",
     )
+    contour_parser.add_argument(
+        "-l",
+        "--latex",
+        action="store_true",
+        default=False,
+        help="Plot in paper format, using latex for the text.",
+    )
 
     args = parser.parse_args()
 
@@ -318,8 +325,9 @@ def run_explore(args):
 
 def run_contour(args):
     """Generate and save a contour plot from explore output."""
-    plt.rc("text", usetex=True)
-    plt.rc("axes.spines", top=False, right=False)  # , bottom=False, left=False)
+    if args.latex:
+        plt.rc("text", usetex=True)
+        plt.rc("axes.spines", top=False, right=False)  # , bottom=False, left=False)
     plt.figure()
     for i, input_file in enumerate(args.input_files):
         grid = contours.load_contours(input_file)
