@@ -74,23 +74,27 @@ def main():
         help="Cosmological model (default: FwCDM)",
     )
     fit_parser.add_argument(
-        "-v", "--verbose",
-        action='store_true',
-        default=False, help="Display the successive steps of the fit"
-    )
-    fit_parser.add_argument(
-        "-F", "--fix",
-        action='append',
-        default=[],
-        metavar='PARAM',
-        choices=list(Planck18.keys()),
-        help="Fix the specified PARAM (e.g. -F H0 -F Omega_b_h2)."
-    )
-    fit_parser.add_argument(
-        "-A", "--auto-constrain",
-        action='store_true',
+        "-v",
+        "--verbose",
+        action="store_true",
         default=False,
-        help="Attempt to impose hard priors on parameters not constrained by the selected dataset. Use with caution."
+        help="Display the successive steps of the fit",
+    )
+    fit_parser.add_argument(
+        "-F",
+        "--fix",
+        action="append",
+        default=[],
+        metavar="PARAM",
+        choices=list(Planck18.keys()),
+        help="Fix the specified PARAM (e.g. -F H0 -F Omega_b_h2).",
+    )
+    fit_parser.add_argument(
+        "-A",
+        "--auto-constrain",
+        action="store_true",
+        default=False,
+        help="Attempt to impose hard priors on parameters not constrained by the selected dataset. Use with caution.",
     )
     fit_parser.add_argument(
         "-o",
@@ -219,12 +223,13 @@ def auto_restricted_fit(priors, fixed, verbose):
             break
         except fitter.UnconstrainedParameterError as e:
             for param in e.params:
-                print(f'Fixing unconstrained parameter {param[0]}')
+                print(f"Fixing unconstrained parameter {param[0]}")
                 fixed[param[0]] = Planck18[param[0]]
         except fitter.DegenerateParametersError as e:
-            print(f'Try again fixing H0')
-            fixed['H0'] = Planck18['H0']
+            print(f"Try again fixing H0")
+            fixed["H0"] = Planck18["H0"]
     return result
+
 
 def run_fit(args):
     """Fit the cosmological model and save the best-fit parameters."""
@@ -233,7 +238,7 @@ def run_fit(args):
     to_free = DEFAULT_FREE[args.cosmology].copy()
     for par in args.fix:
         if par in to_free:
-            print(f'{par} kept fixed')
+            print(f"{par} kept fixed")
             to_free.remove(par)
     for par in to_free:
         fixed.pop(par)

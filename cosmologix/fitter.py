@@ -114,20 +114,22 @@ def partial(func, param_subset):
 
     return _func
 
+
 def analyze_FIM_for_unconstrained(fim, param_names):
     """Analyze FIM for unconstrained parameters and degeneracies."""
     # Check for unconstrained parameters (zero entries in the FIM)
     threshold = 1e-10  # Arbitrary large value for "unconstrained"
     unconstrained = [
-        (name, float(unc)) 
-        for name, unc in zip(param_names, jnp.diag(fim)) 
-        if unc < threshold 
+        (name, float(unc))
+        for name, unc in zip(param_names, jnp.diag(fim))
+        if unc < threshold
     ]
     if unconstrained:
         print("\nUnconstrained Parameters:")
         for name, unc in unconstrained:
             print(f"  {name}: FIM = {unc:.2f} (effectively unconstrained)")
     return unconstrained
+
 
 def analyze_FIM_for_degeneracies(fim, param_names):
     """Analyze FIM for degeneracies between parameters."""
@@ -139,7 +141,7 @@ def analyze_FIM_for_degeneracies(fim, param_names):
     # Compute correlation matrix
     corr = cov / jnp.outer(uncertainties, uncertainties)
     corr = jnp.where(jnp.isnan(corr), 0, corr)  # Handle NaN from division by zero
-    
+
     # Check for perfect degeneracies (|corr| ≈ 1, excluding diagonal)
     degeneracy_threshold = 0.999  # Close to ±1
     degeneracies = []
@@ -147,14 +149,16 @@ def analyze_FIM_for_degeneracies(fim, param_names):
         for j in range(i + 1, len(param_names)):
             if abs(corr[i, j]) > degeneracy_threshold:
                 degeneracies.append((param_names[i], param_names[j], float(corr[i, j])))
-    
-    #if degeneracies:
+
+    # if degeneracies:
     #    print("\nPerfect Degeneracies Detected (|correlation| > 0.999):")
     #    for param1, param2, corr_val in degeneracies:
     #        print(f"  {param1} <-> {param2}: correlation = {corr_val:.4f}")
-    #else:
+    # else:
     #    print("\nNo perfect degeneracies detected.")
     return degeneracies
+
+
 # def newton_prep(func, params_subset):
 #    f = jax.jit(partial(func, params_subset))
 #    return f, jax.jit(jax.grad(f)), jax.jit(jax.hessian(f))
@@ -164,8 +168,10 @@ def gauss_newton_prep(func, params_subset):
     f = partial(func, params_subset)
     return f, jax.jit(jax.jacfwd(f))
 
+
 class UnconstrainedParameterError(Exception):
     """Raised when a parameter is unconstrained in the fit."""
+
     def __init__(self, unconstrained_params):
         self.params = unconstrained_params
         message = "Unconstrained parameters detected:\n" + "\n".join(
@@ -173,14 +179,18 @@ class UnconstrainedParameterError(Exception):
         )
         super().__init__(message)
 
+
 class DegenerateParametersError(Exception):
     """Raised when perfect degeneracy between parameters is detected."""
+
     def __init__(self, degeneracies):
         self.params = degeneracies
         message = "Unconstrained parameters detected:\n" + "\n".join(
-            f"  {param1} <-> {param2}: correlation = {corr_val:.4f}"         for param1, param2, corr_val in degeneracies
+            f"  {param1} <-> {param2}: correlation = {corr_val:.4f}"
+            for param1, param2, corr_val in degeneracies
         )
         super().__init__(message)
+
 
 def fit(likelihoods, fixed={}, verbose=False, initial_guess=Planck18):
     """Fit a set of likelihoods using the Gauss-Newton method with partial parameter fixing.
@@ -238,16 +248,16 @@ def fit(likelihoods, fixed={}, verbose=False, initial_guess=Planck18):
     x0 = flatten_vector(initial_guess)
     if verbose:
         print(initial_guess)
-        
+
     # Quick inspection to look for degeracies
     J = wjac(x0, fixed)
-    FIM = J.T@J
+    FIM = J.T @ J
     unconstrained = analyze_FIM_for_unconstrained(FIM, list(initial_guess.keys()))
     if unconstrained:
         raise UnconstrainedParameterError(unconstrained)
     degenerate = analyze_FIM_for_degeneracies(FIM, list(initial_guess.keys()))
     if degenerate:
-        raise DegenerateParametersError(degenerate) 
+        raise DegenerateParametersError(degenerate)
     # Minimization
     xbest, extra = gauss_newton_partial(wres, wjac, x0, fixed, verbose=verbose)
 
