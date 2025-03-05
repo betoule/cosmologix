@@ -63,7 +63,7 @@ def main():
         "--priors",
         nargs="*",
         choices=list(AVAILABLE_PRIORS.keys()),
-        # required=True,
+        default=[],
         help="Priors to use (e.g., Planck18 DESI2024)",
     )
     fit_parser.add_argument(
@@ -88,6 +88,11 @@ def main():
         metavar="PARAM",
         choices=list(Planck18.keys()),
         help="Fix the specified PARAM (e.g. -F H0 -F Omega_b_h2).",
+    )
+    fit_parser.add_argument(
+        "--mu", 
+        nargs="+",  # Accept 1 or 2 arguments
+        help="Distance modulus data file and optional covariance matrix in npy format"
     )
     fit_parser.add_argument(
         "-A",
@@ -127,8 +132,8 @@ def main():
         "-p",
         "--priors",
         nargs="*",
+        default=[],
         choices=AVAILABLE_PRIORS.keys(),
-        required=True,
         help="Priors to use (e.g., Planck18)",
     )
     explore_parser.add_argument(
@@ -146,6 +151,12 @@ def main():
         choices=list(Planck18.keys()),
         help="Fix the specified PARAM (e.g. -F H0 -F Omega_b_h2).",
     )
+    explore_parser.add_argument(
+        "--mu", 
+        nargs="+",  # Accept 1 or 2 arguments
+        help="Distance modulus data file and optional covariance matrix in npy format"
+    )
+
     explore_parser.add_argument(
         "-o",
         "--output",
@@ -224,6 +235,20 @@ def main():
     else:
         parser.print_help()
 
+def load_mu(args):
+    import numpy as np
+    if args.mu:
+        muobs = np.load(args.mu[0])
+        if len(args.mu) == 2:
+            cov = np.load(args.mu[1])
+            like = likelihoods.MuMeasurements(
+                muobs['z'], muobs['mu'], cov)
+        else:
+            like = likelihoods.DiagMuMeasurements(
+                muobs['z'], muobs['mu'], muobs['muerr'])
+        return [like]
+    else:
+        return []
 
 def auto_restricted_fit(priors, fixed, verbose):
     for retry in range(3):
@@ -242,7 +267,7 @@ def auto_restricted_fit(priors, fixed, verbose):
 
 def run_fit(args):
     """Fit the cosmological model and save the best-fit parameters."""
-    priors = [AVAILABLE_PRIORS[p]() for p in args.priors]
+    priors = [AVAILABLE_PRIORS[p]() for p in args.priors] + load_mu(args)
     fixed = Planck18.copy()
     to_free = DEFAULT_FREE[args.cosmology].copy()
     for par in args.fix:
@@ -264,7 +289,7 @@ def run_fit(args):
 
 def run_explore(args):
     """Explore a 2D parameter space and save the contour data."""
-    priors = [AVAILABLE_PRIORS[p]() for p in args.priors]
+    priors = [AVAILABLE_PRIORS[p]() for p in args.priors] + load_mu(args)
     print(priors)
     grid_params = {
         args.param1: DEFAULT_RANGE[args.param1] + [args.resolution],
