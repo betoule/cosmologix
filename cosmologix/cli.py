@@ -318,6 +318,8 @@ def run_explore(args):
 
 def run_contour(args):
     """Generate and save a contour plot from explore output."""
+    plt.rc("text", usetex=True)
+    plt.rc("axes.spines", top=False, right=False)  # , bottom=False, left=False)
     plt.figure()
     for i, input_file in enumerate(args.input_files):
         grid = contours.load_contours(input_file)
@@ -327,6 +329,7 @@ def run_contour(args):
             grid, filled=i not in args.not_filled, base_color=base_color, label=label
         )
     plt.legend(loc=args.legend_loc, frameon=False)
+    plt.tight_layout()
     if args.output:
         plt.savefig(args.output, dpi=300)
         print(f"Contour plot saved to {args.output}")
