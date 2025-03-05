@@ -90,9 +90,9 @@ def main():
         help="Fix the specified PARAM (e.g. -F H0 -F Omega_b_h2).",
     )
     fit_parser.add_argument(
-        "--mu", 
+        "--mu",
         nargs="+",  # Accept 1 or 2 arguments
-        help="Distance modulus data file and optional covariance matrix in npy format"
+        help="Distance modulus data file and optional covariance matrix in npy format",
     )
     fit_parser.add_argument(
         "-A",
@@ -152,9 +152,9 @@ def main():
         help="Fix the specified PARAM (e.g. -F H0 -F Omega_b_h2).",
     )
     explore_parser.add_argument(
-        "--mu", 
+        "--mu",
         nargs="+",  # Accept 1 or 2 arguments
-        help="Distance modulus data file and optional covariance matrix in npy format"
+        help="Distance modulus data file and optional covariance matrix in npy format",
     )
 
     explore_parser.add_argument(
@@ -235,20 +235,23 @@ def main():
     else:
         parser.print_help()
 
+
 def load_mu(args):
     import numpy as np
+
     if args.mu:
         muobs = np.load(args.mu[0])
         if len(args.mu) == 2:
             cov = np.load(args.mu[1])
-            like = likelihoods.MuMeasurements(
-                muobs['z'], muobs['mu'], cov)
+            like = likelihoods.MuMeasurements(muobs["z"], muobs["mu"], cov)
         else:
             like = likelihoods.DiagMuMeasurements(
-                muobs['z'], muobs['mu'], muobs['muerr'])
+                muobs["z"], muobs["mu"], muobs["muerr"]
+            )
         return [like]
     else:
         return []
+
 
 def auto_restricted_fit(priors, fixed, verbose):
     for retry in range(3):
