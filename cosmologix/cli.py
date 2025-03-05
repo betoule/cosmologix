@@ -138,6 +138,15 @@ def main():
         help="Gives a label to the resulting contour, to be latter used in plots (e.g., CMB+SN)",
     )
     explore_parser.add_argument(
+        "-F",
+        "--fix",
+        action="append",
+        default=[],
+        metavar="PARAM",
+        choices=list(Planck18.keys()),
+        help="Fix the specified PARAM (e.g. -F H0 -F Omega_b_h2).",
+    )
+    explore_parser.add_argument(
         "-o",
         "--output",
         required=True,
@@ -262,7 +271,12 @@ def run_explore(args):
         args.param2: DEFAULT_RANGE[args.param2] + [args.resolution],
     }
     fixed = Planck18.copy()
-    for par in DEFAULT_FREE[args.cosmology]:
+    to_free = DEFAULT_FREE[args.cosmology].copy()
+    for par in args.fix:
+        if par in to_free:
+            print(f"{par} kept fixed")
+            to_free.remove(par)
+    for par in to_free:
         fixed.pop(par)
     grid = contours.frequentist_contour_2D_sparse(priors, grid=grid_params, fixed=fixed)
     if args.label:
