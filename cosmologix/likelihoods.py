@@ -252,12 +252,20 @@ class CalibratedBAOLikelihood(UncalibratedBAOLikelihood):
 
 
 def DES5yr():
-    from cosmologix.tools import load_csv_from_url
-
+    from cosmologix.tools import load_csv_from_url, cached_download
+    import gzip
+    import numpy as np
     des_data = load_csv_from_url(
         "https://github.com/des-science/DES-SN5YR/raw/refs/heads/main/4_DISTANCES_COVMAT/DES-SN5YR_HD+MetaData.csv"
     )
-    return DiagMuMeasurements(des_data["zCMB"], des_data["MU"], des_data["MUERR_FINAL"])
+    covmat = cached_download("https://github.com/des-science/DES-SN5YR/raw/refs/heads/main/4_DISTANCES_COVMAT/STAT+SYS.txt.gz")
+    with gzip.open(covmat, 'rt') as f:  # 'rt' mode for text reading
+        cov_matrix = np.loadtxt(f)
+    nside = int(cov_matrix[0])
+    cov_matrix = cov_matrix[1:].reshape((nside, nside))
+    np.fill_diagonal(cov_matrix, np.diag(cov_matrix) + des_data["MUERR_FINAL"] ** 2)
+    #return DiagMuMeasurements(des_data["zCMB"], des_data["MU"], des_data["MUERR_FINAL"])
+    return MuMeasurements(des_data["zHD"], des_data["MU"], cov_matrix)
 
 
 def JLA():
