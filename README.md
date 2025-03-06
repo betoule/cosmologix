@@ -15,7 +15,7 @@ distances. It has been tested against the CCL.
 - **Hubble Diagram Fitting**: Tools to fit supernovae data to cosmological models.
 - **JAX Integration**: Leverage JAX's automatic differentiation and JIT compilation for performance.
 - **Neutrino Contributions**: Account for both relativistic and massive neutrinos in cosmological models.
-- **CMB Prior Handling**: Includes functionality to incorporate geometric priors from CMB measurements.
+- **CMB Prior Handling**: Includes functionality to incorporate geometric priors from CMB and BAO measurements.
 
 ## Installation
 
@@ -94,7 +94,7 @@ cosmologix contour contours.pkl -o contour.png
 - tqdm to display progression of contour computation
 
 ## Roadmap
-- [ ] Add proper weights to the DES-5y likelihood and check resulting constraints
+- [X] Add proper weights to the DES-5y likelihood and check resulting constraints
 - [ ] Improve speed, especially on first call as compilation time are currently a bit long (see graph below)
 - [ ] Make distances differentiable around the crossing Omega_k = 0 to allow fitting non flat universe
 - [ ] Add Union likelihood
