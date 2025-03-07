@@ -17,6 +17,7 @@ AVAILABLE_PRIORS = {
 CMB_FREE = ["Omega_b_h2", "H0"]
 DEFAULT_FREE = {
     "FLCDM": ["Omega_m"] + CMB_FREE,
+    "LCDM": ["Omega_m", "Omega_k"] + CMB_FREE,
     "FwCDM": ["Omega_m", "w"] + CMB_FREE,
     "FwwaCDM": ["Omega_m", "w", "wa"] + CMB_FREE,
 }
@@ -24,6 +25,7 @@ DEFAULT_FREE = {
 # Default ranges for the exploration of parameters
 DEFAULT_RANGE = {
     "Omega_m": [0.18, 0.48],
+    "Omega_k": [-0.3, 0.4],
     "w": [-0.6, -1.5],
     "wa": [-1, 1],
 }

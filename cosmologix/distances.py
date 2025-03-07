@@ -5,6 +5,7 @@ from typing import Callable, Tuple, Dict
 from .tools import Constants
 from .interpolation import linear_interpolation
 from cosmologix.densities import Omega
+from functools import partial
 
 jax.config.update("jax_enable_x64", True)
 
@@ -21,7 +22,7 @@ def distance_integrand(params, u):
     z = 1 / u**2 - 1
     return 1 / (u**3 * jnp.sqrt(Omega(params, z)))
 
-
+@partial(jax.jit, static_argnames=('nstep',))
 def dC(params, z, nstep=1000):
     """Compute the comoving distance at redshift z.
 
@@ -47,6 +48,25 @@ def dC(params, z, nstep=1000):
     return jnp.interp(u, _u - 0.5 * step, csum) * 2 * step * dh
 
 
+def _dM_open(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
+    com_dist = dC(params, z)
+    dh = Constants.c / params["H0"] * 1e-3  # Hubble distance in Mpc
+    sqrt_omegak = jnp.sqrt(jnp.abs(params["Omega_k"]))
+    return (dh / sqrt_omegak) * jnp.sinh(sqrt_omegak * com_dist / dh)
+
+def _dM_close(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
+    com_dist = dC(params, z)
+    dh = Constants.c / params["H0"] * 1e-3  # Hubble distance in Mpc
+    sqrt_omegak = jnp.sqrt(jnp.abs(params["Omega_k"]))
+    return (dh / sqrt_omegak) * jnp.sin(sqrt_omegak * com_dist / dh)
+
+#@partial(jax.jit, static_argnames=('nstep',))
+#def dM_static(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
+def dM_static(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
+    index = -jnp.sign(params["Omega_k"]).astype(jnp.int8) + 1
+    branches = (_dM_open, dC, _dM_close)
+    return lax.switch(index, branches, params, z)
+    
 def dM(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
     """Compute the transverse comoving distance.
 
@@ -55,17 +75,21 @@ def dM(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarr
     theta.
     """
     comoving_distance = dC(params, z, nstep)
+    #index = 2-jnp.digitize(params["Omega_k"], jnp.array([-1e-5, 1e-5]))
+    #print(index)
     index = -jnp.sign(params["Omega_k"]).astype(jnp.int8) + 1
-    dh = Constants.c / params["H0"] * 1e-3  # Hubble distance in kpc
-    sqrt_omegak = jnp.sqrt(jnp.abs(params["Omega_k"]))
 
     def open(com_dist):
+        dh = Constants.c / params["H0"] * 1e-3  # Hubble distance in Mpc
+        sqrt_omegak = jnp.sqrt(jnp.abs(params["Omega_k"]))
         return (dh / sqrt_omegak) * jnp.sinh(sqrt_omegak * com_dist / dh)
 
     def flat(com_dist):
         return com_dist
 
     def close(com_dist):
+        dh = Constants.c / params["H0"] * 1e-3  # Hubble distance in Mpc
+        sqrt_omegak = jnp.sqrt(jnp.abs(params["Omega_k"]))
         return (dh / sqrt_omegak) * jnp.sin(sqrt_omegak * com_dist / dh)
 
     branches = (open, flat, close)
@@ -74,7 +98,9 @@ def dM(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarr
 
 def dL(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
     """Compute the luminosity distance in Mpc."""
-    return (1 + z) * dM(params, z, nstep)
+    return (1 + z) * dM_static(params, z)#, nstep)
+    #return (1 + z) * dM(params, z, nstep)
+    #return (1 + z) * dC(params, z, nstep)
 
 
 def dA(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
