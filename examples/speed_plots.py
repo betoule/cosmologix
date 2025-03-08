@@ -20,10 +20,12 @@ if __name__ == "__main__":
     plt.rc("axes.spines", top=False, right=False, bottom=True, left=True)
 
     tested = {
-        "cosmologix": mu,
-        "cosmologix (jit)": jax.jit(mu),
-        "cosmologix (grad)": jax.jacfwd(mu),
-        "cosmologix (grad-jit)": jax.jit(jax.jacfwd(mu)),
+        #"cosmologix": mu,
+        #"cosmologix (jit)": jax.jit(mu),
+        #"cosmologix (grad)": jax.jacfwd(mu),
+        #"cosmologix (grad-jit)": jax.jit(jax.jacfwd(mu)),
+        r"cosmologix ($\mu$)": jax.jit(mu),
+        r"cosmologix ($\vec \nabla \mu$)": jax.jit(jax.jacfwd(mu)),
         "ccl": mu_ccl,
         "camb": mu_camb,
         "astropy": mu_astropy,
