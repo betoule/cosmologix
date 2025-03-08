@@ -149,4 +149,4 @@ def dV(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
     """Calculate the volumic distance.
     See formula 2.6 in DESI 1yr cosmological results arxiv:2404.03002
     """
-    return (z * dM(params, z) ** 2 * dH(params, z)) ** (1 / 3)
+    return (z * dM_static(params, z) ** 2 * dH(params, z)) ** (1 / 3)

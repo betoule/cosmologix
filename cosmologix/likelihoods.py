@@ -1,10 +1,11 @@
-from cosmologix.distances import dM, dH, dV
+from cosmologix.distances import dM_static, dH, dV
 from cosmologix.acoustic_scale import theta_MC, rd_approx
 from cosmologix import mu, densities
 import jax.numpy as jnp
 from cosmologix.tools import randn
-from jax import lax, vmap
-
+from jax import lax, vmap, jit
+from functools import partial
+import numpy as np
 
 class Chi2:
     """Abstract implementation of chi-squared (χ²) evaluation for statistical analysis.
@@ -210,25 +211,29 @@ class UncalibratedBAOLikelihood(Chi2FullCov):
                 self.dist_type_indices[k] = 2
             else:
                 raise ValueError(f"Label {label} not recognized.")
-        return jnp.array(self.dist_type_indices)
-
+        return np.array(self.dist_type_indices)
+    
+    @partial(jit, static_argnums=(0,))
     def model(self, params) -> jnp.ndarray:
         rd = params["rd"]
-
-        def dV_over_rd(z):
-            return dV(params, z) / rd
-
-        def dM_over_rd(z):
-            return dM(params, z) / rd
-
-        def dH_over_rd(z):
-            return dH(params, z) / rd
-
-        branches = (dV_over_rd, dM_over_rd, dH_over_rd)
-        zz = jnp.tile(self.redshifts, (len(branches), 1))
-        functions = vmap(lambda i, x: lax.switch(i, branches, x))
-        dists = functions(jnp.arange(len(branches)), zz)
-        return dists[self.dist_type_indices, jnp.arange(self.redshifts.size)]
+        _dV = dV(params, self.redshifts)
+        _dM = dM_static(params, self.redshifts)
+        _dH = dH(params, self.redshifts)
+        return jnp.choose(self.dist_type_indices, [_dV, _dM, _dH], mode='clip') / rd
+        #def dV_over_rd(z):
+        #    return dV(params, z) / rd
+        #
+        #def dM_over_rd(z):
+        #    return dM_static(params, z) / rd
+        #
+        #def dH_over_rd(z):
+        #    return dH(params, z) / rd
+        #
+        #branches = (dV_over_rd, dM_over_rd, dH_over_rd)
+        #zz = jnp.tile(self.redshifts, (len(branches), 1))
+        #functions = vmap(lambda i, x: lax.switch(i, branches, x))
+        #dists = functions(jnp.arange(len(branches)), zz)
+        #return dists[self.dist_type_indices, jnp.arange(self.redshifts.size)]
 
     def initial_guess(self, params):
         """
@@ -254,7 +259,6 @@ class CalibratedBAOLikelihood(UncalibratedBAOLikelihood):
 def DES5yr():
     from cosmologix.tools import load_csv_from_url, cached_download
     import gzip
-    import numpy as np
 
     des_data = load_csv_from_url(
         "https://github.com/des-science/DES-SN5YR/raw/refs/heads/main/4_DISTANCES_COVMAT/DES-SN5YR_HD+MetaData.csv"
@@ -273,7 +277,6 @@ def DES5yr():
 
 def JLA():
     from cosmologix.tools import cached_download
-    import numpy as np
     from astropy.io import fits
 
     binned_distance_moduli = np.loadtxt(
