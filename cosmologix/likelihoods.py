@@ -201,17 +201,10 @@ class UncalibratedBAOLikelihood(Chi2FullCov):
         self.dist_type_indices = self._convert_labels_to_indices()
 
     def _convert_labels_to_indices(self):
-        self.dist_type_indices = [0] * len(self.dist_type_labels)
-        for k, label in enumerate(self.dist_type_labels):
-            if label == "DV_over_rd":
-                self.dist_type_indices[k] = 0
-            elif label == "DM_over_rd":
-                self.dist_type_indices[k] = 1
-            elif label == "DH_over_rd":
-                self.dist_type_indices[k] = 2
-            else:
-                raise ValueError(f"Label {label} not recognized.")
-        return np.array(self.dist_type_indices)
+        label_map = {'DV_over_rd': 0,
+                     'DM_over_rd': 1,
+                     'DH_over_rd': 2,}
+        return np.array([label_map[label] for label in self.dist_type_labels])
     
     @partial(jit, static_argnums=(0,))
     def model(self, params) -> jnp.ndarray:
@@ -220,20 +213,6 @@ class UncalibratedBAOLikelihood(Chi2FullCov):
         _dM = dM_static(params, self.redshifts)
         _dH = dH(params, self.redshifts)
         return jnp.choose(self.dist_type_indices, [_dV, _dM, _dH], mode='clip') / rd
-        #def dV_over_rd(z):
-        #    return dV(params, z) / rd
-        #
-        #def dM_over_rd(z):
-        #    return dM_static(params, z) / rd
-        #
-        #def dH_over_rd(z):
-        #    return dH(params, z) / rd
-        #
-        #branches = (dV_over_rd, dM_over_rd, dH_over_rd)
-        #zz = jnp.tile(self.redshifts, (len(branches), 1))
-        #functions = vmap(lambda i, x: lax.switch(i, branches, x))
-        #dists = functions(jnp.arange(len(branches)), zz)
-        #return dists[self.dist_type_indices, jnp.arange(self.redshifts.size)]
 
     def initial_guess(self, params):
         """
