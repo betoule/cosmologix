@@ -95,8 +95,9 @@ cosmologix contour contours.pkl -o contour.png
 
 ## Roadmap
 - [X] Add proper weights to the DES-5y likelihood and check resulting constraints
-- [ ] Improve speed, especially on first call as compilation time are currently a bit long (see graph below)
-- [ ] Make distances differentiable around the crossing Omega_k = 0 to allow fitting non flat universe
+- [X] Improve speed of the evaluation of likelihoods
+- [X] Make distances differentiable around the crossing Omega_k = 0 to allow fitting non flat universe
+- [ ] Improve compilation time (which are currently a bit long, see graph below)
 - [ ] Add Union likelihood
 - [ ] Add computation of comoving volume
 - [ ] Improve the guess of contour computation time
@@ -142,7 +143,24 @@ Contributions are welcome! Please fork the repository, make changes, and submit 
 
 Detailed documentation for each function and module can be found in the source code. Autodocs is in preparation [here](https://cosmologix-7920a8.pages.in2p3.fr/).
 
+## Release history
 
+### v0.9.2 (current)
+- Rewrite some of the core function to improve speed of contour exploration by about 10x
+- Enable exploration of curved cosmologies (solving nan issue around Omega_k = 0)
+
+### v0.9.1
+- Add a command line interface. Makes it easy to compute bestfits, and 2D Bayesian contours for a given set of constraints
+- Auto-detect under-constrained parameters
+
+### v0.9.0
+- First release with complete feature set
+- Accuracy tested against CAMB and CCL
+- Build-in fitter and frequentist contour exploration, taking advantage of auto-diff
+
+### v0.1.0
+- Initial release
+- Core distance computation available
 
 ## License
 This project is licensed under the GPLV2 License - see the LICENSE.md file for details.
