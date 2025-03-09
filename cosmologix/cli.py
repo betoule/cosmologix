@@ -11,6 +11,7 @@ AVAILABLE_PRIORS = {
     "Planck18": likelihoods.Planck2018Prior,
     "DESI2024": likelihoods.DESI2024Prior,
     "DES-5yr": likelihoods.DES5yr,
+    "Pantheon+": likelihoods.Pantheonplus,
 }
 
 # Default fixed parameters for flat w-CDM
@@ -88,7 +89,7 @@ def main():
         action="append",
         default=[],
         metavar="PARAM",
-        choices=list(Planck18.keys()),
+        choices=list(Planck18.keys())+['M'],
         help="Fix the specified PARAM (e.g. -F H0 -F Omega_b_h2).",
     )
     fit_parser.add_argument(
