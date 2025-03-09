@@ -1,4 +1,4 @@
-from cosmologix.distances import dM_static, dH, dV
+from cosmologix.distances import dM, dH, dV
 from cosmologix.acoustic_scale import theta_MC, rd_approx
 from cosmologix import mu, densities
 import jax.numpy as jnp
@@ -210,7 +210,7 @@ class UncalibratedBAOLikelihood(Chi2FullCov):
     def model(self, params) -> jnp.ndarray:
         rd = params["rd"]
         _dV = dV(params, self.redshifts)
-        _dM = dM_static(params, self.redshifts)
+        _dM = dM(params, self.redshifts)
         _dH = dH(params, self.redshifts)
         return jnp.choose(self.dist_type_indices, [_dV, _dM, _dH], mode='clip') / rd
 

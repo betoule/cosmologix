@@ -5,7 +5,7 @@ Fitting formulae for the acoustic scale
 import jax.numpy as jnp
 from typing import Callable, Tuple, Dict
 from .tools import Constants
-from .distances import dM_static
+from .distances import dM
 
 # from .radiation import Omega_n_mass, Omega_n_rel, Tcmb_to_Omega_gamma
 from cosmologix import densities
@@ -136,4 +136,4 @@ def theta_MC(params):
     params = densities.process_params(params)
     zstar = z_star(params)
     rsstar = rs_approx(params, zstar)
-    return rsstar / dM_static(params, zstar) * 100.0
+    return rsstar / dM(params, zstar) * 100.0
