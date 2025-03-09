@@ -244,7 +244,7 @@ def Pantheonplus():
 
     data = load_csv_from_url(
         "https://github.com/PantheonPlusSH0ES/DataRelease/raw/refs/heads/main/Pantheon+_Data/4_DISTANCES_AND_COVAR/Pantheon+SH0ES.dat",
-        delimiter=' '
+        delimiter=" ",
     )
     covmat = cached_download(
         "https://github.com/PantheonPlusSH0ES/DataRelease/raw/refs/heads/main/Pantheon+_Data/4_DISTANCES_AND_COVAR/Pantheon+SH0ES_STAT+SYS.cov"
@@ -252,8 +252,11 @@ def Pantheonplus():
     cov_matrix = np.loadtxt(covmat)
     nside = int(cov_matrix[0])
     cov_matrix = cov_matrix[1:].reshape((nside, nside))
-    np.fill_diagonal(cov_matrix, np.diag(cov_matrix))# + data["MU_SH0ES_ERR_DIAG"] ** 2)
+    np.fill_diagonal(
+        cov_matrix, np.diag(cov_matrix)
+    )  # + data["MU_SH0ES_ERR_DIAG"] ** 2)
     return MuMeasurements(data["zHD"], data["MU_SH0ES"], cov_matrix)
+
 
 def DES5yr():
     from cosmologix.tools import load_csv_from_url, cached_download

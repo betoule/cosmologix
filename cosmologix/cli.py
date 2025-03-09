@@ -89,7 +89,7 @@ def main():
         action="append",
         default=[],
         metavar="PARAM",
-        choices=list(Planck18.keys())+['M'],
+        choices=list(Planck18.keys()) + ["M"],
         help="Fix the specified PARAM (e.g. -F H0 -F Omega_b_h2).",
     )
     fit_parser.add_argument(
