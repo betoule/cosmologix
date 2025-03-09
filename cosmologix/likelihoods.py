@@ -121,11 +121,14 @@ class LikelihoodSum:
 
 
 class MuMeasurements(Chi2FullCov):
-    def __init__(self, z_cmb, mu, mu_cov):
+    def __init__(self, z_cmb, mu, mu_cov=None, weights=None):
         self.z_cmb = jnp.atleast_1d(z_cmb)
         self.data = jnp.atleast_1d(mu)
-        self.cov = jnp.array(mu_cov)
-        self.weights = jnp.linalg.inv(self.cov)
+        if weights is None:
+            self.cov = jnp.array(mu_cov)
+            self.weights = jnp.linalg.inv(self.cov)
+        else:
+            self.weights = weights
         self.U = jnp.linalg.cholesky(self.weights, upper=True)
 
     def model(self, params):
@@ -276,6 +279,15 @@ def DES5yr():
     # return DiagMuMeasurements(des_data["zCMB"], des_data["MU"], des_data["MUERR_FINAL"])
     return MuMeasurements(des_data["zHD"], des_data["MU"], cov_matrix)
 
+def Union3():
+    from cosmologix.tools import cached_download
+    from astropy.io import fits
+    union3_file = cached_download('https://github.com/rubind/union3_release/raw/refs/heads/main/mu_mat_union3_cosmo=2_mu.fits')
+    union3_mat = fits.getdata(union3_file)
+    z = jnp.array(union3_mat[0, 1:])
+    mu = jnp.array(union3_mat[1:, 0])
+    inv_cov = jnp.array(union3_mat[1:, 1:])
+    return MuMeasurements(z, mu, weights=inv_cov)
 
 def JLA():
     from cosmologix.tools import cached_download
