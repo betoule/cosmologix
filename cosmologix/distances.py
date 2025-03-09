@@ -22,7 +22,8 @@ def distance_integrand(params, u):
     z = 1 / u**2 - 1
     return 1 / (u**3 * jnp.sqrt(Omega(params, z)))
 
-@partial(jax.jit, static_argnames=('nstep',))
+
+@partial(jax.jit, static_argnames=("nstep",))
 def dC(params, z, nstep=1000):
     """Compute the comoving distance at redshift z.
 
@@ -48,36 +49,48 @@ def dC(params, z, nstep=1000):
     return jnp.interp(u, _u - 0.5 * step, csum) * 2 * step * dh
 
 
-@partial(jax.jit, static_argnames=('nstep',))
-def _dM_open(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
+@partial(jax.jit, static_argnames=("nstep",))
+def _dM_open(
+    params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000
+) -> jnp.ndarray:
     com_dist = dC(params, z, nstep)
     dh = Constants.c / params["H0"] * 1e-3  # Hubble distance in Mpc
     sqrt_omegak = jnp.sqrt(jnp.abs(params["Omega_k"]))
     return (dh / sqrt_omegak) * jnp.sinh(sqrt_omegak * com_dist / dh)
 
-@partial(jax.jit, static_argnames=('nstep',))
-def _dM_close(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
+
+@partial(jax.jit, static_argnames=("nstep",))
+def _dM_close(
+    params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000
+) -> jnp.ndarray:
     com_dist = dC(params, z, nstep)
     dh = Constants.c / params["H0"] * 1e-3  # Hubble distance in Mpc
     sqrt_omegak = jnp.sqrt(jnp.abs(params["Omega_k"]))
     return (dh / sqrt_omegak) * jnp.sin(sqrt_omegak * com_dist / dh)
 
-@partial(jax.jit, static_argnames=('nstep',))
+
+@partial(jax.jit, static_argnames=("nstep",))
 def dM(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
     index = -jnp.sign(params["Omega_k"]).astype(jnp.int8) + 1
     # we need to pass nstep explicitly to branches to avoid
     # lax.switch’s dynamic argument passing
-    return lax.switch(index, 
-                      [lambda p, z: _dM_open(p, z, nstep),
-                       lambda p, z: dC(p, z, nstep),
-                       lambda p, z: _dM_close(p, z, nstep)],
-                      params, z)
-    
+    return lax.switch(
+        index,
+        [
+            lambda p, z: _dM_open(p, z, nstep),
+            lambda p, z: dC(p, z, nstep),
+            lambda p, z: _dM_close(p, z, nstep),
+        ],
+        params,
+        z,
+    )
+
+
 def dL(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
     """Compute the luminosity distance in Mpc."""
     return (1 + z) * dM(params, z, nstep)
-    #return (1 + z) * dM(params, z, nstep)
-    #return (1 + z) * dC(params, z, nstep)
+    # return (1 + z) * dM(params, z, nstep)
+    # return (1 + z) * dC(params, z, nstep)
 
 
 def dA(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:

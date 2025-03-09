@@ -349,5 +349,6 @@ def run_contour(args):
         plt.show()
     plt.close()
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     main()

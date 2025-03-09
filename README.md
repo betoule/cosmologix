@@ -1,4 +1,4 @@
-![Cosmologix Logo](doc/cosmologix_logo.png)
+![Cosmologix Logo](https://gitlab.in2p3.fr/lemaitre/cosmologix/-/raw/master/doc/cosmologix_logo.png)
 # Cosmologix
 
 **Cosmologix** is a Python package for computing cosmological distances
@@ -70,10 +70,8 @@ contours.plot_contours(grid, filled=True, label='CMB+SN')
 plt.ion()
 plt.legend(loc='lower right', frameon=False)
 plt.show()
+#Further guidance can be found reading files in the examples directory.
 ```
-
-Further guidance can be found reading files in the examples directory.
-
 
 ## Command line interface
 
@@ -115,7 +113,7 @@ temperature), which explains the closer alignment. A comparison with
 the coarse quadrature (Cosmologix 1000) highlights the magnitude of
 numerical errors.
 
-![Distance modulus accuracy](doc/mu_accuracy.svg)
+![Distance modulus accuracy](https://gitlab.in2p3.fr/lemaitre/cosmologix/-/raw/master/doc/mu_accuracy.svg)
 
 ## Speed test
 
@@ -129,7 +127,7 @@ overheads. For Cosmologix, this includes JIT-compilation times, which
 introduce a significant delay. Efforts are underway to optimize this
 aspect.
 
-![Distance modulus speed](doc/mu_speed.svg)
+![Distance modulus speed](https://gitlab.in2p3.fr/lemaitre/cosmologix/-/raw/master/doc/mu_speed.svg)
 
 ## Contributing
 

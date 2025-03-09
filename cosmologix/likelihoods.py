@@ -7,6 +7,7 @@ from jax import lax, vmap, jit
 from functools import partial
 import numpy as np
 
+
 class Chi2:
     """Abstract implementation of chi-squared (χ²) evaluation for statistical analysis.
 
@@ -201,18 +202,20 @@ class UncalibratedBAOLikelihood(Chi2FullCov):
         self.dist_type_indices = self._convert_labels_to_indices()
 
     def _convert_labels_to_indices(self):
-        label_map = {'DV_over_rd': 0,
-                     'DM_over_rd': 1,
-                     'DH_over_rd': 2,}
+        label_map = {
+            "DV_over_rd": 0,
+            "DM_over_rd": 1,
+            "DH_over_rd": 2,
+        }
         return np.array([label_map[label] for label in self.dist_type_labels])
-    
+
     @partial(jit, static_argnums=(0,))
     def model(self, params) -> jnp.ndarray:
         rd = params["rd"]
         _dV = dV(params, self.redshifts)
         _dM = dM(params, self.redshifts)
         _dH = dH(params, self.redshifts)
-        return jnp.choose(self.dist_type_indices, [_dV, _dM, _dH], mode='clip') / rd
+        return jnp.choose(self.dist_type_indices, [_dV, _dM, _dH], mode="clip") / rd
 
     def initial_guess(self, params):
         """
