@@ -83,7 +83,7 @@ def frequentist_contour_2D_sparse(
     grid={"Omega_m": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]},
     varied=[],
     fixed=None,
-    chi2_threshold=6.17,  # 95% confidence for 2 parameters; adjust as needed
+    confidence_threshold=95,  # 95% confidence for 2 parameters; adjust as needed
 ):
     """
     Compute 2D confidence contours using sparse exploration.
@@ -97,11 +97,13 @@ def frequentist_contour_2D_sparse(
         grid: Dict defining parameter ranges and grid sizes (e.g., {"param": [min, max, n]}).
         varied: Additional parameters to vary at each grid point (fixed can be provided instead).
         fixed: Dict of fixed parameter values.
-        chi2_threshold: Δχ² threshold for contour boundary (default: 6.17, 95% for 2 params).
+        chi2_threshold: largest confidence level in percent for contour boundary. A Δχ² threshold is computed for this value assuming 2 degrees of freedom. (default: 95% corresponding to 6.17 for 2 params).
 
     Returns:
         Dict with params, x, y, chi2 grid, bestfit, and extra info.
     """
+    chi2_threshold = conflevel_to_delta_chi2(confidence_threshold)
+    
     likelihood = LikelihoodSum(likelihoods)
 
     # Initial setup (same as before)

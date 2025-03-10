@@ -174,6 +174,14 @@ def main():
         help="Overide the exploration range for second parameter",
     )
     explore_parser.add_argument(
+        "-T",
+        "--confidence-threshold",
+        type=float,
+        default=95.,
+        metavar="CONFIDENCE_LEVEL",
+        help="Maximal level of confidence explored in percent (default 95%).",
+    )
+    explore_parser.add_argument(
         "--mu",
         nargs="+",  # Accept 1 or 2 arguments
         help="Distance modulus data file and optional covariance matrix in npy format",
@@ -337,7 +345,7 @@ def run_explore(args):
             to_free.remove(par)
     for par in to_free:
         fixed.pop(par)
-    grid = contours.frequentist_contour_2D_sparse(priors, grid=grid_params, fixed=fixed)
+    grid = contours.frequentist_contour_2D_sparse(priors, grid=grid_params, fixed=fixed, confidence_threshold=args.confidence_threshold)
     if args.label:
         grid["label"] = args.label
     else:
