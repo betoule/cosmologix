@@ -156,6 +156,24 @@ def main():
         help="Fix the specified PARAM (e.g. -F H0 -F Omega_b_h2).",
     )
     explore_parser.add_argument(
+        "-r",
+        "--range-x",
+        nargs=2,
+        type=float,
+        default=None,
+        metavar="MIN MAX",
+        help="Overide the exploration range for first parameter",
+    )
+    explore_parser.add_argument(
+        "-R",
+        "--range-y",
+        nargs=2,
+        type=float,
+        default=None,
+        metavar="MIN MAX",
+        help="Overide the exploration range for second parameter",
+    )
+    explore_parser.add_argument(
         "--mu",
         nargs="+",  # Accept 1 or 2 arguments
         help="Distance modulus data file and optional covariance matrix in npy format",
@@ -305,9 +323,11 @@ def run_explore(args):
     """Explore a 2D parameter space and save the contour data."""
     priors = [AVAILABLE_PRIORS[p]() for p in args.priors] + load_mu(args)
     print(priors)
+    range_x = args.range_x if args.range_x is not None else DEFAULT_RANGE[args.param1]
+    range_y = args.range_y if args.range_y is not None else DEFAULT_RANGE[args.param2]
     grid_params = {
-        args.param1: DEFAULT_RANGE[args.param1] + [args.resolution],
-        args.param2: DEFAULT_RANGE[args.param2] + [args.resolution],
+        args.param1: range_x + [args.resolution],
+        args.param2: range_y + [args.resolution],
     }
     fixed = Planck18.copy()
     to_free = DEFAULT_FREE[args.cosmology].copy()
