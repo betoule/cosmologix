@@ -27,6 +27,10 @@ def V_astropy(params, z):
     astropycosmo = params_to_astropy(params)
     return astropycosmo.comoving_volume(np.asarray(z)).value
 
+def dV_astropy(params, z):
+    astropycosmo = params_to_astropy(params)
+    return astropycosmo.differential_comoving_volume(np.asarray(z)).value
+
 def test_volumes():
     z = jnp.linspace(0.01, 1, 3000)
     for label, params in cosmologies.items():
@@ -37,6 +41,7 @@ def test_volumes():
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
+    plt.ion()
     z = jnp.logspace(-2,3,1000)
     fig = plt.figure('comoving_volume')
     ax1, ax2 = fig.subplots(2, 1, sharex=True)
@@ -45,5 +50,13 @@ if __name__ == '__main__':
     for label, params in cosmologies.items():
         ax2.plot(z, V_astropy(params, z) / distances.comoving_volume(params, z)-1, label=label)
     ax2.legend(frameon=False)
-    plt.ion()
+
+    fig = plt.figure('differential_comoving_volume')
+    ax1, ax2 = fig.subplots(2, 1, sharex=True)
+    ax1.loglog(z, dV_astropy(cosmologies['flcdm'], z))
+    ax1.loglog(z, distances.differential_comoving_volume(cosmologies[f'flcdm'], z))
+    for label, params in cosmologies.items():
+        ax2.plot(z, dV_astropy(params, z) / distances.differential_comoving_volume(params, z)-1, label=label)
+    ax2.legend(frameon=False)
+
     plt.show()

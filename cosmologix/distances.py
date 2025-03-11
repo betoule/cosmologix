@@ -162,6 +162,25 @@ def _close_comoving_volume(params, z):
 
     
 def comoving_volume(params: Dict[str, float], z: jnp.ndarray, solid_angle: float = 4*jnp.pi) -> jnp.ndarray:
+    """Compute the comoving volume for given redshifts range and solid angle.
+    
+    Parameters
+    ----------
+    params : dict
+        Dictionary of cosmological parameters, including 'Omega_k' (curvature parameter),
+        and others required by the volume computation functions (e.g., 'H0', 'Omega_m').
+    z : jax.numpy.ndarray
+        Array of redshift values at which to compute the comoving volume.
+    solid_angle : float, optional
+        Solid angle in steradians over which the volume is calculated (default: 4π,
+        corresponding to the full sky).
+
+    Returns
+    -------
+    jax.numpy.ndarray
+        Array of comoving volumes in cubic megaparsecs (Mpc³) corresponding to each
+        redshift in `z`, scaled by the specified solid angle.
+    """
     index = -jnp.sign(params["Omega_k"]).astype(jnp.int8) + 1
     return solid_angle * lax.switch(
         index,
@@ -172,3 +191,27 @@ def comoving_volume(params: Dict[str, float], z: jnp.ndarray, solid_angle: float
         ],
         params,
         z)
+
+def differential_comoving_volume(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
+    """Compute the differential comoving volume element per unit redshift and steradian.
+    
+    This function calculates dV_c/dz, the differential comoving volume element, which
+    is used to determine the volume of a spherical shell at a given redshift in a
+    cosmological model.
+
+    Parameters
+    ----------
+    params : dict
+        Dictionary of cosmological parameters, including those needed for the Hubble
+        parameter 'H' and comoving distance 'dM' (e.g., 'H0', 'Omega_m', 'Omega_k').
+    z : jax.numpy.ndarray
+        Array of redshift values at which to compute the differential volume.
+
+    Returns
+    -------
+    jax.numpy.ndarray
+        Array of differential comoving volume elements in cubic megaparsecs per unit
+        redshift per steradian (Mpc³/sr/z) at each redshift in `z`.
+    """
+    return Constants.c * 1e-3 * dM(params, z)**2 / H(params, z)
+
