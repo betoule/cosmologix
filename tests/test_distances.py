@@ -6,15 +6,17 @@ import jax
 import camb
 
 # Set the default precision to float64 for all operations
-jax.config.update("jax_enable_x64", True)
+#jax.config.update("jax_enable_x64", True)
 
-massless = lcdm_deviation(m_nu=0)
-opened = lcdm_deviation(Omega_k=0.01)
-closed = lcdm_deviation(Omega_k=-0.01)
-w0wa = lcdm_deviation(w=-0.9, wa=0.1)
-dark_energy = lcdm_deviation(w=-0.9)
+cosmologies = {
+    'flcdm': lcdm_deviation(),
+    'massless': lcdm_deviation(m_nu=0),
+    'opened': lcdm_deviation(Omega_k=0.01),
+    'closed': lcdm_deviation(Omega_k=-0.01),
+    'w0wa': lcdm_deviation(w=-0.9, wa=0.1),
+    'dark_energy': lcdm_deviation(w=-0.9),
+    }
 
-cosmologies = [Planck18, massless, opened, closed, dark_energy, w0wa]
 
 
 #
@@ -83,20 +85,20 @@ def h_ccl(params, z):
 
 def test_distance_modulus():
     z = jnp.linspace(0.01, 1, 3000)
-    for params in cosmologies:
+    for label, params in cosmologies.items():
         for mu_check in [mu_ccl, mu_camb]:
             delta_mu = mu(params, z) - mu_check(params, z)
             assert (
                 jnp.abs(delta_mu) < 1e-3
-            ).all(), f"Distances differs for cosmology {params}, {mu_check}"
+            ).all(), f"Distances differs for cosmology {label}, {mu_check}"
 
 
 def test_hubble_rate():
     z = jnp.linspace(0.01, 1e3, 3000)
-    for params in cosmologies:
+    for label, params in cosmologies.items():
         h = H(params, z) / params["H0"]
         for h_check in [h_ccl, h_camb]:
             delta_h = h - h_check(params, z)
             assert (
                 jnp.abs(delta_h / h) < 1e-3
-            ).all(), f"Hubble rate differs for cosmology {params}, {h_check}"
+            ).all(), f"Hubble rate differs for cosmology {label}, {h_check}"

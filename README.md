@@ -96,7 +96,7 @@ cosmologix contour contours.pkl -o contour.png
 - [X] Improve speed of the evaluation of likelihoods
 - [X] Make distances differentiable around the crossing Omega_k = 0 to allow fitting non flat universe
 - [ ] Improve compilation time (which are currently a bit long, see graph below)
-- [ ] Add Union likelihood
+- [X] Add Union likelihood
 - [ ] Add computation of comoving volume
 - [ ] Improve the guess of contour computation time
 

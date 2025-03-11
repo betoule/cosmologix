@@ -140,3 +140,35 @@ def dV(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
     See formula 2.6 in DESI 1yr cosmological results arxiv:2404.03002
     """
     return (z * dM(params, z) ** 2 * dH(params, z)) ** (1 / 3)
+
+def _flat_comoving_volume(params, z):
+    return 1. / 3. * (dC(params, z) ** 3)
+
+def _open_comoving_volume(params, z):
+    _dC = dC(params, z)
+    dh = Constants.c / params["H0"] * 1e-3  # Hubble distance in Mpc
+    sqrt_omegak = jnp.sqrt(jnp.abs(params["Omega_k"]))
+    _dM = (dh / sqrt_omegak) * jnp.sinh(sqrt_omegak * _dC / dh)
+    d = _dM / dh
+    return dh ** 2 / (2. * params['Omega_k']) * (_dM * jnp.sqrt(1 + params['Omega_k'] * d ** 2) - _dC)
+    
+def _close_comoving_volume(params, z):
+    _dC = dC(params, z)
+    dh = Constants.c / params["H0"] * 1e-3  # Hubble distance in Mpc
+    sqrt_omegak = jnp.sqrt(jnp.abs(params["Omega_k"]))
+    _dM = (dh / sqrt_omegak) * jnp.sin(sqrt_omegak * _dC / dh)
+    d = _dM / dh
+    return dh ** 2 / (2. * params['Omega_k']) * (_dM * jnp.sqrt(1 + params['Omega_k'] * d ** 2) - _dC)
+
+    
+def comoving_volume(params: Dict[str, float], z: jnp.ndarray, solid_angle: float = 4*jnp.pi) -> jnp.ndarray:
+    index = -jnp.sign(params["Omega_k"]).astype(jnp.int8) + 1
+    return solid_angle * lax.switch(
+        index,
+        [
+            _open_comoving_volume,
+            _flat_comoving_volume,
+            _close_comoving_volume
+        ],
+        params,
+        z)
