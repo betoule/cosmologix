@@ -231,6 +231,14 @@ def main():
         help="Overide label for contour at INDEX (e.g., --label 0 CMB)",
     )
     contour_parser.add_argument(
+        "--levels",
+        nargs='+',
+        default=[68., 95.],
+        type=float,
+        metavar=("level1 level2 ..."),
+        help="Plot the contours corresponding to the list of given levels (default: 68 95)",
+    )
+    contour_parser.add_argument(
         "--legend-loc",
         default="best",
         choices=[
@@ -366,7 +374,8 @@ def run_contour(args):
         base_color = args.color.get(i, contours.color_theme[i])
         label = args.label.get(i, None)
         contours.plot_contours(
-            grid, filled=i not in args.not_filled, base_color=base_color, label=label
+            grid, filled=i not in args.not_filled, base_color=base_color, label=label,
+            levels=args.levels,
         )
     plt.legend(loc=args.legend_loc, frameon=False)
     plt.tight_layout()
