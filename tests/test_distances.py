@@ -6,17 +6,16 @@ import jax
 import camb
 
 # Set the default precision to float64 for all operations
-#jax.config.update("jax_enable_x64", True)
+# jax.config.update("jax_enable_x64", True)
 
 cosmologies = {
-    'flcdm': lcdm_deviation(),
-    'massless': lcdm_deviation(m_nu=0),
-    'opened': lcdm_deviation(Omega_k=0.01),
-    'closed': lcdm_deviation(Omega_k=-0.01),
-    'w0wa': lcdm_deviation(w=-0.9, wa=0.1),
-    'dark_energy': lcdm_deviation(w=-0.9),
-    }
-
+    "flcdm": lcdm_deviation(),
+    "massless": lcdm_deviation(m_nu=0),
+    "opened": lcdm_deviation(Omega_k=0.01),
+    "closed": lcdm_deviation(Omega_k=-0.01),
+    "w0wa": lcdm_deviation(w=-0.9, wa=0.1),
+    "dark_energy": lcdm_deviation(w=-0.9),
+}
 
 
 #

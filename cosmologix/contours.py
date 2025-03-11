@@ -103,7 +103,7 @@ def frequentist_contour_2D_sparse(
         Dict with params, x, y, chi2 grid, bestfit, and extra info.
     """
     chi2_threshold = conflevel_to_delta_chi2(confidence_threshold)
-    
+
     likelihood = LikelihoodSum(likelihoods)
 
     # Initial setup (same as before)

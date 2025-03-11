@@ -177,7 +177,7 @@ def main():
         "-T",
         "--confidence-threshold",
         type=float,
-        default=95.,
+        default=95.0,
         metavar="CONFIDENCE_LEVEL",
         help="Maximal level of confidence explored in percent (default 95%).",
     )
@@ -232,8 +232,8 @@ def main():
     )
     contour_parser.add_argument(
         "--levels",
-        nargs='+',
-        default=[68., 95.],
+        nargs="+",
+        default=[68.0, 95.0],
         type=float,
         metavar=("level1 level2 ..."),
         help="Plot the contours corresponding to the list of given levels (default: 68 95)",
@@ -353,7 +353,12 @@ def run_explore(args):
             to_free.remove(par)
     for par in to_free:
         fixed.pop(par)
-    grid = contours.frequentist_contour_2D_sparse(priors, grid=grid_params, fixed=fixed, confidence_threshold=args.confidence_threshold)
+    grid = contours.frequentist_contour_2D_sparse(
+        priors,
+        grid=grid_params,
+        fixed=fixed,
+        confidence_threshold=args.confidence_threshold,
+    )
     if args.label:
         grid["label"] = args.label
     else:
@@ -374,7 +379,10 @@ def run_contour(args):
         base_color = args.color.get(i, contours.color_theme[i])
         label = args.label.get(i, None)
         contours.plot_contours(
-            grid, filled=i not in args.not_filled, base_color=base_color, label=label,
+            grid,
+            filled=i not in args.not_filled,
+            base_color=base_color,
+            label=label,
             levels=args.levels,
         )
     plt.legend(loc=args.legend_loc, frameon=False)

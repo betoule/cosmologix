@@ -61,8 +61,8 @@ def params_to_astropy(params):
         m_nu=[params["m_nu"], 0, 0],
         Tcmb0=params["Tcmb"],
         Neff=params["Neff"],
-        w0=params['w'],
-        wa=params['wa'],
+        w0=params["w"],
+        wa=params["wa"],
     )
 
 

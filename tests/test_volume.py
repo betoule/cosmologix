@@ -19,44 +19,58 @@ def params_to_astropy(params):
         m_nu=[params["m_nu"], 0, 0],
         Tcmb0=params["Tcmb"],
         Neff=params["Neff"],
-        w0=params['w'],
-        wa=params['wa'],
+        w0=params["w"],
+        wa=params["wa"],
     )
+
 
 def V_astropy(params, z):
     astropycosmo = params_to_astropy(params)
     return astropycosmo.comoving_volume(np.asarray(z)).value
 
+
 def dV_astropy(params, z):
     astropycosmo = params_to_astropy(params)
     return astropycosmo.differential_comoving_volume(np.asarray(z)).value
 
+
 def test_volumes():
     z = jnp.linspace(0.01, 1, 3000)
     for label, params in cosmologies.items():
-        dV_over_V = V_astropy(params, z) / distances.comoving_volume(params, z)-1
+        dV_over_V = V_astropy(params, z) / distances.comoving_volume(params, z) - 1
         assert (
             jnp.abs(dV_over_V) < 1e-3
         ).all(), f"Volume differs for cosmology {label}, {dV_over_V}"
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import matplotlib.pyplot as plt
+
     plt.ion()
-    z = jnp.logspace(-2,3,1000)
-    fig = plt.figure('comoving_volume')
+    z = jnp.logspace(-2, 3, 1000)
+    fig = plt.figure("comoving_volume")
     ax1, ax2 = fig.subplots(2, 1, sharex=True)
-    ax1.loglog(z, V_astropy(cosmologies['flcdm'], z))
-    ax1.loglog(z, distances.comoving_volume(cosmologies[f'flcdm'], z))
+    ax1.loglog(z, V_astropy(cosmologies["flcdm"], z))
+    ax1.loglog(z, distances.comoving_volume(cosmologies[f"flcdm"], z))
     for label, params in cosmologies.items():
-        ax2.plot(z, V_astropy(params, z) / distances.comoving_volume(params, z)-1, label=label)
+        ax2.plot(
+            z,
+            V_astropy(params, z) / distances.comoving_volume(params, z) - 1,
+            label=label,
+        )
     ax2.legend(frameon=False)
 
-    fig = plt.figure('differential_comoving_volume')
+    fig = plt.figure("differential_comoving_volume")
     ax1, ax2 = fig.subplots(2, 1, sharex=True)
-    ax1.loglog(z, dV_astropy(cosmologies['flcdm'], z))
-    ax1.loglog(z, distances.differential_comoving_volume(cosmologies[f'flcdm'], z))
+    ax1.loglog(z, dV_astropy(cosmologies["flcdm"], z))
+    ax1.loglog(z, distances.differential_comoving_volume(cosmologies[f"flcdm"], z))
     for label, params in cosmologies.items():
-        ax2.plot(z, dV_astropy(params, z) / distances.differential_comoving_volume(params, z)-1, label=label)
+        ax2.plot(
+            z,
+            dV_astropy(params, z) / distances.differential_comoving_volume(params, z)
+            - 1,
+            label=label,
+        )
     ax2.legend(frameon=False)
 
     plt.show()

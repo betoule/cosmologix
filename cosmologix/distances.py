@@ -141,8 +141,10 @@ def dV(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
     """
     return (z * dM(params, z) ** 2 * dH(params, z)) ** (1 / 3)
 
+
 def _flat_comoving_volume(params, z):
-    return 1. / 3. * (dC(params, z) ** 3)
+    return 1.0 / 3.0 * (dC(params, z) ** 3)
+
 
 def _open_comoving_volume(params, z):
     _dC = dC(params, z)
@@ -150,20 +152,31 @@ def _open_comoving_volume(params, z):
     sqrt_omegak = jnp.sqrt(jnp.abs(params["Omega_k"]))
     _dM = (dh / sqrt_omegak) * jnp.sinh(sqrt_omegak * _dC / dh)
     d = _dM / dh
-    return dh ** 2 / (2. * params['Omega_k']) * (_dM * jnp.sqrt(1 + params['Omega_k'] * d ** 2) - _dC)
-    
+    return (
+        dh**2
+        / (2.0 * params["Omega_k"])
+        * (_dM * jnp.sqrt(1 + params["Omega_k"] * d**2) - _dC)
+    )
+
+
 def _close_comoving_volume(params, z):
     _dC = dC(params, z)
     dh = Constants.c / params["H0"] * 1e-3  # Hubble distance in Mpc
     sqrt_omegak = jnp.sqrt(jnp.abs(params["Omega_k"]))
     _dM = (dh / sqrt_omegak) * jnp.sin(sqrt_omegak * _dC / dh)
     d = _dM / dh
-    return dh ** 2 / (2. * params['Omega_k']) * (_dM * jnp.sqrt(1 + params['Omega_k'] * d ** 2) - _dC)
+    return (
+        dh**2
+        / (2.0 * params["Omega_k"])
+        * (_dM * jnp.sqrt(1 + params["Omega_k"] * d**2) - _dC)
+    )
 
-    
-def comoving_volume(params: Dict[str, float], z: jnp.ndarray, solid_angle: float = 4*jnp.pi) -> jnp.ndarray:
+
+def comoving_volume(
+    params: Dict[str, float], z: jnp.ndarray, solid_angle: float = 4 * jnp.pi
+) -> jnp.ndarray:
     """Compute the comoving volume for given redshifts range and solid angle.
-    
+
     Parameters
     ----------
     params : dict
@@ -184,17 +197,17 @@ def comoving_volume(params: Dict[str, float], z: jnp.ndarray, solid_angle: float
     index = -jnp.sign(params["Omega_k"]).astype(jnp.int8) + 1
     return solid_angle * lax.switch(
         index,
-        [
-            _open_comoving_volume,
-            _flat_comoving_volume,
-            _close_comoving_volume
-        ],
+        [_open_comoving_volume, _flat_comoving_volume, _close_comoving_volume],
         params,
-        z)
+        z,
+    )
 
-def differential_comoving_volume(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
+
+def differential_comoving_volume(
+    params: Dict[str, float], z: jnp.ndarray
+) -> jnp.ndarray:
     """Compute the differential comoving volume element per unit redshift and steradian.
-    
+
     This function calculates dV_c/dz, the differential comoving volume element, which
     is used to determine the volume of a spherical shell at a given redshift in a
     cosmological model.
@@ -213,5 +226,4 @@ def differential_comoving_volume(params: Dict[str, float], z: jnp.ndarray) -> jn
         Array of differential comoving volume elements in cubic megaparsecs per unit
         redshift per steradian (Mpc³/sr/z) at each redshift in `z`.
     """
-    return Constants.c * 1e-3 * dM(params, z)**2 / H(params, z)
-
+    return Constants.c * 1e-3 * dM(params, z) ** 2 / H(params, z)
