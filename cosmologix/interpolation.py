@@ -5,6 +5,7 @@ import numpy as np
 import hashlib
 import os
 
+
 def barycentric_weights(x):
     """Compute barycentric weights for interpolation points x."""
     n = len(x)
@@ -93,6 +94,7 @@ def newton_divided_differences(x, y):
     # Return the coefficients (first row of the table)
     return coeffs[0, :]
 
+
 def cached_newton_divided_differences(x, func, cache_dir=None):
     """Compute or retrieve cached Newton divided differences for given x and function.
 
@@ -124,7 +126,7 @@ def cached_newton_divided_differences(x, func, cache_dir=None):
 
     if cache_dir is None:
         cache_dir = get_cache_dir()
-    
+
     # Generate a unique cache key based on x and func name
     x_hash = hashlib.sha256(x.tobytes()).hexdigest()[:16]  # Shorten for readability
     func_name = func.__name__
@@ -150,6 +152,7 @@ def cached_newton_divided_differences(x, func, cache_dir=None):
     np.save(cache_path, np.asarray(coeffs))
 
     return coeffs
+
 
 def newton_interp(x_tab, y_tab, coeffs=None):
     """Evaluate Newton's interpolation polynomial."""

@@ -1,14 +1,13 @@
+import time
 import jax.numpy as jnp
 from jax import lax
 import jax
 from typing import Callable, Tuple
-import requests
 import numpy as np
 import os
 import hashlib
 from pathlib import Path
 import shutil
-import time
 
 
 def get_cache_dir():
@@ -68,6 +67,9 @@ def cached_download(url, cache_dir=None):
         return cache_path
 
     # Download the file
+    # this module is a bit slow to import (don't unless needed)
+    import requests
+
     response = requests.get(url, stream=True)
     response.raise_for_status()
 
@@ -171,9 +173,6 @@ def load_csv_from_url(url, delimiter=","):
     Returns:
     - numpy.ndarray: The loaded CSV data as a NumPy array.
     """
-    # response = requests.get(url)
-    # response.raise_for_status()  # Will raise an HTTPError if the HTTP request returned an unsuccessful status code
-
     # Decode the response content and split into lines
     # lines = response.content.decode("utf-8").splitlines()
     path = cached_download(url)
@@ -234,7 +233,7 @@ def conflevel_to_delta_chi2(level, dof=2, max_iter=1000, tol=1e-6):
 # conveniency so that random vector can be obtained with onliners when
 # need. This will note ensure actual randomness nor reproducibility.
 # To be used cautiously
-global_key = jax.random.PRNGKey(42)
+global_key = None
 
 
 def randn(sigma, n=None, key=None):
@@ -274,6 +273,12 @@ def randn(sigma, n=None, key=None):
     """
     global global_key
     if key is None:
+        if global_key is None:
+            # This global random key at the module level is provided for
+            # conveniency so that random vector can be obtained with onliners when
+            # need. This will note ensure actual randomness nor reproducibility.
+            # To be used cautiously
+            global_key = jax.random.PRNGKey(42)
         global_key, subkey = jax.random.split(global_key)
     else:
         subkey = key

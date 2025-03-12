@@ -192,12 +192,10 @@ def analytical_large_mass_expansion(m_bar):
 n_chebyshev = 35
 chebyshev_nodes_mass = chebyshev_nodes(n_chebyshev, -2, 3)
 integral_at_nodes = lambda x: compute_fermion_distribution_integral(10**x)
-newton_interpolation_coef = cached_newton_divided_differences(chebyshev_nodes_mass, integral_at_nodes)
-_interpolant = newton_interp(
-    chebyshev_nodes_mass,
-    None,
-    newton_interpolation_coef
+newton_interpolation_coef = cached_newton_divided_differences(
+    chebyshev_nodes_mass, integral_at_nodes
 )
+_interpolant = newton_interp(chebyshev_nodes_mass, None, newton_interpolation_coef)
 interpolant = lambda x: _interpolant(jnp.log10(x))
 
 
