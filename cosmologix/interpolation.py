@@ -28,10 +28,10 @@ def barycentric_weights(x):
 def chebyshev_nodes(n, a, b):
     """Compute n Chebyshev nodes of the second kind on the interval [a, b]."""
     # Compute indices k = 0, 1, ..., n
-    k = jnp.arange(n + 1)
+    k = np.arange(n + 1)
 
     # Compute Chebyshev nodes on [-1, 1]
-    x_cheb = jnp.cos(k * jnp.pi / n)  # jnp.cos((2 * k + 1) * jnp.pi / (2 * (n + 1)))
+    x_cheb = np.cos(k * np.pi / n)  # jnp.cos((2 * k + 1) * jnp.pi / (2 * (n + 1)))
 
     # Map to [a, b]
     x_mapped = (b - a) / 2 * x_cheb + (a + b) / 2
