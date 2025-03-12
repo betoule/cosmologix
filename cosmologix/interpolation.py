@@ -36,7 +36,7 @@ def chebyshev_nodes(n, a, b):
     # Map to [a, b]
     x_mapped = (b - a) / 2 * x_cheb + (a + b) / 2
 
-    return x_mapped
+    return jnp.array(x_mapped)
 
 
 def barycentric_weights_chebyshev(n):
