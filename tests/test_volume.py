@@ -28,6 +28,9 @@ def V_astropy(params, z):
     astropycosmo = params_to_astropy(params)
     return astropycosmo.comoving_volume(np.asarray(z)).value
 
+def lookback_time_astropy(params, z):
+    astropycosmo = params_to_astropy(params)
+    return astropycosmo.lookback_time(np.asarray(z)).value
 
 def dV_astropy(params, z):
     astropycosmo = params_to_astropy(params)
@@ -42,7 +45,13 @@ def test_volumes():
             jnp.abs(dV_over_V) < 1e-3
         ).all(), f"Volume differs for cosmology {label}, {dV_over_V}"
 
-
+def test_lookback_time():
+    z = jnp.linspace(0.01, 1, 3000)
+    for label, params in cosmologies.items():
+        dV_over_V = lookback_time_astropy(params, z) / distances.lookback_time(params, z) - 1
+        assert (
+            jnp.abs(dV_over_V) < 1e-3
+        ).all(), f"Volume differs for cosmology {label}, {dV_over_V}"
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
 

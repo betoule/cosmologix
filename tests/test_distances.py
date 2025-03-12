@@ -101,3 +101,4 @@ def test_hubble_rate():
             assert (
                 jnp.abs(delta_h / h) < 1e-3
             ).all(), f"Hubble rate differs for cosmology {label}, {h_check}"
+    
