@@ -22,6 +22,7 @@ def distance_integrand(params, u):
     z = 1 / u**2 - 1
     return 1 / (u**3 * jnp.sqrt(Omega(params, z)))
 
+
 @partial(jax.jit, static_argnames=("nstep",))
 def dC(params, z, nstep=1000):
     """Compute the comoving distance at redshift z.
@@ -47,6 +48,7 @@ def dC(params, z, nstep=1000):
     csum = jnp.cumsum(distance_integrand(params, _u[-1::-1]))[-1::-1]
     return jnp.interp(u, _u - 0.5 * step, csum) * 2 * step * dh
 
+
 @partial(jax.jit, static_argnames=("nstep",))
 def lookback_time(params, z, nstep=1000):
     """Compute the lookback time at redshift z.
@@ -61,7 +63,9 @@ def lookback_time(params, z, nstep=1000):
     --------
     Lookback time in Gyr
     """
-    costime = 1 / (params['H0'] / (Constants.pc * 1e6/1e3)) / Constants.year / 1e9 # Gyr
+    costime = (
+        1 / (params["H0"] / (Constants.pc * 1e6 / 1e3)) / Constants.year / 1e9
+    )  # Gyr
     u = 1 / jnp.sqrt(1 + z)
     umin = 0.02
     step = (1 - umin) / nstep

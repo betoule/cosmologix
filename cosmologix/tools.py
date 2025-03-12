@@ -142,7 +142,7 @@ class Constants:
     h = 6.62617e-34  # J.s
     k = 1.38066e-23  # J/K
     e = 1.60217663e-19  # C
-    year = 31557600. # s
+    year = 31557600.0  # s
     sigma = (
         2 * jnp.pi**5 * k**4 / (15 * h**3 * c**2)
     )  # Stefan-Boltzmann constant J/s / K^4 /m^2
