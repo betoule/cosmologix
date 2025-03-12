@@ -1,6 +1,9 @@
 import jax
 import jax.numpy as jnp
-
+from cosmologix.tools import get_cache_dir
+import numpy as np
+import hashlib
+import os
 
 def barycentric_weights(x):
     """Compute barycentric weights for interpolation points x."""
@@ -90,6 +93,63 @@ def newton_divided_differences(x, y):
     # Return the coefficients (first row of the table)
     return coeffs[0, :]
 
+def cached_newton_divided_differences(x, func, cache_dir=None):
+    """Compute or retrieve cached Newton divided differences for given x and function.
+
+    This wrapper caches the result of newton_divided_differences(x, func(x)) to disk
+    using a unique filename based on the inputs. If the cache exists, it loads and
+    returns the result directly.
+
+    Parameters
+    ----------
+    x : jax.numpy.ndarray
+        Array of x-coordinates (interpolation points), shape (n,).
+    func : callable
+        Function that takes x as input and returns y-values, i.e., func(x).
+    cache_dir : str, optional
+        Directory where cache files are stored (default: "cache").
+
+    Returns
+    -------
+    jax.numpy.ndarray
+        Array of divided difference coefficients, shape (n,).
+
+    Notes
+    -----
+    - The cache filename is generated from a hash of x and func.__name__ to ensure
+      uniqueness.
+    - Cache files are stored as .npy files for efficient NumPy/JAX array I/O.
+    - The cache directory is created if it doesn’t exist.
+    """
+
+    if cache_dir is None:
+        cache_dir = get_cache_dir()
+    
+    # Generate a unique cache key based on x and func name
+    x_hash = hashlib.sha256(x.tobytes()).hexdigest()[:16]  # Shorten for readability
+    func_name = func.__name__
+    cache_filename = f"newton_diff_{func_name}_{x_hash}.npy"
+    cache_path = os.path.join(cache_dir, cache_filename)
+
+    # Create cache directory if it doesn’t exist
+    os.makedirs(cache_dir, exist_ok=True)
+
+    # Check if cached result exists
+    if os.path.exists(cache_path):
+        # Load and return cached coefficients
+        coeffs = jnp.asarray(np.load(cache_path))
+        return coeffs
+
+    x = jnp.asarray(x)
+    y = func(x)
+
+    # Compute coefficients if not cached
+    coeffs = newton_divided_differences(x, y)
+
+    # Save to cache (convert to NumPy for .npy compatibility)
+    np.save(cache_path, np.asarray(coeffs))
+
+    return coeffs
 
 def newton_interp(x_tab, y_tab, coeffs=None):
     """Evaluate Newton's interpolation polynomial."""
@@ -138,8 +198,6 @@ def newton_interpolant(func, a, b, n=10):
     The polynomial is evaluated using the Newton formula whose precomputation is in O(n²).
     """
     nodes = chebyshev_nodes(n, a, b)
-    # coeffs = newton_divided_differences(nodes, func(nodes))
-    # return lambda x: newton_interp(nodes, None, x, coeffs=coeffs)
     return newton_interp(nodes, func(nodes))
 
 
