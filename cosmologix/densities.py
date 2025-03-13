@@ -1,4 +1,5 @@
 import jax.numpy as jnp
+import jax
 from cosmologix.tools import safe_vmap, Constants
 from cosmologix import neutrinos
 
@@ -221,7 +222,7 @@ def derived_parameters(params):
     params["Omega_nu_massive"] = rho_nu[:, ~massless].sum().item()
     return params
 
-
+@jax.jit
 def Omega(params, z):
     """
     Compute the total density parameter Omega for all components at given redshift(s).

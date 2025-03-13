@@ -293,12 +293,15 @@ def speed_measurement(func, *args, n=10):
     functions in one go
 
     """
+    jax.clear_caches() # make sure that compilation is triggered
     tstart = time.time()
     result = jax.block_until_ready(func(*args))
     tcomp = time.time()
     for _ in range(n):
         result = jax.block_until_ready(func(*args))
     tstop1 = time.time()
+    jax.clear_caches() # make sure that compilation is triggered
+    tstart2 = time.time()
     jfunc = jax.jit(func)
     tjit = time.time()
     result = jax.block_until_ready(jfunc(*args))
@@ -310,7 +313,7 @@ def speed_measurement(func, *args, n=10):
     return (
         tcomp - tstart,
         (tstop1 - tcomp) / n,
-        tjit - tstop1,
+        tjit - tstart2,
         tcomp2 - tjit,
         (tstop2 - tcomp2) / n,
     )

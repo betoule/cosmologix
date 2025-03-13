@@ -147,7 +147,7 @@ def H(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
     """
     return params["H0"] * jnp.sqrt(Omega(params, z))
 
-
+@partial(jax.jit, static_argnames=("nstep",))
 def mu(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
     """Compute the distance modulus."""
     return 5 * jnp.log10(dL(params, z, nstep)) + 25

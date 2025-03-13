@@ -162,9 +162,9 @@ class GeometricCMBLikelihood(Chi2FullCov):
         covariance: covariance matrix of vector mean
         """
         self.data = jnp.array(mean)
-        self.cov = jnp.array(covariance)
-        self.W = jnp.linalg.inv(self.cov)
-        self.U = jnp.linalg.cholesky(self.W, upper=True)
+        self.cov = np.array(covariance)
+        self.W = np.linalg.inv(self.cov)
+        self.U = jnp.array(np.linalg.cholesky(self.W).T)#, upper=True)
 
     def model(self, params):
         params = densities.process_params(params)
@@ -194,9 +194,9 @@ class UncalibratedBAOLikelihood(Chi2FullCov):
         """
         self.redshifts = jnp.asarray(redshifts)
         self.data = jnp.asarray(distances)
-        self.cov = jnp.asarray(covariance)
-        self.W = jnp.linalg.inv(self.cov)
-        self.U = jnp.linalg.cholesky(self.W, upper=True)
+        self.cov = np.asarray(covariance)
+        self.W = np.linalg.inv(self.cov)
+        self.U = jnp.array(np.linalg.cholesky(self.W).T)#, upper=True)
         self.dist_type_labels = dist_type_labels
         if len(self.data) != len(self.dist_type_labels):
             raise ValueError(

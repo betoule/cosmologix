@@ -81,7 +81,7 @@ if __name__ == "__main__":
     print(results)
 
     import matplotlib.pyplot as plt
-
+    plt.ion()
     labels = list(results.keys())
     r = jnp.arange(len(labels))
     bar_width = 0.25

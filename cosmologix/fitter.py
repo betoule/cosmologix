@@ -165,7 +165,7 @@ def analyze_FIM_for_degeneracies(fim, param_names):
 
 
 def gauss_newton_prep(func, params_subset):
-    f = partial(func, params_subset)
+    f = jax.jit(partial(func, params_subset))
     return f, jax.jit(jax.jacfwd(f))
 
 
