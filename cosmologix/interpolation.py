@@ -161,7 +161,7 @@ def newton_interp(x_tab, y_tab, coeffs=None):
 
     n = len(x_tab)
 
-    #@jax.jit
+    # @jax.jit
     def eval_horner(xq):
         def body_fun(i, val):
             return jnp.multiply(val, xq - x_tab[n - i]) + coeffs[n - i]

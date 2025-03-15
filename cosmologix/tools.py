@@ -8,6 +8,7 @@ import os
 import hashlib
 from pathlib import Path
 import shutil
+import pickle
 
 
 def get_cache_dir():
@@ -20,6 +21,14 @@ def get_cache_dir():
         return str(Path.home() / ".cache" / "cosmologix")
     else:
         raise OSError("Unsupported operating system")
+
+
+jax.config.update("jax_compilation_cache_dir", get_cache_dir())
+jax.config.update("jax_persistent_cache_min_entry_size_bytes", -1)
+jax.config.update("jax_persistent_cache_min_compile_time_secs", 0.1)
+jax.config.update(
+    "jax_persistent_cache_enable_xla_caches", "xla_gpu_per_fusion_autotune_cache_dir"
+)
 
 
 def clear_cache(cache_dir=None):
@@ -79,6 +88,67 @@ def cached_download(url, cache_dir=None):
 
     print(f"File downloaded and cached at: {cache_path}")
     return cache_path
+
+
+def cached(constant_function):
+    """Decorator to cache the result of a function that always returns the same object.
+
+    This decorator is designed for functions with no arguments that
+    consistently return an identical object, such as Chi2FullCov
+    objects in likelihoods.py which can need expansive factorisation
+    of large matrices at their creation. It stores the result in a
+    file-based cache using pickle serialization, loading from the
+    cache if available or computing and saving it otherwise. The cache
+    file is named based on the function’s name and stored in a
+    directory returned by `get_cache_dir()`.
+
+    Parameters
+    ----------
+    constant_function : callable
+        A function with no arguments that returns a constant object to be cached.
+        Typically used for expensive-to-compute objects like Likelihood instances.
+
+    Returns
+    -------
+    callable
+        A wrapped function that returns the cached object if available, or computes,
+        caches, and returns it if not.
+
+    Notes
+    -----
+    - The cache is stored in a file named 'func_cache_<function_name>' within the
+      directory specified by `get_cache_dir()`.
+    - The decorator assumes `constant_function` is deterministic and side-effect-free.
+    - Uses `pickle` for serialization, so the returned object must be picklable.
+
+    Examples
+    --------
+    >>> @cached
+    ... def expensive_likelihood():
+    ...     return Chi2FullCov(...)  # Expensive computation
+    >>> result = expensive_likelihood()  # Computes and caches
+    >>> result2 = expensive_likelihood()  # Loads from cache
+
+    """
+    cache_dir = get_cache_dir()
+
+    # Create cache directory if it doesn't exist
+    os.makedirs(cache_dir, exist_ok=True)
+
+    cache_path = os.path.join(cache_dir, f"func_cache_{constant_function.__name__}")
+
+    def cached_function():
+        if os.path.exists(cache_path):
+            print(f"Using cached file: {cache_path}")
+            with open(cache_path, "rb") as fid:
+                return pickle.load(fid)
+        else:
+            obj = constant_function()
+            with open(cache_path, "wb") as fid:
+                pickle.dump(obj, fid)
+            return obj
+
+    return cached_function
 
 
 def safe_vmap(in_axes: Tuple[None | int, ...] = (None, 0)) -> Callable:
@@ -293,14 +363,14 @@ def speed_measurement(func, *args, n=10):
     functions in one go
 
     """
-    jax.clear_caches() # make sure that compilation is triggered
+    jax.clear_caches()  # make sure that compilation is triggered
     tstart = time.time()
     result = jax.block_until_ready(func(*args))
     tcomp = time.time()
     for _ in range(n):
         result = jax.block_until_ready(func(*args))
     tstop1 = time.time()
-    jax.clear_caches() # make sure that compilation is triggered
+    jax.clear_caches()  # make sure that compilation is triggered
     tstart2 = time.time()
     jfunc = jax.jit(func)
     tjit = time.time()

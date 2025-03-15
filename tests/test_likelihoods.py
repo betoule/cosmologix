@@ -1,4 +1,4 @@
-from cosmologix import Planck18, likelihoods
+from cosmologix import Planck18, likelihoods, tools
 from cosmologix.fitter import unflatten_vector, flatten_vector
 import jax
 import jax.numpy as jnp
@@ -40,6 +40,7 @@ def get_like_func(likelihood, fix=["Omega_k"]):
 
 
 def test_likelihoods(fix=["Omega_k"]):
+    tools.clear_cache()
     priors = {
         "desiu": likelihoods.DESI2024Prior(True),
         "desi": likelihoods.DESI2024Prior(),
@@ -85,10 +86,10 @@ if __name__ == "__main__":
         "BBN": likelihoods.BBNSchoneberg2024Prior(),
         "BBNNeff": likelihoods.BBNNeffSchoneberg2024Prior(),
     }
-    priors["sum"] = likelihoods.LikelihoodSum([priors['planck'], priors['des']])
+    priors["sum"] = likelihoods.LikelihoodSum([priors["planck"], priors["des"]])
     from cosmologix.tools import speed_measurement
 
     for name, likelihood in priors.items():
         params = likelihood.initial_guess(Planck18.copy())
-        #print(name, speed_measurement(likelihood.negative_log_likelihood, params))
+        # print(name, speed_measurement(likelihood.negative_log_likelihood, params))
         print(name, speed_measurement(likelihood.weighted_residuals, params))

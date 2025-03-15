@@ -2,7 +2,7 @@ from cosmologix.distances import dM, dH, dV
 from cosmologix.acoustic_scale import theta_MC, rd_approx
 from cosmologix import mu, densities
 import jax.numpy as jnp
-from cosmologix.tools import randn
+from cosmologix.tools import randn, cached
 from jax import lax, vmap, jit
 from functools import partial
 import numpy as np
@@ -164,7 +164,7 @@ class GeometricCMBLikelihood(Chi2FullCov):
         self.data = jnp.array(mean)
         self.cov = np.array(covariance)
         self.W = np.linalg.inv(self.cov)
-        self.U = jnp.array(np.linalg.cholesky(self.W).T)#, upper=True)
+        self.U = jnp.array(np.linalg.cholesky(self.W).T)  # , upper=True)
 
     def model(self, params):
         params = densities.process_params(params)
@@ -196,7 +196,7 @@ class UncalibratedBAOLikelihood(Chi2FullCov):
         self.data = jnp.asarray(distances)
         self.cov = np.asarray(covariance)
         self.W = np.linalg.inv(self.cov)
-        self.U = jnp.array(np.linalg.cholesky(self.W).T)#, upper=True)
+        self.U = jnp.array(np.linalg.cholesky(self.W).T)  # , upper=True)
         self.dist_type_labels = dist_type_labels
         if len(self.data) != len(self.dist_type_labels):
             raise ValueError(
@@ -241,6 +241,7 @@ class CalibratedBAOLikelihood(UncalibratedBAOLikelihood):
         return params
 
 
+@cached
 def Pantheonplus():
     from cosmologix.tools import load_csv_from_url, cached_download
     import gzip
@@ -261,6 +262,7 @@ def Pantheonplus():
     return MuMeasurements(data["zHD"], data["MU_SH0ES"], cov_matrix)
 
 
+@cached
 def DES5yr():
     from cosmologix.tools import load_csv_from_url, cached_download
     import gzip
@@ -280,6 +282,7 @@ def DES5yr():
     return MuMeasurements(des_data["zHD"], des_data["MU"], cov_matrix)
 
 
+@cached
 def Union3():
     from cosmologix.tools import cached_download
     from astropy.io import fits
@@ -294,6 +297,7 @@ def Union3():
     return MuMeasurements(z, mu, weights=inv_cov)
 
 
+@cached
 def JLA():
     from cosmologix.tools import cached_download
     from astropy.io import fits

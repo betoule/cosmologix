@@ -222,6 +222,7 @@ def derived_parameters(params):
     params["Omega_nu_massive"] = rho_nu[:, ~massless].sum().item()
     return params
 
+
 @jax.jit
 def Omega(params, z):
     """
