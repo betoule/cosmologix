@@ -9,11 +9,13 @@ import camb
 from cosmologix.tools import Constants
 from astropy import cosmology
 import jax_cosmo as jc
+
 try:
     import cosmoprimo
 except ImportError:
-    print('Running the full comparison requires manual installation of cosmoprimo, for example via python -m pip install git+https://github.com/cosmodesi/cosmoprimo')
-
+    print(
+        "Running the full comparison requires manual installation of cosmoprimo, for example via python -m pip install git+https://github.com/cosmodesi/cosmoprimo"
+    )
 
 
 #
@@ -87,31 +89,49 @@ def mu_astropy(params, z):
     astropycosmo = params_to_astropy(params)
     return astropycosmo.distmod(np.asarray(z)).value
 
+
 @jax.jit
 def mu_jaxcosmo(params, z):
-    h = params['H0']/100
-    omega_b = params['Omega_b_h2']/h**2
-    a = 1 / (1+z)
-    jaxcosmo = jc.Cosmology(Omega_c=params['Omega_m']-omega_b, Omega_b=omega_b, h=h, Omega_k=params['Omega_k'], n_s=0.96, sigma8=0.8, w0=params['w'], wa=params['wa'])
-    return 5 * jnp.log10(jc.background.radial_comoving_distance(jaxcosmo, a, steps=8*1024) * 1e5 * (1 + z) / h)
+    h = params["H0"] / 100
+    omega_b = params["Omega_b_h2"] / h**2
+    a = 1 / (1 + z)
+    jaxcosmo = jc.Cosmology(
+        Omega_c=params["Omega_m"] - omega_b,
+        Omega_b=omega_b,
+        h=h,
+        Omega_k=params["Omega_k"],
+        n_s=0.96,
+        sigma8=0.8,
+        w0=params["w"],
+        wa=params["wa"],
+    )
+    return 5 * jnp.log10(
+        jc.background.radial_comoving_distance(jaxcosmo, a, steps=8 * 1024)
+        * 1e5
+        * (1 + z)
+        / h
+    )
 
-#@jax.jit
+
+# @jax.jit
 def mu_cosmoprimo(params, z):
-    h = params['H0']/100
-    omega_b = params['Omega_b_h2']/h**2
-    c = cosmoprimo.Cosmology(engine='eisenstein_hu',
-                             h=h,
-                             Omega_b=omega_b,
-                             Omega_cdm=params['Omega_m'] - omega_b,
-                             Omega_k=params['Omega_k'],
-                             Tcmb=params['Tcmb'],
-                             w0_fld=params['w'],
-                             wa_fld=params['wa'],
-                             m_ncdm=params['m_nu'],
-                             )
+    h = params["H0"] / 100
+    omega_b = params["Omega_b_h2"] / h**2
+    c = cosmoprimo.Cosmology(
+        engine="eisenstein_hu",
+        h=h,
+        Omega_b=omega_b,
+        Omega_cdm=params["Omega_m"] - omega_b,
+        Omega_k=params["Omega_k"],
+        Tcmb=params["Tcmb"],
+        w0_fld=params["w"],
+        wa_fld=params["wa"],
+        m_ncdm=params["m_nu"],
+    )
 
     b = c.get_background()
-    return 5 * jnp.log10(b.luminosity_distance(z)/h) + 25
+    return 5 * jnp.log10(b.luminosity_distance(z) / h) + 25
+
 
 def camb_densities(params, z):
     pars = params_to_CAMB(params)
@@ -178,7 +198,7 @@ def distance_accuracy(params=Planck18.copy(), title="distance_accuracy"):
         "astropy": mu_astropy,
         "cosmologix coarse (1000)": lambda params, z: mu(params, z, 1000),
         "cosmoprimo": mu_cosmoprimo,
-        #"jax_cosmo": mu_jaxcosmo, 
+        # "jax_cosmo": mu_jaxcosmo,
     }
     z = jnp.logspace(-2, 3, 3000)
     fig = plt.figure(title)
