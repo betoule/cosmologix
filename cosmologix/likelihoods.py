@@ -393,17 +393,14 @@ def DESI2024Prior(uncalibrated=False):
     return desi2024_prior
 
 
-class BBNLikelihood(Chi2):
-    """
-    BBN measurement from https://arxiv.org/abs/2401.15054
-    """
-
-    def __init__(self, omega_b_h2, omega_b_h2_err):
-        self.data = jnp.asarray([omega_b_h2])
-        self.error = jnp.asarray([omega_b_h2_err])
+class GaussianPrior(Chi2):
+    def __init__(self, parameter, mean, error):
+        self.data = jnp.array([mean])
+        self.error = jnp.array([error])
+        self.parameter = parameter
 
     def model(self, params):
-        return jnp.array([params["Omega_b_h2"]])
+        return jnp.array(params[self.parameter])
 
 
 class BBNNeffLikelihood(GeometricCMBLikelihood):
@@ -432,8 +429,15 @@ def BBNSchoneberg2024Prior():
     BBN measurement from https://arxiv.org/abs/2401.15054
     """
 
-    bbn_prior = BBNLikelihood(0.02218, 0.00055)
+    bbn_prior = GaussianPrior("Omega_b_h2", 0.02218, 0.00055)
     return bbn_prior
+
+
+def SH0ES():
+    """
+    H0 measurement from Murakami et al. 2023 (doi:10.1088/1475-7516/2023/11/046)
+    """
+    return GaussianPrior("H0", 73.29, 0.90)
 
 
 #######################

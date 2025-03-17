@@ -13,6 +13,7 @@ AVAILABLE_PRIORS = {
     "DES-5yr": likelihoods.DES5yr,
     "Pantheon+": likelihoods.Pantheonplus,
     "Union3": likelihoods.Union3,
+    "SH0ES": likelihoods.SH0ES,
 }
 
 # Default fixed parameters for flat w-CDM
