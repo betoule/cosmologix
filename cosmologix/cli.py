@@ -91,8 +91,16 @@ def main():
         action="append",
         default=[],
         metavar="PARAM",
-        choices=list(Planck18.keys()) + ["M"],
+        choices=list(Planck18.keys()) + ["M", "rd"],
         help="Fix the specified PARAM (e.g. -F H0 -F Omega_b_h2).",
+    )
+    fit_parser.add_argument(
+        "--free",
+        action="append",
+        default=[],
+        metavar="PARAM",
+        choices=list(Planck18.keys()) + ["M", "rd"],
+        help="Force release of parameter PARAM (e.g. --free Neff).",
     )
     fit_parser.add_argument(
         "--mu",
@@ -323,7 +331,7 @@ def run_fit(args):
         if par in to_free:
             print(f"{par} kept fixed")
             to_free.remove(par)
-    for par in to_free:
+    for par in to_free + args.free:
         fixed.pop(par)
     if args.auto_constrain:
         result = auto_restricted_fit(priors, fixed, args.verbose)
