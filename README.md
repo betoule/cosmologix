@@ -234,7 +234,10 @@ except in the case of `astropy` and `jax_cosmo`. We differentiate
 between the first call and subsequent calls, as the initial call may
 involve specific overheads. For Cosmologix, this includes
 JIT-compilation times, which introduce a significant delay. Efforts
-are underway to optimize this aspect.
+are underway to optimize this aspect. Note that we did not yet manage
+jit-compile the luminosity distance computation in `cosmoprimo`, due
+to a compilation error. The speed measurement may change significantly
+when this issue is solved.
 
 ![Distance modulus speed](https://gitlab.in2p3.fr/lemaitre/cosmologix/-/raw/master/doc/mu_speed.svg)
 
