@@ -218,7 +218,9 @@ differences in handling the effective number of neutrino species. We
 adopt the convention used in CAMB (assuming all species share the same
 temperature), which explains the closer alignment. A comparison with
 the coarse quadrature (Cosmologix 1000) highlights the magnitude of
-numerical errors.
+numerical errors. `jax_cosmo` is not presented in this comparison
+because at the time of writing it does not compute the contribution of
+neutrinos to the density which prevents a relevant comparison.
 
 ![Distance modulus accuracy](https://gitlab.in2p3.fr/lemaitre/cosmologix/-/raw/master/doc/mu_accuracy.svg)
 
@@ -228,11 +230,11 @@ The plot below illustrates the computation time for a vector of
 distance moduli across various redshifts, plotted against the number
 of redshifts. Generally, the computation time is dominated by
 precomputation steps and remains largely independent of vector size,
-except in the case of Astropy. We differentiate between the first call
-and subsequent calls, as the initial call may involve specific
-overheads. For Cosmologix, this includes JIT-compilation times, which
-introduce a significant delay. Efforts are underway to optimize this
-aspect.
+except in the case of `astropy` and `jax_cosmo`. We differentiate
+between the first call and subsequent calls, as the initial call may
+involve specific overheads. For Cosmologix, this includes
+JIT-compilation times, which introduce a significant delay. Efforts
+are underway to optimize this aspect.
 
 ![Distance modulus speed](https://gitlab.in2p3.fr/lemaitre/cosmologix/-/raw/master/doc/mu_speed.svg)
 

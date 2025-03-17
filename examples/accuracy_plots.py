@@ -8,7 +8,7 @@ import jax
 import camb
 from cosmologix.tools import Constants
 from astropy import cosmology
-
+import jax_cosmo as jc
 
 #
 # Convenience functions to facilitate comparisons with CAMB and CCL
@@ -81,6 +81,13 @@ def mu_astropy(params, z):
     astropycosmo = params_to_astropy(params)
     return astropycosmo.distmod(np.asarray(z)).value
 
+@jax.jit
+def mu_jaxcosmo(params, z):
+    h = params['H0']/100
+    omega_b = params['Omega_b_h2']/h**2
+    a = 1 / (1+z)
+    jaxcosmo = jc.Cosmology(Omega_c=params['Omega_m']-omega_b, Omega_b=omega_b, h=h, Omega_k=params['Omega_k'], n_s=0.96, sigma8=0.8, w0=params['w'], wa=params['wa'])
+    return 5 * jnp.log10(jc.background.radial_comoving_distance(jaxcosmo, a, steps=8*1024) * 1e5 * (1 + z) / h)
 
 def camb_densities(params, z):
     pars = params_to_CAMB(params)
@@ -146,6 +153,7 @@ def distance_accuracy(params=Planck18.copy(), title="distance_accuracy"):
         "camb": mu_camb,
         "astropy": mu_astropy,
         "cosmologix coarse (1000)": lambda params, z: mu(params, z, 1000),
+        #"jax_cosmo": mu_jaxcosmo, 
     }
     z = jnp.linspace(0.01, 1000, 3000)
     fig = plt.figure(title)
