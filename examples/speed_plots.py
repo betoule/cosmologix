@@ -30,6 +30,7 @@ if __name__ == "__main__":
         "camb": mu_camb,
         "astropy": mu_astropy,
         "jax_cosmo": mu_jaxcosmo,
+        "cosmoprimo": mu_cosmoprimo,
     }
     params = Planck18.copy()
     ns = jnp.array([10, 30, 100, 300, 1000, 3000, 10000])
