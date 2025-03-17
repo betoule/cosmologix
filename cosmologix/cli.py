@@ -165,6 +165,14 @@ def main():
         help="Fix the specified PARAM (e.g. -F H0 -F Omega_b_h2).",
     )
     explore_parser.add_argument(
+        "--free",
+        action="append",
+        default=[],
+        metavar="PARAM",
+        choices=list(Planck18.keys()) + ["M", "rd"],
+        help="Force release of parameter PARAM (e.g. --free Neff).",
+    )
+    explore_parser.add_argument(
         "-r",
         "--range-x",
         nargs=2,
@@ -360,7 +368,7 @@ def run_explore(args):
         if par in to_free:
             print(f"{par} kept fixed")
             to_free.remove(par)
-    for par in to_free:
+    for par in to_free + args.free:
         fixed.pop(par)
     grid = contours.frequentist_contour_2D_sparse(
         priors,
