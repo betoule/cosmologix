@@ -12,10 +12,11 @@ distances. It has been tested against the CCL.
 ## Features
 
 - **Cosmological Distance Calculations**: Compute various distances (comoving, luminosity, angular diameter) in an FLRW universe.
-- **Hubble Diagram Fitting**: Tools to fit supernovae data to cosmological models.
 - **JAX Integration**: Leverage JAX's automatic differentiation and JIT compilation for performance.
 - **Neutrino Contributions**: Account for both relativistic and massive neutrinos in cosmological models.
 - **CMB Prior Handling**: Includes functionality to incorporate geometric priors from CMB and BAO measurements.
+
+![Features](https://gitlab.in2p3.fr/lemaitre/cosmologix/-/raw/master/doc/features.svg)
 
 ## Installation
 

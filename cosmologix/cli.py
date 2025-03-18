@@ -2,7 +2,7 @@
 
 import argparse
 import pickle
-from cosmologix import mu, fit, contours, likelihoods, Planck18, fitter
+from cosmologix import mu, fit, contours, likelihoods, Planck18, fitter, display
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 
@@ -32,30 +32,6 @@ DEFAULT_RANGE = {
     "w": [-0.6, -1.5],
     "wa": [-1, 1],
 }
-
-
-def pretty_print(result):
-    """Pretty-print best-fit parameters with uncertainties from the Fisher Information Matrix."""
-    bestfit = result["bestfit"]
-    ifim = result["inverse_FIM"]  # Fisher Information Matrix (inverse covariance)
-
-    # Uncertainties are sqrt of diagonal elements of covariance matrix
-    uncertainties = jnp.sqrt(jnp.diag(ifim))
-
-    # Parameter names (assuming they match the order in FIM)
-    param_names = list(bestfit.keys())
-
-    # Print each parameter with its uncertainty
-    for i, (param, value) in enumerate(bestfit.items()):
-        uncertainty = uncertainties[i]
-        if uncertainty == 0:  # Avoid log(0)
-            precision = 3  # Default if no uncertainty
-        else:
-            # Number of decimal places to align with first significant digit of uncertainty
-            precision = max(0, -int(jnp.floor(jnp.log10(abs(uncertainty)))) + 1)
-        fmt = f"{{:.{precision}f}}"
-        print(f"{param} = {fmt.format(value)} ± {fmt.format(uncertainty)}")
-
 
 def main():
     parser = argparse.ArgumentParser(description="Cosmologix Command Line Interface")
@@ -345,7 +321,7 @@ def run_fit(args):
         result = auto_restricted_fit(priors, fixed, args.verbose)
     else:
         result = fit(priors, fixed=fixed, verbose=args.verbose)
-    pretty_print(result)
+    display.pretty_print(result)
     if args.output:
         with open(args.output, "wb") as f:
             pickle.dump(result, f)

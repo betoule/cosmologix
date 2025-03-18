@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from collections import deque
 from tqdm import tqdm
 from pathlib import Path
-
+from cosmologix.display import color_theme, latex_translation
 
 def frequentist_contour_2D(
     likelihoods,
@@ -210,21 +210,6 @@ def frequentist_contour_2D_sparse(
         "bestfit": bestfit,
         "extra": extra,
     }
-
-
-latex_translation = {
-    "Tcmb": r"$T_{cmb}$",
-    "Omega_m": r"$\Omega_m$",
-    "H0": r"$H_0$",
-    "Omega_b_h2": r"$\Omega_b h^2$",
-    "Omega_k": r"$\Omega_k$",
-    "w": r"$w_0$",
-    "wa": r"$w_a$",
-    "m_nu": r"$\sum m_\nu$",
-    "Neff": r"$N_{eff}$",
-}
-
-color_theme = ["#fbb4ae", "#b3cde3", "#ccebc5", "#decbe4", "#fed9a6", "#ffffcc"]
 
 
 def plot_contours(

@@ -261,6 +261,9 @@ def fit(likelihoods, fixed={}, verbose=False, initial_guess=Planck18):
     # Minimization
     xbest, extra = gauss_newton_partial(wres, wjac, x0, fixed, verbose=verbose)
 
+    # report the residuals at the end of the fit
+    extra["residuals"] = wres(xbest, fixed)
+    
     # Compute approximation of the FIM
     J = wjac(xbest, fixed)
     inverse_FIM = jnp.linalg.inv(J.T @ J)
