@@ -43,7 +43,7 @@ def control_fitter_bias_and_coverage(priors, point, fitter, ndraw=50):
 #    control_fitter_bias_and_coverage([des], point, newton, ndraw=50)
 
 
-def test_fit():
+def test_simple_fit():
     priors = [likelihoods.Planck2018Prior()]
     fixed = {
         "Omega_k": 0.0,
@@ -56,6 +56,23 @@ def test_fit():
     result = fit(priors, fixed=fixed, verbose=True)
     display.pretty_print(result)
     display.plot_2D(result, "Omega_m", "Omega_b_h2")
+
+
+def test_de_fit():
+    priors = [
+        likelihoods.Planck2018Prior(),
+        likelhoods.DES5yr(),
+        likelihoods.DESI2024Prior(),
+    ]
+    fixed = {
+        "Omega_k": 0.0,
+        "m_nu": 0.06,
+        "Neff": 3.046,
+        "Tcmb": 2.7255,
+    }
+    result = fit(priors, fixed=fixed, verbose=True)
+    display.pretty_print(result)
+    display.plot_2D(result, "w", "wa")
 
 
 if __name__ == "__main__":
