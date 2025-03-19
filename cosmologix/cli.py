@@ -110,8 +110,8 @@ def main():
     explore_parser.add_argument(
         "--resolution",
         type=int,
-        default=30,
-        help="Number of grid points per dimension (default: 30)",
+        default=50,
+        help="Number of grid points per dimension (default: 50)",
     )
     explore_parser.add_argument(
         "-c",
