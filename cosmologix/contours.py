@@ -331,7 +331,6 @@ def plot_contours(
             grid["y"],
             grid["chi2"].T - grid["extra"]["loss"][-1],  # grid["chi2"].min(),
             levels=[0] + _levels,
-            label=label,
             colors=colors,
             **keys,
         )
@@ -343,7 +342,6 @@ def plot_contours(
         grid["y"],
         grid["chi2"].T - grid["extra"]["loss"][-1],  # grid["chi2"].min(),
         levels=_levels,
-        label=label,
         colors=colors,
         **keys,
     )

@@ -6,7 +6,7 @@ import jax.numpy as jnp
 # Plot settings
 plt.rc("text", usetex=True)
 plt.rc("axes", **{"spines.top": False, "spines.right": False})
-fig = plt.figure(figsize=(12, 7))
+fig = plt.figure(figsize=(10, 6))
 axes = fig.subplots(2, 2)
 axes[0, 0].set_title("Cosmological distance computations")
 axes[0, 1].set_title("Built-in derivatives with jax integration")
@@ -36,7 +36,7 @@ for var in J:
     if var == "Omega_b_h2":
         continue
     axes[0, 1].plot(z_values, J[var], label=var)
-axes[0, 1].set_yscale("symlog", linthresh=1e-4)
+axes[0, 1].set_yscale("symlog", linthresh=1e-5)
 axes[0, 1].set_xscale("log")
 axes[0, 1].set_xlabel(r"$z$")
 axes[0, 1].set_ylabel(r"$\partial \mu / \partial \theta$")
@@ -48,8 +48,8 @@ axes[0, 1].legend(frameon=False, ncols=2)
 priors = [likelihoods.Planck2018Prior(), likelihoods.DES5yr()]
 fixed = {"Omega_k": 0.0, "m_nu": 0.06, "Neff": 3.046, "Tcmb": 2.7255, "wa": 0.0}
 
-result = fit(priors, fixed=fixed, verbose=True)
-print(result["bestfit"])
+result = fit(priors, fixed=fixed)
+display.pretty_print(result)
 display.plot_2D(result, "Omega_m", "w", ax=axes[1, 0])
 axes[1, 0].set_ylim(-1.5, -0.6)
 axes[1, 0].set_xlim(0.16, 0.48)
@@ -76,10 +76,18 @@ contours.plot_contours(
     grid0, filled=True, ax=axes[1, 1], label="CMB", base_color=display.color_theme[1]
 )
 contours.plot_contours(
-    grid1, filled=True, ax=axes[1, 1], label="SN", base_color=display.color_theme[2]
+    grid1,
+    filled=True,
+    ax=axes[1, 1],
+    label="DES-5yr",
+    base_color=display.color_theme[2],
 )
 contours.plot_contours(
-    grid, filled=False, label="CMB+SN", ax=axes[1, 1], base_color=display.color_theme[0]
+    grid,
+    filled=False,
+    label="CMB+DES-5yr",
+    ax=axes[1, 1],
+    base_color=display.color_theme[0],
 )
 plt.ion()
 plt.legend(loc="lower right", frameon=False)
