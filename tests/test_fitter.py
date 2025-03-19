@@ -5,6 +5,7 @@ from cosmologix import (
     fit,
     distances,
     acoustic_scale,
+    display,
 )
 from cosmologix.fitter import flatten_vector, unflatten_vector, restrict_to
 import jax.numpy as jnp
@@ -53,7 +54,8 @@ def test_fit():
         "wa": 0.0,
     }
     result = fit(priors, fixed=fixed, verbose=True)
-    print(result["bestfit"])
+    display.pretty_print(result)
+    display.plot_2D(result, "Omega_m", "Omega_b_h2")
 
 
 if __name__ == "__main__":

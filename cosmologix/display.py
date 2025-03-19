@@ -21,7 +21,8 @@ latex_translation = {
 
 def detf_fom(result):
     """Compute the dark energy task force figure of merit as the
-    inverse determinant of the w wa covariance.
+    inverse of the square root of the determinant of the w wa
+    covariance.
     """
     bestfit = result["bestfit"]
     ifim = result["inverse_FIM"]  # covariance matrix
