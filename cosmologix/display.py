@@ -124,6 +124,28 @@ def plot_confidence_ellipse(
 
     return ellipse
 
+def plot_1D(
+        result,
+        param,
+        ax=None,
+        color=color_theme[0],
+        ):
+    if ax is None:
+        ax = plt.gca()
+    bestfit = result["bestfit"]
+    ifim = result["inverse_FIM"]  # covariance matrix
+    
+    # Parameter names (assuming they match the order in FIM)
+    param_names = list(bestfit.keys())
+    
+    # Retrieve indexes corresponding to param
+    index = param_names.index(param)
+                              
+    # select the relevant part the results
+    sigma = np.sqrt(ifim[index, index])
+    mean = bestfit[param]
+    x = np.linspace(mean - 3*sigma, mean+3*sigma)
+    ax.plot(x, np.exp(-0.5*(x - mean)**2/sigma**2), color=color)
 
 def plot_2D(
     result,
@@ -163,7 +185,7 @@ def corner_plot(result):
     for i, param in enumerate(param_names):
         for j, param2 in enumerate(param_names):
             if i == j:
-                #oneD_plot(param, grid[i, i])
+                plot_1D(result, param, ax=grid[i, i])
                 grid[i, i].spines['left'].set_visible(False)
                 grid[i, i].spines['right'].set_visible(False)
                 grid[i, i].spines['top'].set_visible(False)
