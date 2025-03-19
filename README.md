@@ -205,8 +205,7 @@ This removes all cached files, forcing Cosmologix to recompute or redownload as 
 
 ## Roadmap
 
-- [ ] Improve the estimation of contour computation time
-- [x] Make SH0ES prior available and check its interaction with PantheonPlus
+- [ ] Add corner plots for contours and bestfits
 
 ## Accuracy of the distance modulus computation
 
@@ -256,13 +255,13 @@ Detailed documentation for each function and module can be found in the source c
 
 ## Release history
 
-### v0.9.4 (in prep.)
+### v0.9.4 (current)
 - Add SH0ES to the list of available priors
 - Compute the dark energy task force Figure of Merit (FoM) from the Fisher matrix for dark energy models
 - Report χ² and fit probability in addition to best-fit parameters
 - Improve the estimate of contour exploration time
 
-### v0.9.3 (current)
+### v0.9.3
 - Implement a cache mechanism to mitigate pre-computation delays
 - Extend the set of cosmological computation available, by adding comoving volume and lookback time
 - Improvements to the command line interfacements (ability to change contour thresholds)
