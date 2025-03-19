@@ -61,7 +61,7 @@ def test_simple_fit():
 def test_de_fit():
     priors = [
         likelihoods.Planck2018Prior(),
-        likelhoods.DES5yr(),
+        likelihoods.DES5yr(),
         likelihoods.DESI2024Prior(),
     ]
     fixed = {

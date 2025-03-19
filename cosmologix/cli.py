@@ -22,7 +22,9 @@ DEFAULT_FREE = {
     "FLCDM": ["Omega_m"] + CMB_FREE,
     "LCDM": ["Omega_m", "Omega_k"] + CMB_FREE,
     "FwCDM": ["Omega_m", "w"] + CMB_FREE,
+    "wCDM": ["Omega_m", "Omega_k", "w"] + CMB_FREE,
     "FwwaCDM": ["Omega_m", "w", "wa"] + CMB_FREE,
+    "wwaCDM": ["Omega_m", "Omega_k", "w", "wa"] + CMB_FREE,
 }
 
 # Default ranges for the exploration of parameters
