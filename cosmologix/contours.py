@@ -18,6 +18,7 @@ from pathlib import Path
 from cosmologix.display import color_theme, latex_translation
 import numpy as np
 
+
 def frequentist_contour_2D(
     likelihoods,
     grid={"Omega_m": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]},
@@ -188,8 +189,8 @@ def frequentist_contour_2D_sparse(
     total_points = grid_size[0] * grid_size[1]
 
     # Exploration progress
-    exploration_progress = np.ones(grid_size, dtype='bool')
-    
+    exploration_progress = np.ones(grid_size, dtype="bool")
+
     # Progress bar with estimated total
     with tqdm(
         total=total_points, desc="Exploring contour (upper bound estimate)"
@@ -229,28 +230,25 @@ def frequentist_contour_2D_sparse(
             # is not convex (as long as it is connected).
             else:
                 if (chi2_grid[i - 1, j] - chi2_min) <= chi2_threshold:
-                    exploration_progress[i+1:, j] = False
+                    exploration_progress[i + 1 :, j] = False
                     if (chi2_grid[i, j - 1] - chi2_min) <= chi2_threshold:
-                        exploration_progress[i+1:, j+1:] = False
+                        exploration_progress[i + 1 :, j + 1 :] = False
                     if (chi2_grid[i, j + 1] - chi2_min) <= chi2_threshold:
-                        exploration_progress[i+1:, :j-1] = False
+                        exploration_progress[i + 1 :, : j - 1] = False
                 if (chi2_grid[i + 1, j] - chi2_min) <= chi2_threshold:
-                    exploration_progress[:i-1, j] = False
+                    exploration_progress[: i - 1, j] = False
                     if (chi2_grid[i, j + 1] - chi2_min) <= chi2_threshold:
-                        exploration_progress[:i-1, :j-1] = False
+                        exploration_progress[: i - 1, : j - 1] = False
                     if (chi2_grid[i, j - 1] - chi2_min) <= chi2_threshold:
-                        exploration_progress[:i-1, j+1:] = False
+                        exploration_progress[: i - 1, j + 1 :] = False
                 if (chi2_grid[i, j - 1] - chi2_min) <= chi2_threshold:
-                    exploration_progress[i, j+1:] = False
+                    exploration_progress[i, j + 1 :] = False
                 if (chi2_grid[i, j + 1] - chi2_min) <= chi2_threshold:
-                    exploration_progress[i, :j-1] = False
+                    exploration_progress[i, : j - 1] = False
                 pbar.total = exploration_progress.sum()
                 pbar.refresh()
     # Convert unexplored points back to nan
     chi2_grid = jnp.where(chi2_grid == jnp.inf, jnp.nan, chi2_grid)
-    #plt.figure('Exploration progress')
-    plt.matshow(exploration_progress)
-    plt.show()
     return {
         "params": explored_params,
         "x": x_grid,
