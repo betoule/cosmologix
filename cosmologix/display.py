@@ -154,3 +154,30 @@ def plot_2D(
 
     ax.plot(*mean, marker=marker, ls="None", color=color, **kwargs)
     plot_confidence_ellipse(mean, cov, ax=ax, n_sigmas=n_sigmas, color=color, **kwargs)
+
+
+def corner_plot(result):
+    param_names = list(result['bestfit'].keys())
+    fig = plt.figure()
+    grid = fig.subplots(len(param_names), len(param_names), sharex='col', squeeze=False)
+    for i, param in enumerate(param_names):
+        for j, param2 in enumerate(param_names):
+            if i == j:
+                #oneD_plot(param, grid[i, i])
+                grid[i, i].spines['left'].set_visible(False)
+                grid[i, i].spines['right'].set_visible(False)
+                grid[i, i].spines['top'].set_visible(False)
+                grid[j, i].set_yticks([])
+            elif j > i:
+                plot_2D(result, param, param2, ax=grid[j, i])
+            else:
+                grid[j, i].set_visible(False)
+            if j == len(param_names)-1:
+                grid[j, i].set_xlabel(latex_translation[param])
+            if i == 0:
+                if j > 0:
+                    grid[j, i].set_ylabel(latex_translation[param2])
+            else:
+                grid[j, i].set_yticks([])
+    plt.tight_layout()
+    return fig

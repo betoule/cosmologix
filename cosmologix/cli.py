@@ -94,6 +94,13 @@ def main():
         help="Attempt to impose hard priors on parameters not constrained by the selected dataset. Use with caution.",
     )
     fit_parser.add_argument(
+        "-s",
+        "--show",
+        action="store_true",
+        default=False,
+        help="Display best-fit results as a corner plot.",
+    )
+    fit_parser.add_argument(
         "-o",
         "--output",
         help="Output file for best-fit parameters (e.g., planck_desi.pkl)",
@@ -329,7 +336,9 @@ def run_fit(args):
         with open(args.output, "wb") as f:
             pickle.dump(result, f)
         print(f"Best-fit parameters saved to {args.output}")
-
+    if args.show:
+        display.corner_plot(result)
+        plt.show()
 
 def run_explore(args):
     """Explore a 2D parameter space and save the contour data."""
