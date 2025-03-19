@@ -14,7 +14,7 @@ distances. It has been tested against the CCL.
 - **Cosmological Distance Calculations**: Compute various distances (comoving, luminosity, angular diameter) in an FLRW universe.
 - **JAX Integration**: Leverage JAX's automatic differentiation and JIT compilation for performance.
 - **Neutrino Contributions**: Account for both relativistic and massive neutrinos in cosmological models.
-- **CMB Prior Handling**: Includes functionality to incorporate geometric priors from CMB and BAO measurements.
+- **CMB Prior Handling**: Includes geometric priors from CMB and BAO measurements.
 
 ![Features](https://gitlab.in2p3.fr/lemaitre/cosmologix/-/raw/master/doc/features.svg)
 
@@ -71,7 +71,7 @@ contours.plot_contours(grid, filled=True, label='CMB+SN')
 plt.ion()
 plt.legend(loc='lower right', frameon=False)
 plt.show()
-#Further guidance can be found reading files in the examples directory.
+#Further examples can be found reading files in the examples directory, especially example/features.py.
 ```
 
 ## Command line interface
@@ -206,7 +206,7 @@ This removes all cached files, forcing Cosmologix to recompute or redownload as 
 ## Roadmap
 
 - [ ] Improve the estimation of contour computation time
-- [ ] Make SH0ES prior available and check its interaction with PantheonPlus
+- [x] Make SH0ES prior available and check its interaction with PantheonPlus
 
 ## Accuracy of the distance modulus computation
 
@@ -255,6 +255,12 @@ Contributions are welcome! Please fork the repository, make changes, and submit 
 Detailed documentation for each function and module can be found in the source code. Autodocs is in preparation [here](https://cosmologix-7920a8.pages.in2p3.fr/).
 
 ## Release history
+
+### v0.9.4 (in prep.)
+- Add SH0ES to the list of available priors
+- Compute the dark energy task force Figure of Merit (FoM) from the Fisher matrix for dark energy models
+- Report χ² and fit probability in addition to best-fit parameters
+- Improve the estimate of contour exploration time
 
 ### v0.9.3 (current)
 - Implement a cache mechanism to mitigate pre-computation delays

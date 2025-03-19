@@ -16,7 +16,7 @@ from collections import deque
 from tqdm import tqdm
 from pathlib import Path
 from cosmologix.display import color_theme, latex_translation
-
+import numpy as np
 
 def frequentist_contour_2D(
     likelihoods,
@@ -24,6 +24,22 @@ def frequentist_contour_2D(
     varied=[],
     fixed=None,
 ):
+    """Full explore a 2D parameter space to build confidence contours.
+
+    Note: This can be unecessary slow for well behaved connected
+    contours. Have a look to Use frequentist_contour_2D_sparse for a
+    more lazy exploration.
+
+    Args:
+        likelihoods: List of likelihood functions.
+        grid: Dict defining parameter ranges and grid sizes (e.g., {"param": [min, max, n]}).
+        varied: Additional parameters to vary at each grid point (fixed can be provided instead).
+        fixed: Dict of fixed parameter values.
+
+    Returns:
+        Dict with params, x, y, chi2 grid, bestfit, and extra info.
+
+    """
     likelihood = LikelihoodSum(likelihoods)
 
     # Update the initial guess with the nuisance parameters associated
@@ -92,6 +108,9 @@ def frequentist_contour_2D_sparse(
     Explores a grid starting from the best-fit point, stopping at a Δχ² threshold,
     assuming a convex contour to optimize progress estimation. Unexplored points
     are marked as NaN in the output grid.
+
+    Important Note:
+    This assumes that the contour is connected. Use frequentist_contour_2D when in doubt.
 
     Args:
         likelihoods: List of likelihood functions.
@@ -168,6 +187,9 @@ def frequentist_contour_2D_sparse(
     # Total grid points as an upper bound
     total_points = grid_size[0] * grid_size[1]
 
+    # Exploration progress
+    exploration_progress = np.ones(grid_size, dtype='bool')
+    
     # Progress bar with estimated total
     with tqdm(
         total=total_points, desc="Exploring contour (upper bound estimate)"
@@ -199,10 +221,36 @@ def frequentist_contour_2D_sparse(
                     next_i, next_j = i + di, j + dj
                     if (next_i, next_j) not in visited:
                         queue.append((next_i, next_j))
-
+            # Trim down the estimation of the fraction of the plane to
+            # visit when we encounter a contour boundary based on the
+            # assumption that the contour is convex. This improve the
+            # report of time remaining but does not affect the actual
+            # exploration, which remains complete even if the contour
+            # is not convex (as long as it is connected).
+            else:
+                if (chi2_grid[i - 1, j] - chi2_min) <= chi2_threshold:
+                    exploration_progress[i+1:, j] = False
+                    if (chi2_grid[i, j - 1] - chi2_min) <= chi2_threshold:
+                        exploration_progress[i+1:, j+1:] = False
+                    if (chi2_grid[i, j + 1] - chi2_min) <= chi2_threshold:
+                        exploration_progress[i+1:, :j-1] = False
+                if (chi2_grid[i + 1, j] - chi2_min) <= chi2_threshold:
+                    exploration_progress[:i-1, j] = False
+                    if (chi2_grid[i, j + 1] - chi2_min) <= chi2_threshold:
+                        exploration_progress[:i-1, :j-1] = False
+                    if (chi2_grid[i, j - 1] - chi2_min) <= chi2_threshold:
+                        exploration_progress[:i-1, j+1:] = False
+                if (chi2_grid[i, j - 1] - chi2_min) <= chi2_threshold:
+                    exploration_progress[i, j+1:] = False
+                if (chi2_grid[i, j + 1] - chi2_min) <= chi2_threshold:
+                    exploration_progress[i, :j-1] = False
+                pbar.total = exploration_progress.sum()
+                pbar.refresh()
     # Convert unexplored points back to nan
     chi2_grid = jnp.where(chi2_grid == jnp.inf, jnp.nan, chi2_grid)
-
+    #plt.figure('Exploration progress')
+    plt.matshow(exploration_progress)
+    plt.show()
     return {
         "params": explored_params,
         "x": x_grid,
