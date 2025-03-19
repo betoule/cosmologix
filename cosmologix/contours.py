@@ -17,6 +17,7 @@ from tqdm import tqdm
 from pathlib import Path
 from cosmologix.display import color_theme, latex_translation
 
+
 def frequentist_contour_2D(
     likelihoods,
     grid={"Omega_m": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]},

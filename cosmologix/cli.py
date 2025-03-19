@@ -33,6 +33,7 @@ DEFAULT_RANGE = {
     "wa": [-1, 1],
 }
 
+
 def main():
     parser = argparse.ArgumentParser(description="Cosmologix Command Line Interface")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")

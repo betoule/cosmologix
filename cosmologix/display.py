@@ -20,9 +20,9 @@ latex_translation = {
 
 
 def detf_fom(result):
-    '''Compute the dark energy task force figure of merit as the
+    """Compute the dark energy task force figure of merit as the
     inverse determinant of the w wa covariance.
-    '''
+    """
     bestfit = result["bestfit"]
     ifim = result["inverse_FIM"]  # covariance matrix
 
@@ -30,9 +30,9 @@ def detf_fom(result):
     param_names = list(bestfit.keys())
 
     # Retrieve indexes corresponding to param1 and 2
-    index = [param_names.index('w'), param_names.index('wa')]
-    
-    return 1. / np.sqrt(np.linalg.det(ifim[np.ix_(index, index)]))
+    index = [param_names.index("w"), param_names.index("wa")]
+
+    return 1.0 / np.sqrt(np.linalg.det(ifim[np.ix_(index, index)]))
 
 
 def pretty_print(result):
@@ -56,18 +56,21 @@ def pretty_print(result):
             precision = max(0, -int(jnp.floor(jnp.log10(abs(uncertainty)))) + 1)
         fmt = f"{{:.{precision}f}}"
         print(f"{param} = {fmt.format(value)} ± {fmt.format(uncertainty)}")
-    chi2 = result['loss'][-1]
-    residuals = result['residuals']
+    chi2 = result["loss"][-1]
+    residuals = result["residuals"]
     ndof = len(residuals) - len(param)
     pvalue = 1 - jax.scipy.stats.chi2.cdf(chi2, ndof)
-    print(f'χ²={chi2:.2f} (d.o.f. = {ndof}), χ²/d.o.f = {chi2/ndof:.3f}')
+    print(f"χ²={chi2:.2f} (d.o.f. = {ndof}), χ²/d.o.f = {chi2/ndof:.3f}")
     # If the fit involves w and wa print the FOM
-    print(f'p-value: {pvalue*100:.2f}%')
-    if 'w' in param_names and 'wa' in param_names:
+    print(f"p-value: {pvalue*100:.2f}%")
+    if "w" in param_names and "wa" in param_names:
         fom = detf_fom(result)
-        print(f'FOM={fom:.1f}')
-        
-def plot_confidence_ellipse(mean, cov, ax=None, n_sigmas=[1.5, 2.5], color=color_theme[0], **kwargs):
+        print(f"FOM={fom:.1f}")
+
+
+def plot_confidence_ellipse(
+    mean, cov, ax=None, n_sigmas=[1.5, 2.5], color=color_theme[0], **kwargs
+):
     """Plot a confidence ellipse for two parameters given their mean and covariance.
 
     Parameters
@@ -98,7 +101,7 @@ def plot_confidence_ellipse(mean, cov, ax=None, n_sigmas=[1.5, 2.5], color=color
 
     # Width and height of the ellipse (2 * sqrt(eigenvalues) for 1σ)
     width, height = 2 * np.sqrt(eigenvalues)
-    
+
     # Angle of rotation in degrees (from eigenvector)
     angle = np.degrees(np.arctan2(*eigenvectors[:, 0][::-1]))
 
@@ -113,14 +116,24 @@ def plot_confidence_ellipse(mean, cov, ax=None, n_sigmas=[1.5, 2.5], color=color
             edgecolor=color,
             fill=False,
             alpha=alpha,
-            **kwargs
+            **kwargs,
         )
         # Add to plot
         ax.add_patch(ellipse)
-        
+
     return ellipse
 
-def plot_2D(result, param1, param2, ax=None, n_sigmas=[1.5, 2.5], marker='s', color=color_theme[0], **kwargs):
+
+def plot_2D(
+    result,
+    param1,
+    param2,
+    ax=None,
+    n_sigmas=[1.5, 2.5],
+    marker="s",
+    color=color_theme[0],
+    **kwargs,
+):
     if ax is None:
         ax = plt.gca()
     bestfit = result["bestfit"]
@@ -134,11 +147,9 @@ def plot_2D(result, param1, param2, ax=None, n_sigmas=[1.5, 2.5], marker='s', co
 
     # select the block of the covariance matrix
     cov = ifim[np.ix_(index, index)]
-    
-    # 
-    mean = (bestfit[param1], bestfit[param2])
-    
-    ax.plot(*mean, marker=marker, ls='None', color=color, **kwargs)
-    plot_confidence_ellipse(mean, cov, ax=ax, n_sigmas=n_sigmas, color=color, **kwargs)
 
-    
+    #
+    mean = (bestfit[param1], bestfit[param2])
+
+    ax.plot(*mean, marker=marker, ls="None", color=color, **kwargs)
+    plot_confidence_ellipse(mean, cov, ax=ax, n_sigmas=n_sigmas, color=color, **kwargs)
