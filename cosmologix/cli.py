@@ -270,6 +270,13 @@ def main():
         help="Plot in paper format, using latex for the text.",
     )
 
+    corner_parser = subparsers.add_parser("corner", help="Produce a corner plot for a set of results")
+    corner_parser.add_argument(
+        "input_files",
+        nargs="+",
+        help="Input file from explore (e.g., contour_planck.pkl)",
+    )
+    
     args = parser.parse_args()
 
     if args.command == "fit":
@@ -280,6 +287,8 @@ def main():
         args.color = {int(index): color for index, color in args.color}
         args.label = {int(index): label for index, label in args.label}
         run_contour(args)
+    elif args.command == "corner":
+        run_corner(args)
     else:
         parser.print_help()
 
@@ -401,6 +410,11 @@ def run_contour(args):
         plt.show()
     plt.close()
 
-
+def run_corner(args):
+    axes = None
+    for i, input_file in enumerate(args.input_files):
+        result = contours.load_contours(input_file)
+        axes = display.corner_plot(result, axes=axes, color=display.color_theme[i])
+    plt.show()
 if __name__ == "__main__":
     main()
