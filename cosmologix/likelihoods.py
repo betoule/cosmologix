@@ -157,7 +157,7 @@ class GeometricCMBLikelihood(Chi2FullCov):
 
         Parameters:
         -----------
-        mean: best-fit values for Omega_bh2, Omega_c_h2, and 100tetha_MC
+        mean: best-fit values for Omega_bh2, Omega_c_h2, and 100theta_MC
 
         covariance: covariance matrix of vector mean
         """
