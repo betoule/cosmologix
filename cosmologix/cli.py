@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 # Define available priors (extend this as needed)
 AVAILABLE_PRIORS = {
     "Planck18": likelihoods.Planck2018Prior,
-    "DESIDR1Prior": likelihoods.DESIDR1Prior,
+    "DESIDR1": likelihoods.DESIDR1Prior,
     "DESIDR2": likelihoods.DESIDR2Prior,
     "DES-5yr": likelihoods.DES5yr,
     "Pantheon+": likelihoods.Pantheonplus,
