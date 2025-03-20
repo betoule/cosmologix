@@ -60,20 +60,6 @@ def test_likelihoods(fix=["Omega_k"]):
         func_and_derivatives(l, x, funcname=f"{name}.likelihood")
 
 
-def toto():
-    des = DES5yr()
-    pl = Planck2018Prior()
-    params = des.initial_guess(Planck18)
-    des.negative_log_likelihood(params)
-    pl.negative_log_likelihood(params)
-    l1 = jax.jit(des.negative_log_likelihood)
-    l2 = jax.jit(pl.negative_log_likelihood)
-    l1(params)
-    l2(params)
-    l1(params)
-    l2(params)
-
-
 if __name__ == "__main__":
     # test_likelihoods()
     priors = {
