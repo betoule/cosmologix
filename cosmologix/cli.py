@@ -2,13 +2,14 @@
 
 import argparse
 import pickle
-from cosmologix import mu, fit, contours, likelihoods, Planck18, fitter, display
+from cosmologix import mu, fit, contours, likelihoods, Planck18, fitter, display, tools
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 
 # Define available priors (extend this as needed)
 AVAILABLE_PRIORS = {
     "Planck18": likelihoods.Planck2018Prior,
+    "PR4": likelihoods.PR4,
     "DESIDR1": likelihoods.DESIDR1Prior,
     "DESIDR2": likelihoods.DESIDR2Prior,
     "DES-5yr": likelihoods.DES5yr,
@@ -264,6 +265,8 @@ def main():
         help="Plot in paper format, using latex for the text.",
     )
 
+    clear_parser = subparsers.add_parser("clear_cache", help="Clear precompiled likelihoods")
+    
     args = parser.parse_args()
 
     if args.command == "fit":
@@ -274,6 +277,8 @@ def main():
         args.color = {int(index): color for index, color in args.color}
         args.label = {int(index): label for index, label in args.label}
         run_contour(args)
+    elif args.command == "clear_cache":
+        tools.clear_cache()
     else:
         parser.print_help()
 
