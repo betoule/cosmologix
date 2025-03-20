@@ -175,7 +175,7 @@ def main():
         type=float,
         default=95.0,
         metavar="CONFIDENCE_LEVEL",
-        help="Maximal level of confidence explored in percent (default 95%).",
+        help="Maximal level of confidence explored in percent (default 95%%).",
     )
     explore_parser.add_argument(
         "--mu",
