@@ -17,7 +17,7 @@ fixed = {"Omega_k": 0.0, "m_nu": 0.06, "Neff": 3.046, "Tcmb": 2.7255, "wa": 0.0}
 # Compute BAO constraints keeping Omega_b_h2 fixed to the best-fit
 # Planck value
 grid_bao = contours.frequentist_contour_2D_sparse(
-    [likelihoods.DESI2024Prior(uncalibrated=True)],
+    [likelihoods.DESI2024DR1Prior(uncalibrated=True)],
     grid=param_space,
     fixed=dict(fixed, Omega_b_h2=Planck18["Omega_b_h2"], H0=Planck18["H0"]),
 )
@@ -50,7 +50,7 @@ grid_cmb = contours.frequentist_contour_2D_sparse(
 contours.save_contours(grid_cmb, "contour_planck.pkl")
 
 cmb_bao = contours.frequentist_contour_2D_sparse(
-    [likelihoods.Planck2018Prior(), likelihoods.DESI2024Prior()],
+    [likelihoods.Planck2018Prior(), likelihoods.DESI2024DR1Prior()],
     grid=param_space,
     fixed=fixed,
 )

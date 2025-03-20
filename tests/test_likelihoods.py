@@ -42,8 +42,8 @@ def get_like_func(likelihood, fix=["Omega_k"]):
 def test_likelihoods(fix=["Omega_k"]):
     tools.clear_cache()
     priors = {
-        "desiu": likelihoods.DESI2024Prior(True),
-        "desi": likelihoods.DESI2024Prior(),
+        "desiu": likelihoods.DESI2024DR1Prior(True),
+        "desi": likelihoods.DESI2024DR1Prior(),
         "des": likelihoods.DES5yr(),
         "union3": likelihoods.Union3(),
         "pantheon+": likelihoods.Pantheonplus(),
@@ -77,8 +77,8 @@ def toto():
 if __name__ == "__main__":
     # test_likelihoods()
     priors = {
-        "desiu": likelihoods.DESI2024Prior(True),
-        "desi": likelihoods.DESI2024Prior(),
+        "desiu": likelihoods.DESI2024DR1Prior(True),
+        "desi": likelihoods.DESI2024DR1Prior(),
         "des": likelihoods.DES5yr(),
         "union3": likelihoods.Union3(),
         "pantheon+": likelihoods.Pantheonplus(),

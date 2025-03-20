@@ -11,13 +11,13 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     from cosmologix.distances import dV, dM, dH
     from cosmologix.acoustic_scale import z_drag, rs, rd_approx
-    from cosmologix.likelihoods import DESI2024Prior
+    from cosmologix.likelihoods import DESI2024DR1Prior
 
     z = jnp.linspace(0.05, 2.5, 100)
     rd1 = rs(Planck18, z_drag(Planck18))
     rd2 = rd_approx(Planck18)
 
-    desi = DESI2024Prior()
+    desi = DESI2024DR1Prior()
     prediction = desi.model(Planck18)
 
     desi_DV = desi.distances[desi.dist_type_indices == 0]

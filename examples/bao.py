@@ -12,7 +12,7 @@ import jax.numpy as jnp
 
 
 # Uncalibrated DESI prior
-desiu = likelihoods.DESI2024Prior(True)
+desiu = likelihoods.DESI2024DR1Prior(True)
 
 # Prep for flat ΛCDM fit
 fixed = lcdm_deviation()

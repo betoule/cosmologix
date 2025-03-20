@@ -326,7 +326,74 @@ def Planck2018Prior():
     return planck2018_prior
 
 
-def DESI2024Prior(uncalibrated=False):
+def DESI2024DR1Prior(uncalibrated=False):
+    """
+    From DESI YR1 results https://arxiv.org/pdf/2404.03002 Table 1
+    :return:
+    """
+    Prior = UncalibratedBAOLikelihood if uncalibrated else CalibratedBAOLikelihood
+    desi2024_prior = Prior(
+        redshifts=[
+            0.295,
+            0.510,
+            0.510,
+            0.706,
+            0.706,
+            0.930,
+            0.930,
+            1.317,
+            1.317,
+            1.491,
+            2.330,
+            2.330,
+        ],
+        distances=[
+            7.93,
+            13.62,
+            20.98,
+            16.85,
+            20.08,
+            21.71,
+            17.88,
+            27.79,
+            13.82,
+            26.07,
+            39.71,
+            8.52,
+        ],
+        covariance=[
+            [0.15**2] + [0] * 11,
+            [0, 0.25**2, -0.445 * 0.25 * 0.61] + [0] * 9,
+            [0, -0.445 * 0.25 * 0.61, 0.61**2] + [0] * 9,
+            [0] * 3 + [0.32**2, -0.420 * 0.32 * 0.60] + [0] * 7,
+            [0] * 3 + [-0.420 * 0.32 * 0.60, 0.60**2] + [0] * 7,
+            [0] * 5 + [0.28**2, -0.389 * 0.28 * 0.35] + [0] * 5,
+            [0] * 5 + [-0.389 * 0.28 * 0.35, 0.35**2] + [0] * 5,
+            [0] * 7 + [0.69**2, -0.444 * 0.69 * 0.42] + [0] * 3,
+            [0] * 7 + [-0.444 * 0.69 * 0.42, 0.42**2] + [0] * 3,
+            [0] * 9 + [0.67**2] + [0] * 2,
+            [0] * 10 + [0.94**2, -0.477 * 0.94 * 0.17],
+            [0] * 10 + [-0.477 * 0.94 * 0.17, 0.17**2],
+        ],
+        dist_type_labels=[
+            "DV_over_rd",
+            "DM_over_rd",
+            "DH_over_rd",
+            "DM_over_rd",
+            "DH_over_rd",
+            "DM_over_rd",
+            "DH_over_rd",
+            "DM_over_rd",
+            "DH_over_rd",
+            "DV_over_rd",
+            "DM_over_rd",
+            "DH_over_rd",
+        ],
+    )
+    return desi2024_prior
+
+
+def DESI2025DR2Prior(uncalibrated=False):
     """
     From DESI YR1 results https://arxiv.org/pdf/2404.03002 Table 1
     :return:
