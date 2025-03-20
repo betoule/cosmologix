@@ -42,8 +42,8 @@ def get_like_func(likelihood, fix=["Omega_k"]):
 def test_likelihoods(fix=["Omega_k"]):
     tools.clear_cache()
     priors = {
-        "desiu": likelihoods.DESI2024Prior(True),
-        "desi": likelihoods.DESI2024Prior(),
+        "desiu": likelihoods.DESIDR1Prior(True),
+        "desi": likelihoods.DESIDR1Prior(),
         "des": likelihoods.DES5yr(),
         "union3": likelihoods.Union3(),
         "pantheon+": likelihoods.Pantheonplus(),
@@ -60,25 +60,13 @@ def test_likelihoods(fix=["Omega_k"]):
         func_and_derivatives(l, x, funcname=f"{name}.likelihood")
 
 
-def toto():
-    des = DES5yr()
-    pl = Planck2018Prior()
-    params = des.initial_guess(Planck18)
-    des.negative_log_likelihood(params)
-    pl.negative_log_likelihood(params)
-    l1 = jax.jit(des.negative_log_likelihood)
-    l2 = jax.jit(pl.negative_log_likelihood)
-    l1(params)
-    l2(params)
-    l1(params)
-    l2(params)
-
-
 if __name__ == "__main__":
     # test_likelihoods()
     priors = {
-        "desiu": likelihoods.DESI2024Prior(True),
-        "desi": likelihoods.DESI2024Prior(),
+        "desiu": likelihoods.DESIDR1Prior(True),
+        "desi": likelihoods.DESIDR1Prior(),
+        "desi2u": likelihoods.DESIDR2Prior(True),
+        "desi2": likelihoods.DESIDR2Prior(),
         "des": likelihoods.DES5yr(),
         "union3": likelihoods.Union3(),
         "pantheon+": likelihoods.Pantheonplus(),

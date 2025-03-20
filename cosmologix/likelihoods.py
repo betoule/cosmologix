@@ -157,7 +157,7 @@ class GeometricCMBLikelihood(Chi2FullCov):
 
         Parameters:
         -----------
-        mean: best-fit values for Omega_bh2, Omega_c_h2, and 100tetha_MC
+        mean: best-fit values for Omega_bh2, Omega_c_h2, and 100theta_MC
 
         covariance: covariance matrix of vector mean
         """
@@ -326,7 +326,78 @@ def Planck2018Prior():
     return planck2018_prior
 
 
-def DESI2024Prior(uncalibrated=False):
+def DESIDR2Prior(uncalibrated=False):
+    """
+    From DESI DR2 results https://arxiv.org/pdf/2503.14738 Table IV
+    :return:
+    """
+    Prior = UncalibratedBAOLikelihood if uncalibrated else CalibratedBAOLikelihood
+    desi2025_prior = Prior(
+        redshifts=[
+            0.295,
+            0.510,
+            0.510,
+            0.706,
+            0.706,
+            0.934,
+            0.934,
+            1.321,
+            1.321,
+            1.484,
+            1.484,
+            2.330,
+            2.330,
+        ],
+        distances=[
+            7.944,
+            13.587,
+            21.863,
+            17.347,
+            19.458,
+            21.574,
+            17.641,
+            27.605,
+            14.178,
+            30.519,
+            12.816,
+            38.988,
+            8.632,
+        ],
+        covariance=[
+            [0.075**2] + [0] * 12,
+            [0, 0.169**2, -0.475 * 0.169 * 0.427] + [0] * 10,
+            [0, -0.445 * 0.169 * 0.427, 0.427**2] + [0] * 10,
+            [0] * 3 + [0.180**2, -0.423 * 0.180 * 0.332] + [0] * 8,
+            [0] * 3 + [-0.423 * 0.180 * 0.332, 0.332**2] + [0] * 8,
+            [0] * 5 + [0.153**2, -0.425 * 0.153 * 0.193] + [0] * 6,
+            [0] * 5 + [-0.425 * 0.153 * 0.193, 0.193**2] + [0] * 6,
+            [0] * 7 + [0.320**2, -0.437 * 0.320 * 0.217] + [0] * 4,
+            [0] * 7 + [-0.437 * 0.320 * 0.217, 0.217**2] + [0] * 4,
+            [0] * 9 + [0.758**2, -0.489 * 0.758 * 0.513] + [0] * 2,
+            [0] * 9 + [-0.489 * 0.758 * 0.513, 0.513**2] + [0] * 2,
+            [0] * 11 + [0.531**2, -0.431 * 0.531 * 0.101],
+            [0] * 11 + [-0.431 * 0.531 * 0.101, 0.101**2],
+        ],
+        dist_type_labels=[
+            "DV_over_rd",
+            "DM_over_rd",
+            "DH_over_rd",
+            "DM_over_rd",
+            "DH_over_rd",
+            "DM_over_rd",
+            "DH_over_rd",
+            "DM_over_rd",
+            "DH_over_rd",
+            "DM_over_rd",
+            "DH_over_rd",
+            "DM_over_rd",
+            "DH_over_rd",
+        ],
+    )
+    return desi2025_prior
+
+
+def DESIDR1Prior(uncalibrated=False):
     """
     From DESI YR1 results https://arxiv.org/pdf/2404.03002 Table 1
     :return:

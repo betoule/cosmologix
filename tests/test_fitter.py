@@ -62,7 +62,7 @@ def test_de_fit():
     priors = [
         likelihoods.Planck2018Prior(),
         likelihoods.DES5yr(),
-        likelihoods.DESI2024Prior(),
+        likelihoods.DESIDR1Prior(),
     ]
     fixed = {
         "Omega_k": 0.0,
@@ -78,7 +78,7 @@ def test_de_fit():
 if __name__ == "__main__":
     des = likelihoods.DES5yr()
     pl = likelihoods.Planck2018Prior()
-    desiu = likelihoods.DESI2024Prior(True)
+    desiu = likelihoods.DESIDR1Prior(True)
     point = {
         "Omega_m": 0.3,
         "M": 0.0,
