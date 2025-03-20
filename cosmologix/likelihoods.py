@@ -152,7 +152,9 @@ class DiagMuMeasurements(Chi2):
 
 
 class GeometricCMBLikelihood(Chi2FullCov):
-    def __init__(self, mean, covariance, param_names=["Omega_b_h2", "Omega_c_h2", "100theta_MC"]):
+    def __init__(
+        self, mean, covariance, param_names=["Omega_b_h2", "Omega_c_h2", "100theta_MC"]
+    ):
         """An easy-to-work-with summary of CMB measurements
 
         Parameters:
@@ -166,15 +168,15 @@ class GeometricCMBLikelihood(Chi2FullCov):
         self.W = np.linalg.inv(self.cov)
         self.U = jnp.array(np.linalg.cholesky(self.W).T)  # , upper=True)
         self.param_names = param_names
-        
+
     def model(self, params):
         params = densities.process_params(params)
         params["Omega_c_h2"] = params["Omega_c"] * (params["H0"] ** 2 * 1e-4)
         params["Omega_bc_h2"] = params["Omega_m"] * (params["H0"] ** 2 * 1e-4)
         params["100theta_MC"] = theta_MC(params)
-        params["theta_MC"] = params["100theta_MC"] / 100.
+        params["theta_MC"] = params["100theta_MC"] / 100.0
         return jnp.array([params[param] for param in self.param_names])
-        #return jnp.array([params["Omega_b_h2"], Omega_c_h2, theta_MC(params)])
+        # return jnp.array([params["Omega_b_h2"], Omega_c_h2, theta_MC(params)])
 
     def draw(self, params):
         m = self.model(params)
@@ -329,17 +331,24 @@ def Planck2018Prior():
     )
     return planck2018_prior
 
+
 def PR4():
     """
     From DESI DR2 results https://arxiv.org/pdf/2503.14738 Appendix A
     """
     return GeometricCMBLikelihood(
         [0.01041, 0.02223, 0.14208],
-        jnp.array([[0.006621, 0.12444, -1.1929],
-                   [0.12444, 21.344, -94.001],
-                   [-1.1929, -94.001, 1488.4]]) * 1e-9,
+        jnp.array(
+            [
+                [0.006621, 0.12444, -1.1929],
+                [0.12444, 21.344, -94.001],
+                [-1.1929, -94.001, 1488.4],
+            ]
+        )
+        * 1e-9,
         ["theta_MC", "Omega_b_h2", "Omega_bc_h2"],
     )
+
 
 def DESIDR2Prior(uncalibrated=False):
     """

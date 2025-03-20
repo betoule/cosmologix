@@ -265,8 +265,10 @@ def main():
         help="Plot in paper format, using latex for the text.",
     )
 
-    clear_parser = subparsers.add_parser("clear_cache", help="Clear precompiled likelihoods")
-    
+    clear_parser = subparsers.add_parser(
+        "clear_cache", help="Clear precompiled likelihoods"
+    )
+
     args = parser.parse_args()
 
     if args.command == "fit":
