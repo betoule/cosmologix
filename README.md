@@ -30,7 +30,9 @@ pip install cosmologix
 Note: Make sure you have JAX installed, along with its dependencies. If you're using GPU acceleration, ensure CUDA and cuDNN are properly set up.
 
 ## Usage
-Here's a quick example to get you started:
+Here's a quick example to get you started (look at
+[example/features.py](https://gitlab.in2p3.fr/lemaitre/cosmologix/example/features.py)
+for a more complete tour of the available features):
 
 ```python
 from cosmologix import mu, Planck18
