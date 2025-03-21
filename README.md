@@ -255,6 +255,11 @@ Detailed documentation for each function and module can be found in the source c
 
 ## Release history
 
+### v0.9.5 (in prep.)
+- Add DESI DR2 BAO measurements (rename DESI2024 to DESIDR1 for consistency)
+- Add a Planck prior consistent with what is used in DESI DR2 (named PR4)
+- Various bug fixes
+
 ### v0.9.4 (current)
 - Add SH0ES to the list of available priors
 - Compute the dark energy task force Figure of Merit (FoM) from the Fisher matrix for dark energy models
