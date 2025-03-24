@@ -367,7 +367,7 @@ def run_fit(args):
         result = fit(priors, fixed=fixed, verbose=args.verbose)
     display.pretty_print(result)
     if args.output:
-        tools.save(resuft, args.output)
+        tools.save(result, args.output)
         print(f"Best-fit parameters saved to {args.output}")
     if args.show:
         display.corner_plot_fisher(result)
