@@ -211,7 +211,8 @@ cosmologix clear_cache
 
 ## Roadmap
 
-- [ ] Add corner plots for contours and bestfits
+- [ ] Add 1d profile likelihoods for corner plots
+- [ ] Ease the handling of exploration results
 
 ## Accuracy of the distance modulus computation
 
@@ -260,6 +261,11 @@ Contributions are welcome! Please fork the repository, make changes, and submit 
 Detailed documentation for each function and module can be found in the source code. Autodocs is in preparation [here](https://cosmologix-7920a8.pages.in2p3.fr/).
 
 ## Release history
+
+### v0.9.6 (in prep.)
+- 1D profile likelihoods
+- Group exploration results in a single file
+- Improve handling of labels in corner plots
 
 ### v0.9.5 (current)
 - Add DESI DR2 BAO measurements (rename DESI2024 to DESIDR1 for consistency)
