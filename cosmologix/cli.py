@@ -283,6 +283,22 @@ def main():
         nargs="+",
         help="Input file from explore (e.g., contour_planck.pkl)",
     )
+    corner_parser.add_argument(
+        "--labels",
+        nargs="+",
+        default=[],
+        help="Labels for the contours corresponding to provided files (e.g., DR1 DR2)",
+    )
+    corner_parser.add_argument(
+        "-o", "--output", help="Output file for corner plot (e.g., corner.png)"
+    )
+    corner_parser.add_argument(
+        "-s",
+        "--show",
+        action="store_true",
+        default=False,
+        help="Display the corner plot even if the plot is saved (default False)",
+    )
 
     args = parser.parse_args()
 
@@ -441,7 +457,22 @@ def run_corner(args):
         param_names=param_names,
         base_color=display.color_theme[i],
     )
-    plt.show()
+    for i, label in enumerate(args.labels):
+        axes[0, -1].plot(jnp.nan, jnp.nan, color=display.color_theme[i], label=label)
+    axes[0, -1].legend(frameon=True)
+    axes[0, -1].set_visible(True)
+    for sp in ["left", "right", "top", "bottom"]:
+        axes[0, -1].spines[sp].set_visible(False)
+    axes[0, -1].set_xticks([])
+    plt.tight_layout()
+    if args.output:
+        plt.savefig(args.output, dpi=300)
+        print(f"Corner plot saved to {args.output}")
+        if args.show:
+            plt.show()
+    else:
+        plt.show()
+
 
 
 if __name__ == "__main__":
