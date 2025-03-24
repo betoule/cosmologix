@@ -81,9 +81,9 @@ plt.show()
 For most common use cases, there is also a simple command line interface to the library. You can perform fit, contour exploration and contour plotting as follows:
 
 ```bash
-cosmologix fit --priors Planck18 DESI2024 --cosmology FwCDM
-cosmologix explore Omega_m w --priors Planck18 DESI2024 --cosmology FwCDM -o contours.pkl
-cosmologix contour contours.pkl -o contour.png
+cosmologix fit --priors PR4 DESIDR2 --cosmology FwCDM -s
+cosmologix explore Omega_m w --priors PR4 DESIDR2 --cosmology FwCDM -o contours.pkl
+cosmologix contour contours.pkl -s -o contour.png
 ```
 
 ## More advanced topics
@@ -161,7 +161,6 @@ Try again fixing H0
 Omega_m = 0.272 ± 0.089
 w = -0.82 ± 0.17
 M = -0.053 ± 0.013
-
 ```
 
 ### Cache Mechanism
@@ -191,6 +190,11 @@ tools.clear_cache()
 ```
 
 This removes all cached files, forcing Cosmologix to recompute or redownload as needed on the next run.
+
+You can also perform the operation from the command line:
+```bash
+cosmologix clear_cache
+```
 
 #### Notes
 - The caching system is particularly useful for mitigating JAX’s compilation delays, but its effectiveness depends on consistent inputs and code stability.
@@ -257,12 +261,13 @@ Detailed documentation for each function and module can be found in the source c
 
 ## Release history
 
-### v0.9.5 (in prep.)
+### v0.9.5 (current)
 - Add DESI DR2 BAO measurements (rename DESI2024 to DESIDR1 for consistency)
 - Add a Planck prior consistent with what is used in DESI DR2 (named PR4)
-- Various bug fixes
+- Various bug fixes related to jax version
+- Add minimal support for corner plots
 
-### v0.9.4 (current)
+### v0.9.4
 - Add SH0ES to the list of available priors
 - Compute the dark energy task force Figure of Merit (FoM) from the Fisher matrix for dark energy models
 - Report χ² and fit probability in addition to best-fit parameters
