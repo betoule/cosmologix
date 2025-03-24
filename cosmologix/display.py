@@ -226,7 +226,7 @@ def plot_contours(
         Confidence levels in percent (e.g., 68.3 for 1σ, 95.5 for 2σ). Converted to
         Δχ² thresholds for 2 degrees of freedom using `conflevel_to_delta_chi2`.
     transpose: bool, default=False
-        Exchange x and y parameters when plotting    
+        Exchange x and y parameters when plotting
     **keys : dict
         Additional keyword arguments passed to `contour` and `contourf` (e.g., `linewidths`, `linestyles`).
 
@@ -259,7 +259,7 @@ def plot_contours(
         ax = plt.gca()
         ax.set_xlabel(latex_translation[x] if x in latex_translation else x)
         ax.set_ylabel(latex_translation[y] if y in latex_translation else y)
-        
+
     shades = jnp.linspace(1, 0.5, len(levels))
     colors = [to_rgba(base_color, alpha=alpha.item()) for alpha in shades]
 
@@ -291,7 +291,7 @@ def plot_contours(
         ax.plot(grid["bestfit"][x], grid["bestfit"][y], "k+")
 
 
-def corner_plot(param_names, axes=None, figsize=(12,12)):
+def corner_plot(param_names, axes=None, figsize=(12, 12)):
     """Create a corner plot grid for visualizing parameter distributions.
 
     This function sets up a triangular grid of subplots for a corner plot, where the
@@ -399,7 +399,7 @@ def corner_plot_contours(grids=[], axes=None, param_names=None, **keys):
     axes : numpy.ndarray, optional
         Pre-existing array of axes; if None, created via `corner_plot`.
     param_names : list, optional
-        List of all parameter names; if None, extracted from 
+        List of all parameter names; if None, extracted from
     **keys : dict
         Additional keyword arguments passed to `corner_plot` and `plot_contours`.
 
