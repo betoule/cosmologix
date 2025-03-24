@@ -14,8 +14,7 @@ import jax.numpy as jnp
 import matplotlib.pyplot as plt
 from collections import deque
 from tqdm import tqdm
-from pathlib import Path
-from cosmologix.display import color_theme, latex_translation
+from cosmologix.display import color_theme, latex_translation, plot_contours
 import numpy as np
 
 
@@ -257,99 +256,6 @@ def frequentist_contour_2D_sparse(
         "bestfit": bestfit,
         "extra": extra,
     }
-
-
-def plot_contours(
-    grid,
-    label=None,
-    ax=None,
-    bestfit=False,
-    base_color=color_theme[0],
-    filled=False,
-    levels=[68.3, 95.5],
-    **keys,
-):
-    """Plot 2D confidence contours from a chi-square grid.
-
-    Generates contour plots (optionally filled) for a 2D parameter space, using
-    Δχ² values derived from specified confidence levels. Shades are applied
-    within a single hue, with lighter shades for lower confidence levels.
-    Supports labeling for legends and plotting the best-fit point.
-
-    Parameters
-    ----------
-    grid : dict or str or path
-        Dictionary or path to a pickle file containing a dictionary.
-        The dictionary contains contour data, typically from `frequentist_contour_2D_sparse`.
-        Expected keys:
-        - 'params': List of two parameter names (e.g., ['Omega_m', 'w']).
-        - 'x', 'y': 1D arrays of grid coordinates for the two parameters.
-        - 'chi2': 2D array of χ² values (transposed in plotting).
-        - 'bestfit': Dict of best-fit parameter values (used if `bestfit=True`).
-        - 'extra': Dict with 'loss' key containing optimization results (last value used as χ²_min).
-    label : str, optional
-        Label for the contour set, used in the legend if provided.
-    ax : matplotlib.axes.Axes, optional
-        Axes object to plot on. If None, uses the current axes (`plt.gca()`).
-    bestfit : bool, default=False
-        If True, plots a black '+' at the best-fit point from `grid['bestfit']`.
-    base_color : str, default is a light red hue.
-        Base color hue for contours. Shades are derived by varying alpha.
-    filled : bool, default=False
-        If True, plots filled contours using `contourf` in addition to contour lines.
-    levels : list of float, default=[68.3, 95.5]
-        Confidence levels in percent (e.g., 68.3 for 1σ, 95.5 for 2σ). Converted to
-        Δχ² thresholds for 2 degrees of freedom using `conflevel_to_delta_chi2`.
-    **keys : dict
-        Additional keyword arguments passed to `contour` and `contourf` (e.g., `linewidths`, `linestyles`).
-
-    Notes
-    -----
-    - Δχ² is computed as `grid['chi2'].T - grid['extra']['loss'][-1]`,
-      which is the loss value corresponding to the global minimum
-      χ². This might be slightly smaller than `grid['chi2'].min()`.
-    - Parameter names in axes labels are translated to LaTeX if present in `latex_translation`.
-    - For filled contours, an invisible proxy patch is added for legend compatibility.
-    """
-    from matplotlib.colors import to_rgba
-
-    if isinstance(grid, (str, Path)):
-        grid = load_contours(grid)
-
-    x, y = grid["params"]
-    if ax is None:
-        ax = plt.gca()
-    shades = jnp.linspace(1, 0.5, len(levels))
-    colors = [to_rgba(base_color, alpha=alpha.item()) for alpha in shades]
-
-    if ("label" in grid) and label is None:
-        label = grid["label"]
-    _levels = [conflevel_to_delta_chi2(l) for l in jnp.array(levels)]
-    if filled:
-        contours = ax.contourf(
-            grid["x"],
-            grid["y"],
-            grid["chi2"].T - grid["extra"]["loss"][-1],  # grid["chi2"].min(),
-            levels=[0] + _levels,
-            colors=colors,
-            **keys,
-        )
-        ax.add_patch(plt.Rectangle((jnp.nan, jnp.nan), 1, 1, fc=colors[0], label=label))
-    else:
-        ax.add_line(plt.Line2D((jnp.nan,), (jnp.nan,), color=colors[0], label=label))
-    contours = ax.contour(
-        grid["x"],
-        grid["y"],
-        grid["chi2"].T - grid["extra"]["loss"][-1],  # grid["chi2"].min(),
-        levels=_levels,
-        colors=colors,
-        **keys,
-    )
-
-    if bestfit:
-        ax.plot(grid["bestfit"][x], grid["bestfit"][y], "k+")
-    ax.set_xlabel(latex_translation[x] if x in latex_translation else x)
-    ax.set_ylabel(latex_translation[y] if y in latex_translation else y)
 
 
 def save_contours(grid, filename):

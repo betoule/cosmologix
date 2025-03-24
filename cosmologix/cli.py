@@ -412,9 +412,16 @@ def run_contour(args):
 
 def run_corner(args):
     axes = None
+    param_names = None
+    confidence_contours = []
     for i, input_file in enumerate(args.input_files):
         result = contours.load_contours(input_file)
-        axes = display.corner_plot(result, axes=axes, color=display.color_theme[i])
+        if 'chi2' not in result:
+            axes, param_names = display.corner_plot_fisher(result, axes=axes, param_names=param_names, color=display.color_theme[i])
+        else:
+            confidence_contours.append(result)
+    axes, param_names = display.corner_plot_contours(confidence_contours, axes=axes, param_names=param_names, base_color=display.color_theme[i])
     plt.show()
+    
 if __name__ == "__main__":
     main()

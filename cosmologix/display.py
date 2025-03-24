@@ -3,6 +3,8 @@ from matplotlib.patches import Ellipse
 import numpy as np
 import jax.numpy as jnp
 import jax
+from pathlib import Path
+from cosmologix.tools import conflevel_to_delta_chi2
 
 color_theme = ["#fbb4ae", "#b3cde3", "#ccebc5", "#decbe4", "#fed9a6", "#ffffcc"]
 
@@ -178,22 +180,112 @@ def plot_2D(
     ax.plot(*mean, marker=marker, ls="None", color=color, **kwargs)
     plot_confidence_ellipse(mean, cov, ax=ax, n_sigmas=n_sigmas, color=color, **kwargs)
 
+def plot_contours(
+    grid,
+    label=None,
+    ax=None,
+    bestfit=False,
+    base_color=color_theme[0],
+    filled=False,
+    levels=[68.3, 95.5],
+    **keys,
+):
+    """Plot 2D confidence contours from a chi-square grid.
 
-def corner_plot(result, axes=None, **keys):
-    param_names = list(result['bestfit'].keys())
+    Generates contour plots (optionally filled) for a 2D parameter space, using
+    Δχ² values derived from specified confidence levels. Shades are applied
+    within a single hue, with lighter shades for lower confidence levels.
+    Supports labeling for legends and plotting the best-fit point.
+
+    Parameters
+    ----------
+    grid : dict or str or path
+        Dictionary or path to a pickle file containing a dictionary.
+        The dictionary contains contour data, typically from `frequentist_contour_2D_sparse`.
+        Expected keys:
+        - 'params': List of two parameter names (e.g., ['Omega_m', 'w']).
+        - 'x', 'y': 1D arrays of grid coordinates for the two parameters.
+        - 'chi2': 2D array of χ² values (transposed in plotting).
+        - 'bestfit': Dict of best-fit parameter values (used if `bestfit=True`).
+        - 'extra': Dict with 'loss' key containing optimization results (last value used as χ²_min).
+    label : str, optional
+        Label for the contour set, used in the legend if provided.
+    ax : matplotlib.axes.Axes, optional
+        Axes object to plot on. If None, uses the current axes (`plt.gca()`).
+    bestfit : bool, default=False
+        If True, plots a black '+' at the best-fit point from `grid['bestfit']`.
+    base_color : str, default is a light red hue.
+        Base color hue for contours. Shades are derived by varying alpha.
+    filled : bool, default=False
+        If True, plots filled contours using `contourf` in addition to contour lines.
+    levels : list of float, default=[68.3, 95.5]
+        Confidence levels in percent (e.g., 68.3 for 1σ, 95.5 for 2σ). Converted to
+        Δχ² thresholds for 2 degrees of freedom using `conflevel_to_delta_chi2`.
+    **keys : dict
+        Additional keyword arguments passed to `contour` and `contourf` (e.g., `linewidths`, `linestyles`).
+
+    Notes
+    -----
+    - Δχ² is computed as `grid['chi2'].T - grid['extra']['loss'][-1]`,
+      which is the loss value corresponding to the global minimum
+      χ². This might be slightly smaller than `grid['chi2'].min()`.
+    - Parameter names in axes labels are translated to LaTeX if present in `latex_translation`.
+    - For filled contours, an invisible proxy patch is added for legend compatibility.
+    """
+    from matplotlib.colors import to_rgba
+
+    if isinstance(grid, (str, Path)):
+        grid = load_contours(grid)
+
+    x, y = grid["params"]
+    if ax is None:
+        ax = plt.gca()
+        ax.set_xlabel(latex_translation[x] if x in latex_translation else x)
+        ax.set_ylabel(latex_translation[y] if y in latex_translation else y)
+    shades = jnp.linspace(1, 0.5, len(levels))
+    colors = [to_rgba(base_color, alpha=alpha.item()) for alpha in shades]
+
+    if ("label" in grid) and label is None:
+        label = grid["label"]
+    _levels = [conflevel_to_delta_chi2(l) for l in jnp.array(levels)]
+    if filled:
+        contours = ax.contourf(
+            grid["x"],
+            grid["y"],
+            grid["chi2"].T - grid["extra"]["loss"][-1],  # grid["chi2"].min(),
+            levels=[0] + _levels,
+            colors=colors,
+            **keys,
+        )
+        ax.add_patch(plt.Rectangle((jnp.nan, jnp.nan), 1, 1, fc=colors[0], label=label))
+    else:
+        ax.add_line(plt.Line2D((jnp.nan,), (jnp.nan,), color=colors[0], label=label))
+    contours = ax.contour(
+        grid["x"],
+        grid["y"],
+        grid["chi2"].T - grid["extra"]["loss"][-1],  # grid["chi2"].min(),
+        levels=_levels,
+        colors=colors,
+        **keys,
+    )
+
+    if bestfit:
+        ax.plot(grid["bestfit"][x], grid["bestfit"][y], "k+")
+
+
+def corner_plot(param_names, axes=None, **keys):
     if axes is None:
         fig = plt.figure(figsize=(12,12))
         axes = fig.subplots(len(param_names), len(param_names), sharex='col', squeeze=False)
     for i, param in enumerate(param_names):
         for j, param2 in enumerate(param_names):
             if i == j:
-                plot_1D(result, param, ax=axes[i, i], **keys)
                 axes[i, i].spines['left'].set_visible(False)
                 axes[i, i].spines['right'].set_visible(False)
                 axes[i, i].spines['top'].set_visible(False)
                 axes[j, i].set_yticks([])
             elif j > i:
-                plot_2D(result, param, param2, ax=axes[j, i], **keys)
+                pass
             else:
                 axes[j, i].set_visible(False)
             if j == len(param_names)-1:
@@ -205,3 +297,29 @@ def corner_plot(result, axes=None, **keys):
                 axes[j, i].set_yticks([])
     plt.tight_layout()
     return axes
+
+def corner_plot_fisher(results, param_names=None, axes=None, **keys):
+    if param_names is None:
+        param_names = list(results['bestfit'].keys())
+    if axes is None:
+        axes = corner_plot(param_names, **keys)
+
+    for i, param in enumerate(param_names):
+        for j, param2 in enumerate(param_names):
+            if i == j:
+                plot_1D(results, param, ax=axes[i, i], **keys)
+            elif j > i:
+                plot_2D(results, param, param2, ax=axes[j, i], **keys)
+    return axes, param_names
+
+def corner_plot_contours(grids=[], axes=None, param_names=None, **keys):
+    if param_names is None:
+        param_names = list(grids[0]['bestfit'].keys())
+    if axes is None:
+        axes = corner_plot(param_names, **keys)
+    for grid in grids:
+        param, param2 = grid['params']
+        i = param_names.index(param)
+        j = param_names.index(param2)
+        plot_contours(grid, ax=axes[j, i], **keys)
+    return axes, param_names
