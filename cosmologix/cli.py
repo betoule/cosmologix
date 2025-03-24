@@ -346,7 +346,8 @@ def run_fit(args):
             pickle.dump(result, f)
         print(f"Best-fit parameters saved to {args.output}")
     if args.show:
-        display.corner_plot(result)
+        display.corner_plot_fisher(result)
+        plt.tight_layout()
         plt.show()
 
 def run_explore(args):
@@ -416,7 +417,8 @@ def run_corner(args):
     confidence_contours = []
     for i, input_file in enumerate(args.input_files):
         result = contours.load_contours(input_file)
-        if 'chi2' not in result:
+        # distinguish between fit results and chi2 maps
+        if 'params' not in result:
             axes, param_names = display.corner_plot_fisher(result, axes=axes, param_names=param_names, color=display.color_theme[i])
         else:
             confidence_contours.append(result)
