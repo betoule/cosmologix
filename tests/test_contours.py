@@ -1,4 +1,4 @@
-from cosmologix import mu, Planck18, likelihoods, contours
+from cosmologix import mu, Planck18, likelihoods, contours, tools
 import jax.numpy as jnp
 import numpy as np
 from numpy.testing import assert_allclose
@@ -32,8 +32,8 @@ def test_contours(tmp_path):
     )
     assert jnp.isfinite(grid["chi2"].any())
     temp_file = tmp_path / "test_file.txt"
-    contours.save_contours(grid, temp_file)
-    grid2 = contours.load_contours(temp_file)
+    tools.save(grid, temp_file)
+    grid2 = tools.load(temp_file)
     assert compare_dicts(grid, grid2)
     contours.plot_contours(grid)
     grid_coarse = contours.frequentist_contour_2D(

@@ -392,3 +392,19 @@ def speed_measurement(func, *args, n=10):
         tcomp2 - tjit,
         (tstop2 - tcomp2) / n,
     )
+
+
+def save(grid, filename):
+    """Save data dictionary to a pickle file."""
+    import pickle
+
+    with open(filename, "wb") as fid:
+        pickle.dump(grid, fid)
+
+
+def load(filename):
+    """Load data dictionary from a pickle file."""
+    import pickle
+
+    with open(filename, "rb") as fid:
+        return pickle.load(fid)

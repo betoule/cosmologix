@@ -4,7 +4,7 @@ import numpy as np
 import jax.numpy as jnp
 import jax
 from pathlib import Path
-from cosmologix.tools import conflevel_to_delta_chi2
+from cosmologix.tools import conflevel_to_delta_chi2, load
 
 color_theme = ["#fbb4ae", "#b3cde3", "#ccebc5", "#decbe4", "#fed9a6", "#ffffcc"]
 
@@ -241,7 +241,7 @@ def plot_contours(
     from matplotlib.colors import to_rgba
 
     if isinstance(grid, (str, Path)):
-        grid = load_contours(grid)
+        grid = load(grid)
 
     x, y = grid["params"]
     if transpose:

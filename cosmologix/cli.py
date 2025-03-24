@@ -367,8 +367,7 @@ def run_fit(args):
         result = fit(priors, fixed=fixed, verbose=args.verbose)
     display.pretty_print(result)
     if args.output:
-        with open(args.output, "wb") as f:
-            pickle.dump(result, f)
+        tools.save(resuft, args.output)
         print(f"Best-fit parameters saved to {args.output}")
     if args.show:
         display.corner_plot_fisher(result)
@@ -405,7 +404,7 @@ def run_explore(args):
     else:
         # Default label according to prior selection
         grid["label"] = "+".join(args.priors)
-    contours.save_contours(grid, args.output)
+    tools.save(grid, args.output)
     print(f"Contour data saved to {args.output}")
 
 
@@ -416,7 +415,7 @@ def run_contour(args):
         plt.rc("axes.spines", top=False, right=False)  # , bottom=False, left=False)
     plt.figure()
     for i, input_file in enumerate(args.input_files):
-        grid = contours.load_contours(input_file)
+        grid = tools.load(input_file)
         base_color = args.color.get(i, contours.color_theme[i])
         label = args.label.get(i, None)
         contours.plot_contours(
@@ -443,7 +442,7 @@ def run_corner(args):
     param_names = None
     confidence_contours = []
     for i, input_file in enumerate(args.input_files):
-        result = contours.load_contours(input_file)
+        result = tools.load(input_file)
         # distinguish between fit results and chi2 maps
         if "params" not in result:
             axes, param_names = display.corner_plot_fisher(

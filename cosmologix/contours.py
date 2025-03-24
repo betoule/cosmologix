@@ -257,18 +257,3 @@ def frequentist_contour_2D_sparse(
         "extra": extra,
     }
 
-
-def save_contours(grid, filename):
-    """Save contour data dictionary to a pickle file."""
-    import pickle
-
-    with open(filename, "wb") as fid:
-        pickle.dump(grid, fid)
-
-
-def load_contours(filename):
-    """Load contour data dictionary from a pickle file."""
-    import pickle
-
-    with open(filename, "rb") as fid:
-        return pickle.load(fid)

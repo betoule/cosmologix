@@ -1,4 +1,4 @@
-from cosmologix import likelihoods, Planck18, contours
+from cosmologix import likelihoods, Planck18, contours, tools
 import matplotlib.pyplot as plt
 
 plt.ion()
@@ -21,7 +21,7 @@ grid_bao = contours.frequentist_contour_2D_sparse(
     grid=param_space,
     fixed=dict(fixed, Omega_b_h2=Planck18["Omega_b_h2"], H0=Planck18["H0"]),
 )
-contours.save_contours(grid_bao, "contour_desi.pkl")
+tools.save(grid_bao, "contour_desi.pkl")
 # Compute SN constraints. H0 is not constrained by the data, because
 # it is totally degenerate with the (varied) absolute luminosity of
 # supernovae. Baryon and cold dark matter densities have exactly the
@@ -38,7 +38,7 @@ grid_jla = contours.frequentist_contour_2D_sparse(
     grid=param_space,
     fixed=dict(fixed, H0=Planck18["H0"], Omega_b_h2=Planck18["Omega_b_h2"]),
 )
-contours.save_contours(grid_jla, "contour_jla.pkl")
+tools.save(grid_jla, "contour_jla.pkl")
 
 # Compute CMB constraints. The "geometric" summary used in this code
 # only constrain the angular distance to the last diffusion surface.,
@@ -47,21 +47,21 @@ grid_cmb = contours.frequentist_contour_2D_sparse(
     grid=param_space,
     fixed=fixed,
 )
-contours.save_contours(grid_cmb, "contour_planck.pkl")
+tools.save(grid_cmb, "contour_planck.pkl")
 
 cmb_bao = contours.frequentist_contour_2D_sparse(
     [likelihoods.Planck2018Prior(), likelihoods.DESIDR2Prior()],
     grid=param_space,
     fixed=fixed,
 )
-contours.save_contours(cmb_bao, "contour_planck_desi.pkl")
+tools.save(cmb_bao, "contour_planck_desi.pkl")
 
 cmb_sn = contours.frequentist_contour_2D_sparse(
     [likelihoods.Planck2018Prior(), likelihoods.JLA()],
     grid=param_space,
     fixed=fixed,
 )
-contours.save_contours(cmb_bao, "contour_planck_JLA.pkl")
+tools.save(cmb_bao, "contour_planck_JLA.pkl")
 
 
 # Plot the result
