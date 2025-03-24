@@ -392,7 +392,7 @@ def run_explore(args):
     grid_params = {
         args.params[0]: range_x + [args.resolution]
         }
-    if len(args.params) > 1:
+    if len(args.params) == 2:
         range_y = args.range_y if args.range_y is not None else DEFAULT_RANGE[args.params[1]]
         grid_params[args.params[1]] = range_y + [args.resolution]
     
@@ -402,13 +402,32 @@ def run_explore(args):
             fixed=fixed,
             confidence_threshold=args.confidence_threshold,
         )
-    else:
+    elif len(args.params) == 1:
         grid = contours.frequentist_1D_profile(
             priors,
             grid=grid_params,
             fixed=fixed,
             #confidence_threshold=args.confidence_threshold,
         )
+    else:
+        grid = {'list':[]}
+        for i, param1 in enumerate(args.params):
+            grid_params = {param1: DEFAULT_RANGE[param1] + [args.resolution]}
+            grid['list'].append(contours.frequentist_1D_profile(
+                priors,
+                grid=grid_params,
+                fixed=fixed,
+                #confidence_threshold=args.confidence_threshold,
+            ))
+            for j, param2 in enumerate(args.params[i+1:]):
+                grid_params = {param1: DEFAULT_RANGE[param1] + [args.resolution],
+                               param2:DEFAULT_RANGE[param2] + [args.resolution]}
+                grid['list'].append(contours.frequentist_contour_2D_sparse(
+                    priors,
+                    grid=grid_params,
+                    fixed=fixed,
+                    confidence_threshold=args.confidence_threshold,
+                ))
     if args.label:
         grid["label"] = args.label
     else:
@@ -460,7 +479,14 @@ def run_corner(args):
     for i, input_file in enumerate(args.input_files):
         result = tools.load(input_file)
         # distinguish between fit results and chi2 maps
-        if "params" not in result:
+        if "list" in result:
+            axes, param_names = display.corner_plot_contours(
+                result['list'],
+                axes=axes,
+                param_names=param_names,
+                color=display.color_theme[i],
+            )
+        elif "params" not in result:
             axes, param_names = display.corner_plot_fisher(
                 result, axes=axes, param_names=param_names, color=display.color_theme[i]
             )
