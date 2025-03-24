@@ -270,13 +270,15 @@ def main():
         help="Plot in paper format, using latex for the text.",
     )
 
-    corner_parser = subparsers.add_parser("corner", help="Produce a corner plot for a set of results")
+    corner_parser = subparsers.add_parser(
+        "corner", help="Produce a corner plot for a set of results"
+    )
     corner_parser.add_argument(
         "input_files",
         nargs="+",
         help="Input file from explore (e.g., contour_planck.pkl)",
     )
-    
+
     args = parser.parse_args()
 
     if args.command == "fit":
@@ -350,6 +352,7 @@ def run_fit(args):
         plt.tight_layout()
         plt.show()
 
+
 def run_explore(args):
     """Explore a 2D parameter space and save the contour data."""
     priors = [AVAILABLE_PRIORS[p]() for p in args.priors] + load_mu(args)
@@ -411,6 +414,7 @@ def run_contour(args):
         plt.show()
     plt.close()
 
+
 def run_corner(args):
     axes = None
     param_names = None
@@ -418,12 +422,20 @@ def run_corner(args):
     for i, input_file in enumerate(args.input_files):
         result = contours.load_contours(input_file)
         # distinguish between fit results and chi2 maps
-        if 'params' not in result:
-            axes, param_names = display.corner_plot_fisher(result, axes=axes, param_names=param_names, color=display.color_theme[i])
+        if "params" not in result:
+            axes, param_names = display.corner_plot_fisher(
+                result, axes=axes, param_names=param_names, color=display.color_theme[i]
+            )
         else:
             confidence_contours.append(result)
-    axes, param_names = display.corner_plot_contours(confidence_contours, axes=axes, param_names=param_names, base_color=display.color_theme[i])
+    axes, param_names = display.corner_plot_contours(
+        confidence_contours,
+        axes=axes,
+        param_names=param_names,
+        base_color=display.color_theme[i],
+    )
     plt.show()
-    
+
+
 if __name__ == "__main__":
     main()

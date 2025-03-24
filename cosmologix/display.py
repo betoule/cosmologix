@@ -127,28 +127,30 @@ def plot_confidence_ellipse(
 
     return ellipse
 
+
 def plot_1D(
-        result,
-        param,
-        ax=None,
-        color=color_theme[0],
-        ):
+    result,
+    param,
+    ax=None,
+    color=color_theme[0],
+):
     if ax is None:
         ax = plt.gca()
     bestfit = result["bestfit"]
     ifim = result["inverse_FIM"]  # covariance matrix
-    
+
     # Parameter names (assuming they match the order in FIM)
     param_names = list(bestfit.keys())
-    
+
     # Retrieve indexes corresponding to param
     index = param_names.index(param)
-                              
+
     # select the relevant part the results
     sigma = np.sqrt(ifim[index, index])
     mean = bestfit[param]
-    x = np.linspace(mean - 3*sigma, mean+3*sigma)
-    ax.plot(x, np.exp(-0.5*(x - mean)**2/sigma**2), color=color)
+    x = np.linspace(mean - 3 * sigma, mean + 3 * sigma)
+    ax.plot(x, np.exp(-0.5 * (x - mean) ** 2 / sigma**2), color=color)
+
 
 def plot_2D(
     result,
@@ -179,6 +181,7 @@ def plot_2D(
 
     ax.plot(*mean, marker=marker, ls="None", color=color, **kwargs)
     plot_confidence_ellipse(mean, cov, ax=ax, n_sigmas=n_sigmas, color=color, **kwargs)
+
 
 def plot_contours(
     grid,
@@ -275,20 +278,22 @@ def plot_contours(
 
 def corner_plot(param_names, axes=None, **keys):
     if axes is None:
-        fig = plt.figure(figsize=(12,12))
-        axes = fig.subplots(len(param_names), len(param_names), sharex='col', squeeze=False)
+        fig = plt.figure(figsize=(12, 12))
+        axes = fig.subplots(
+            len(param_names), len(param_names), sharex="col", squeeze=False
+        )
     for i, param in enumerate(param_names):
         for j, param2 in enumerate(param_names):
             if i == j:
-                axes[i, i].spines['left'].set_visible(False)
-                axes[i, i].spines['right'].set_visible(False)
-                axes[i, i].spines['top'].set_visible(False)
+                axes[i, i].spines["left"].set_visible(False)
+                axes[i, i].spines["right"].set_visible(False)
+                axes[i, i].spines["top"].set_visible(False)
                 axes[j, i].set_yticks([])
             elif j > i:
                 pass
             else:
                 axes[j, i].set_visible(False)
-            if j == len(param_names)-1:
+            if j == len(param_names) - 1:
                 axes[j, i].set_xlabel(latex_translation[param])
             if i == 0:
                 if j > 0:
@@ -298,9 +303,10 @@ def corner_plot(param_names, axes=None, **keys):
     plt.tight_layout()
     return axes
 
+
 def corner_plot_fisher(results, param_names=None, axes=None, **keys):
     if param_names is None:
-        param_names = list(results['bestfit'].keys())
+        param_names = list(results["bestfit"].keys())
     if axes is None:
         axes = corner_plot(param_names, **keys)
 
@@ -312,13 +318,14 @@ def corner_plot_fisher(results, param_names=None, axes=None, **keys):
                 plot_2D(results, param, param2, ax=axes[j, i], **keys)
     return axes, param_names
 
+
 def corner_plot_contours(grids=[], axes=None, param_names=None, **keys):
     if param_names is None:
-        param_names = list(grids[0]['bestfit'].keys())
+        param_names = list(grids[0]["bestfit"].keys())
     if axes is None:
         axes = corner_plot(param_names, **keys)
     for grid in grids:
-        param, param2 = grid['params']
+        param, param2 = grid["params"]
         i = param_names.index(param)
         j = param_names.index(param2)
         plot_contours(grid, ax=axes[j, i], **keys)
