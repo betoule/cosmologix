@@ -390,11 +390,11 @@ def run_explore(args):
 
     range_x = args.range_x if args.range_x is not None else DEFAULT_RANGE[args.params[0]]
     grid_params = {
-        args.params[0]: range_x + [args.resolution],
+        args.params[0]: range_x + [args.resolution]
         }
     if len(args.params) > 1:
-        range_y = args.range_y if args.range_y is not None else DEFAULT_RANGE[args.param[1]]
-        grid_params[args.params[1]]= range_y + [args.resolution],
+        range_y = args.range_y if args.range_y is not None else DEFAULT_RANGE[args.params[1]]
+        grid_params[args.params[1]] = range_y + [args.resolution]
     
         grid = contours.frequentist_contour_2D_sparse(
             priors,
@@ -407,7 +407,7 @@ def run_explore(args):
             priors,
             grid=grid_params,
             fixed=fixed,
-            confidence_threshold=args.confidence_threshold,
+            #confidence_threshold=args.confidence_threshold,
         )
     if args.label:
         grid["label"] = args.label
@@ -426,20 +426,20 @@ def run_contour(args):
     plt.figure()
     for i, input_file in enumerate(args.input_files):
         grid = tools.load(input_file)
-        base_color = args.color.get(i, contours.color_theme[i])
+        color = args.color.get(i, contours.color_theme[i])
         label = args.label.get(i, None)
         if len(grid['params']) == 2:
             contours.plot_contours(
                 grid,
                 filled=i not in args.not_filled,
-                base_color=base_color,
+                color=color,
                 label=label,
                 levels=args.levels,
             )
         else:
             display.plot_profile(
                 grid,
-                color=base_color,
+                color=color,
             )
     plt.legend(loc=args.legend_loc, frameon=False)
     plt.tight_layout()
@@ -470,7 +470,7 @@ def run_corner(args):
         confidence_contours,
         axes=axes,
         param_names=param_names,
-        base_color=display.color_theme[i],
+        color=display.color_theme[i],
     )
     for i, label in enumerate(args.labels):
         axes[0, -1].plot(jnp.nan, jnp.nan, color=display.color_theme[i], label=label)

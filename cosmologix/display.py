@@ -201,7 +201,7 @@ def plot_contours(
     label=None,
     ax=None,
     bestfit=False,
-    base_color=color_theme[0],
+    color=color_theme[0],
     filled=False,
     transpose=False,
     levels=[68.3, 95.5],
@@ -231,7 +231,7 @@ def plot_contours(
         Axes object to plot on. If None, uses the current axes (`plt.gca()`).
     bestfit : bool, default=False
         If True, plots a black '+' at the best-fit point from `grid['bestfit']`.
-    base_color : str, default is a light red hue.
+    color : str, default is a light red hue.
         Base color hue for contours. Shades are derived by varying alpha.
     filled : bool, default=False
         If True, plots filled contours using `contourf` in addition to contour lines.
@@ -274,7 +274,7 @@ def plot_contours(
         ax.set_ylabel(latex_translation[y] if y in latex_translation else y)
 
     shades = jnp.linspace(1, 0.5, len(levels))
-    colors = [to_rgba(base_color, alpha=alpha.item()) for alpha in shades]
+    colors = [to_rgba(color, alpha=alpha.item()) for alpha in shades]
 
     if ("label" in grid) and label is None:
         label = grid["label"]
@@ -431,11 +431,16 @@ def corner_plot_contours(grids=[], axes=None, param_names=None, **keys):
     if axes is None:
         axes = corner_plot(param_names)
     for grid in grids:
-        param, param2 = grid["params"]
-        i = param_names.index(param)
-        j = param_names.index(param2)
-        if i < j:
-            plot_contours(grid, ax=axes[j, i], **keys)
+        if len(grid['params']) == 2:
+            param, param2 = grid["params"]
+            i = param_names.index(param)
+            j = param_names.index(param2)
+            if i < j:
+                plot_contours(grid, ax=axes[j, i], **keys)
+            else:
+                plot_contours(grid, ax=axes[i, j], transpose=True, **keys)
         else:
-            plot_contours(grid, ax=axes[i, j], transpose=True, **keys)
+            param = grid['params'][0]
+            i = param_names.index(param)
+            plot_profile(grid, ax=axes[i, i], **keys)
     return axes, param_names
