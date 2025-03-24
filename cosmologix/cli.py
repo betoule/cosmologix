@@ -35,6 +35,7 @@ DEFAULT_RANGE = {
     "Omega_k": [-0.3, 0.4],
     "w": [-0.6, -1.5],
     "wa": [-1, 1],
+    "Omega_b_h2": [0.01, 0.04],
 }
 
 
@@ -94,6 +95,13 @@ def main():
         action="store_true",
         default=False,
         help="Attempt to impose hard priors on parameters not constrained by the selected dataset. Use with caution.",
+    )
+    fit_parser.add_argument(
+        "-s",
+        "--show",
+        action="store_true",
+        default=False,
+        help="Display best-fit results as a corner plot.",
     )
     fit_parser.add_argument(
         "-o",
@@ -264,9 +272,16 @@ def main():
         default=False,
         help="Plot in paper format, using latex for the text.",
     )
-
     clear_parser = subparsers.add_parser(
         "clear_cache", help="Clear precompiled likelihoods"
+    )
+    corner_parser = subparsers.add_parser(
+        "corner", help="Produce a corner plot for a set of results"
+    )
+    corner_parser.add_argument(
+        "input_files",
+        nargs="+",
+        help="Input file from explore (e.g., contour_planck.pkl)",
     )
 
     args = parser.parse_args()
@@ -281,6 +296,8 @@ def main():
         run_contour(args)
     elif args.command == "clear_cache":
         tools.clear_cache()
+    elif args.command == "corner":
+        run_corner(args)
     else:
         parser.print_help()
 
@@ -337,6 +354,10 @@ def run_fit(args):
         with open(args.output, "wb") as f:
             pickle.dump(result, f)
         print(f"Best-fit parameters saved to {args.output}")
+    if args.show:
+        display.corner_plot_fisher(result)
+        plt.tight_layout()
+        plt.show()
 
 
 def run_explore(args):
@@ -399,6 +420,28 @@ def run_contour(args):
     else:
         plt.show()
     plt.close()
+
+
+def run_corner(args):
+    axes = None
+    param_names = None
+    confidence_contours = []
+    for i, input_file in enumerate(args.input_files):
+        result = contours.load_contours(input_file)
+        # distinguish between fit results and chi2 maps
+        if "params" not in result:
+            axes, param_names = display.corner_plot_fisher(
+                result, axes=axes, param_names=param_names, color=display.color_theme[i]
+            )
+        else:
+            confidence_contours.append(result)
+    axes, param_names = display.corner_plot_contours(
+        confidence_contours,
+        axes=axes,
+        param_names=param_names,
+        base_color=display.color_theme[i],
+    )
+    plt.show()
 
 
 if __name__ == "__main__":
