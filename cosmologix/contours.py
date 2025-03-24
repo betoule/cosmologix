@@ -256,4 +256,3 @@ def frequentist_contour_2D_sparse(
         "bestfit": bestfit,
         "extra": extra,
     }
-
