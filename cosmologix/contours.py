@@ -257,7 +257,7 @@ def frequentist_contour_2D_sparse(
         "extra": extra,
     }
 
-def frequentist_profile_1D(
+def frequentist_1D_profile(
     likelihoods,
     grid={"Omega_m": []},
     fixed=None,
@@ -311,9 +311,9 @@ def frequentist_profile_1D(
     explored_param = list(grid.keys())[0]
 
     # Grid setup
-    grid_size = grid[explored_params][-1]
+    grid_size = grid[explored_param][-1]
     chi2_grid = jnp.full(grid_size, jnp.inf)  # Initialize with infinity
-    x_grid = jnp.linspace(*grid[explored_params])
+    x_grid = jnp.linspace(*grid[explored_param])
 
     # Find grid point closest to best-fit
     x_idx = jnp.argmin(jnp.abs(x_grid - bestfit[explored_param])).item()
@@ -326,43 +326,38 @@ def frequentist_profile_1D(
 
     # Iterative contour exploration using a queue
     visited = set()
-    queue = deque([(x_idx, y_idx)])
+    queue = deque([x_idx])
     directions = [1, -1]  # right, left
-
-    # Exploration progress
-    exploration_progress = np.ones(grid_size, dtype="bool")
 
     # Progress bar with estimated total
     with tqdm(
-        total=total_points, desc="Exploring contour (upper bound estimate)"
+        total=grid_size, desc="Exploring contour (upper bound estimate)"
     ) as pbar:
         while queue:
-            i, j = queue.popleft()
+            i = queue.popleft()
             if (
-                (i, j) in visited
+                i in visited
                 or i < 0
-                or i >= grid_size[0]
-                or j < 0
-                or j >= grid_size[1]
+                or i >= grid_size
             ):
                 continue
 
-            visited.add((i, j))
+            visited.add(i)
 
             # Calculate chi2 at this point
-            point = {explored_params[0]: x_grid[i], explored_params[1]: y_grid[j]}
+            point = {explored_param: x_grid[i]}
             x, ploss = gauss_newton_partial(wres_, J, x, point)
             chi2_value = ploss["loss"][-1]
-            chi2_grid = chi2_grid.at[i, j].set(chi2_value)
+            chi2_grid = chi2_grid.at[i].set(chi2_value)
 
             pbar.update(1)
 
             # If chi2 is below threshold, explore neighbors
             if (chi2_value - chi2_min) <= chi2_threshold:
-                for di, dj in directions:
-                    next_i, next_j = i + di, j + dj
-                    if (next_i, next_j) not in visited:
-                        queue.append((next_i, next_j))
+                for di in directions:
+                    next_i = i + di
+                    if next_i not in visited:
+                        queue.append(next_i)
             # Trim down the estimation of the fraction of the plane to
             # visit when we encounter a contour boundary based on the
             # assumption that the contour is convex. This improve the
@@ -370,30 +365,16 @@ def frequentist_profile_1D(
             # exploration, which remains complete even if the contour
             # is not convex (as long as it is connected).
             else:
-                if (chi2_grid[i - 1, j] - chi2_min) <= chi2_threshold:
-                    exploration_progress[i + 1 :, j] = False
-                    if (chi2_grid[i, j - 1] - chi2_min) <= chi2_threshold:
-                        exploration_progress[i + 1 :, j + 1 :] = False
-                    if (chi2_grid[i, j + 1] - chi2_min) <= chi2_threshold:
-                        exploration_progress[i + 1 :, : j - 1] = False
-                if (chi2_grid[i + 1, j] - chi2_min) <= chi2_threshold:
-                    exploration_progress[: i - 1, j] = False
-                    if (chi2_grid[i, j + 1] - chi2_min) <= chi2_threshold:
-                        exploration_progress[: i - 1, : j - 1] = False
-                    if (chi2_grid[i, j - 1] - chi2_min) <= chi2_threshold:
-                        exploration_progress[: i - 1, j + 1 :] = False
-                if (chi2_grid[i, j - 1] - chi2_min) <= chi2_threshold:
-                    exploration_progress[i, j + 1 :] = False
-                if (chi2_grid[i, j + 1] - chi2_min) <= chi2_threshold:
-                    exploration_progress[i, : j - 1] = False
-                pbar.total = exploration_progress.sum()
+                if (chi2_grid[i - 1] - chi2_min) <= chi2_threshold:
+                    pbar.total = pbar.total - (i - 1)
+                if (chi2_grid[i + 1] - chi2_min) <= chi2_threshold:
+                    pbar.total = pbar.total - (grid_size - i + 1)
                 pbar.refresh()
     # Convert unexplored points back to nan
     chi2_grid = jnp.where(chi2_grid == jnp.inf, jnp.nan, chi2_grid)
     return {
-        "params": explored_params,
+        "params": [explored_param],
         "x": x_grid,
-        "y": y_grid,
         "chi2": chi2_grid,
         "bestfit": bestfit,
         "extra": extra,

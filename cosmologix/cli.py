@@ -114,9 +114,9 @@ def main():
         "explore", help="Explore a 2D parameter space"
     )
     explore_parser.add_argument(
-        "param1", help="First parameter to explore (e.g., Omega_m)"
+        "params", nargs='+',
+        help="parameters to explore (e.g., Omega_m w)"
     )
-    explore_parser.add_argument("param2", help="Second parameter to explore (e.g., w)")
     explore_parser.add_argument(
         "--resolution",
         type=int,
@@ -379,12 +379,6 @@ def run_explore(args):
     """Explore a 2D parameter space and save the contour data."""
     priors = [AVAILABLE_PRIORS[p]() for p in args.priors] + load_mu(args)
     print(priors)
-    range_x = args.range_x if args.range_x is not None else DEFAULT_RANGE[args.param1]
-    range_y = args.range_y if args.range_y is not None else DEFAULT_RANGE[args.param2]
-    grid_params = {
-        args.param1: range_x + [args.resolution],
-        args.param2: range_y + [args.resolution],
-    }
     fixed = Planck18.copy()
     to_free = DEFAULT_FREE[args.cosmology].copy()
     for par in args.fix:
@@ -393,12 +387,28 @@ def run_explore(args):
             to_free.remove(par)
     for par in to_free + args.free:
         fixed.pop(par)
-    grid = contours.frequentist_contour_2D_sparse(
-        priors,
-        grid=grid_params,
-        fixed=fixed,
-        confidence_threshold=args.confidence_threshold,
-    )
+
+    range_x = args.range_x if args.range_x is not None else DEFAULT_RANGE[args.params[0]]
+    grid_params = {
+        args.params[0]: range_x + [args.resolution],
+        }
+    if len(args.params) > 1:
+        range_y = args.range_y if args.range_y is not None else DEFAULT_RANGE[args.param[1]]
+        grid_params[args.params[1]]= range_y + [args.resolution],
+    
+        grid = contours.frequentist_contour_2D_sparse(
+            priors,
+            grid=grid_params,
+            fixed=fixed,
+            confidence_threshold=args.confidence_threshold,
+        )
+    else:
+        grid = contours.frequentist_1D_profile(
+            priors,
+            grid=grid_params,
+            fixed=fixed,
+            confidence_threshold=args.confidence_threshold,
+        )
     if args.label:
         grid["label"] = args.label
     else:
