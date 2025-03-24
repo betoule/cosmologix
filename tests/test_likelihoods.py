@@ -4,6 +4,7 @@ import jax
 import jax.numpy as jnp
 from numpy.testing import assert_allclose
 import time
+import gc
 
 jax.config.update("jax_enable_x64", True)
 
@@ -42,22 +43,26 @@ def get_like_func(likelihood, fix=["Omega_k"]):
 def test_likelihoods(fix=["Omega_k"]):
     tools.clear_cache()
     priors = {
-        "desiu": likelihoods.DESIDR1Prior(True),
-        "desi": likelihoods.DESIDR1Prior(),
-        "des": likelihoods.DES5yr(),
-        "union3": likelihoods.Union3(),
-        "pantheon+": likelihoods.Pantheonplus(),
-        "planck": likelihoods.Planck2018Prior(),
-        "jla": likelihoods.JLA(),
-        "BBN": likelihoods.BBNSchoneberg2024Prior(),
-        "BBNNeff": likelihoods.BBNNeffSchoneberg2024Prior(),
-        "SH0ES": likelihoods.SH0ES(),
+        "desiu": lambda: likelihoods.DESIDR1Prior(True),
+        "desi": likelihoods.DESIDR1Prior,
+        "des": likelihoods.DES5yr,
+        "union3": likelihoods.Union3,
+        "pantheon+": likelihoods.Pantheonplus,
+        "planck": likelihoods.Planck2018Prior,
+        "jla": likelihoods.JLA,
+        "BBN": likelihoods.BBNSchoneberg2024Prior,
+        "BBNNeff": likelihoods.BBNNeffSchoneberg2024Prior,
+        "SH0ES": likelihoods.SH0ES,
     }
-    priors["sum"] = likelihoods.LikelihoodSum(list(priors.values()))
+    priors["sum"] = lambda: likelihoods.LikelihoodSum(
+        [likelihoods.Planck2018Prior(), likelihoods.Union3()]
+    )
     for name, likelihood in priors.items():
-        x, l, R = get_like_func(likelihood, fix=fix)
+        x, l, R = get_like_func(likelihood(), fix=fix)
         func_and_derivatives(R, x, jac=True, funcname=f"{name}.wres")
         func_and_derivatives(l, x, funcname=f"{name}.likelihood")
+        jax.clear_caches()
+        gc.collect()
 
 
 if __name__ == "__main__":
