@@ -136,6 +136,7 @@ def plot_1D(
 ):
     if ax is None:
         ax = plt.gca()
+        ax.set_xlabel(latex_translation[param])
     bestfit = result["bestfit"]
     ifim = result["inverse_FIM"]  # covariance matrix
 
@@ -182,7 +183,19 @@ def plot_2D(
     ax.plot(*mean, marker=marker, ls="None", color=color, **kwargs)
     plot_confidence_ellipse(mean, cov, ax=ax, n_sigmas=n_sigmas, color=color, **kwargs)
 
-
+def plot_profile(
+        grid,
+        label=None,
+        ax=None,
+        color=color_theme[0],
+):
+    param = grid['params'][0]
+    chi2_min = grid["extra"]["loss"][-1]
+    if ax is None:
+        ax = plt.gca()
+        ax.set_xlabel(latex_translation[param])
+    ax.plot(grid['x'], jnp.exp(-0.5 * (grid['chi2'] - chi2_min)), color=color)
+    
 def plot_contours(
     grid,
     label=None,

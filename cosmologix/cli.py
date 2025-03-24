@@ -428,13 +428,19 @@ def run_contour(args):
         grid = tools.load(input_file)
         base_color = args.color.get(i, contours.color_theme[i])
         label = args.label.get(i, None)
-        contours.plot_contours(
-            grid,
-            filled=i not in args.not_filled,
-            base_color=base_color,
-            label=label,
-            levels=args.levels,
-        )
+        if len(grid['params']) == 2:
+            contours.plot_contours(
+                grid,
+                filled=i not in args.not_filled,
+                base_color=base_color,
+                label=label,
+                levels=args.levels,
+            )
+        else:
+            display.plot_profile(
+                grid,
+                color=base_color,
+            )
     plt.legend(loc=args.legend_loc, frameon=False)
     plt.tight_layout()
     if args.output:
