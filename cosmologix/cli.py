@@ -502,9 +502,7 @@ def run_corner(args):
         axes[0, -1].plot(jnp.nan, jnp.nan, color=display.color_theme[i], label=label)
     axes[0, -1].legend(frameon=True)
     axes[0, -1].set_visible(True)
-    for sp in ["left", "right", "top", "bottom"]:
-        axes[0, -1].spines[sp].set_visible(False)
-    axes[0, -1].set_xticks([])
+    axes[0, -1].axis('off')
     plt.tight_layout()
     if args.output:
         plt.savefig(args.output, dpi=300)
