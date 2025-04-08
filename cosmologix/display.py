@@ -62,7 +62,7 @@ def pretty_print(result):
         print(f"{param} = {fmt.format(value)} ± {fmt.format(uncertainty)}")
     chi2 = result["loss"][-1]
     residuals = result["residuals"]
-    ndof = len(residuals) - len(param)
+    ndof = len(residuals) - len(param_names)
     pvalue = 1 - jax.scipy.stats.chi2.cdf(chi2, ndof)
     print(f"χ²={chi2:.2f} (d.o.f. = {ndof}), χ²/d.o.f = {chi2/ndof:.3f}")
     # If the fit involves w and wa print the FOM

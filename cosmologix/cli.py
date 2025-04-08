@@ -38,6 +38,11 @@ DEFAULT_RANGE = {
     "Omega_b_h2": [0.01, 0.04],
 }
 
+def validate_fix(*args):
+    if args[0] in list(Planck18.keys()) + ["M", "rd"]:
+        return args[0]
+    else:
+        return float(args[0])
 
 def main():
     parser = argparse.ArgumentParser(description="Cosmologix Command Line Interface")
@@ -72,9 +77,10 @@ def main():
         "--fix",
         action="append",
         default=[],
-        metavar="PARAM",
-        choices=list(Planck18.keys()) + ["M", "rd"],
-        help="Fix the specified PARAM (e.g. -F H0 -F Omega_b_h2).",
+        nargs=2,
+        type=validate_fix,
+        metavar="PARAM VALUE",
+        help="Fix the specified PARAM at the specified value (e.g. -F H0 70 -F Omega_b_h2 0.02222).",
     )
     fit_parser.add_argument(
         "--free",
@@ -149,9 +155,10 @@ def main():
         "--fix",
         action="append",
         default=[],
-        metavar="PARAM",
-        choices=list(Planck18.keys()),
-        help="Fix the specified PARAM (e.g. -F H0 -F Omega_b_h2).",
+        nargs=2,
+        type=validate_fix,
+        metavar="PARAM VALUE",
+        help="Fix the specified PARAM at the provided value (e.g. -F H0 70 -F Omega_b_h2 0.02222).",
     )
     explore_parser.add_argument(
         "--free",
@@ -355,12 +362,10 @@ def run_fit(args):
     priors = [AVAILABLE_PRIORS[p]() for p in args.priors] + load_mu(args)
     fixed = Planck18.copy()
     to_free = DEFAULT_FREE[args.cosmology].copy()
-    for par in args.fix:
-        if par in to_free:
-            print(f"{par} kept fixed")
-            to_free.remove(par)
     for par in to_free + args.free:
         fixed.pop(par)
+    for par, value in args.fix:
+        fixed[par] = value
     if args.auto_constrain:
         result = auto_restricted_fit(priors, fixed, args.verbose)
     else:
@@ -381,13 +386,10 @@ def run_explore(args):
     print(priors)
     fixed = Planck18.copy()
     to_free = DEFAULT_FREE[args.cosmology].copy()
-    for par in args.fix:
-        if par in to_free:
-            print(f"{par} kept fixed")
-            to_free.remove(par)
     for par in to_free + args.free:
         fixed.pop(par)
-
+    for par, value in args.fix:
+        fixed[par] = value
     range_x = args.range_x if args.range_x is not None else DEFAULT_RANGE[args.params[0]]
     grid_params = {
         args.params[0]: range_x + [args.resolution]
