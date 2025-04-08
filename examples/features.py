@@ -73,21 +73,21 @@ grid = contours.frequentist_contour_2D_sparse(
 )
 
 contours.plot_contours(
-    grid0, filled=True, ax=axes[1, 1], label="CMB", base_color=display.color_theme[1]
+    grid0, filled=True, ax=axes[1, 1], label="CMB", color=display.color_theme[1]
 )
 contours.plot_contours(
     grid1,
     filled=True,
     ax=axes[1, 1],
     label="DES-5yr",
-    base_color=display.color_theme[2],
+    color=display.color_theme[2],
 )
 contours.plot_contours(
     grid,
     filled=False,
     label="CMB+DES-5yr",
     ax=axes[1, 1],
-    base_color=display.color_theme[0],
+    color=display.color_theme[0],
 )
 plt.ion()
 plt.legend(loc="lower right", frameon=False)

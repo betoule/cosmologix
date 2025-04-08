@@ -68,19 +68,19 @@ tools.save(cmb_bao, "contour_planck_JLA.pkl")
 plt.rc("text", usetex=True)
 plt.rc("axes.spines", top=False, right=False, bottom=False, left=False)
 contours.plot_contours(
-    grid_bao, base_color=contours.color_theme[0], filled=True, label="DESI"
+    grid_bao, color=contours.color_theme[0], filled=True, label="DESI"
 )
 contours.plot_contours(
-    grid_cmb, base_color=contours.color_theme[1], filled=True, label="Planck"
+    grid_cmb, color=contours.color_theme[1], filled=True, label="Planck"
 )
 contours.plot_contours(
-    grid_jla, base_color=contours.color_theme[2], filled=True, label="JLA"
+    grid_jla, color=contours.color_theme[2], filled=True, label="JLA"
 )
 contours.plot_contours(
-    cmb_bao, base_color="red", filled=False, label="Planck+DESI", bestfit=True
+    cmb_bao, color="red", filled=False, label="Planck+DESI", bestfit=True
 )
 contours.plot_contours(
-    cmb_sn, base_color="green", filled=False, label="Planck+JLA", bestfit=True
+    cmb_sn, color="green", filled=False, label="Planck+JLA", bestfit=True
 )
 plt.axhline(-1, color="k", ls=":", lw=0.5)
 plt.text(0.48, -1, r"$\Lambda$-CDM", ha="right", va="bottom")

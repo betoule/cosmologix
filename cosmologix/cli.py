@@ -114,9 +114,9 @@ def main():
         "explore", help="Explore a 2D parameter space"
     )
     explore_parser.add_argument(
-        "param1", help="First parameter to explore (e.g., Omega_m)"
+        "params", nargs='+',
+        help="parameters to explore (e.g., Omega_m w)"
     )
-    explore_parser.add_argument("param2", help="Second parameter to explore (e.g., w)")
     explore_parser.add_argument(
         "--resolution",
         type=int,
@@ -379,12 +379,6 @@ def run_explore(args):
     """Explore a 2D parameter space and save the contour data."""
     priors = [AVAILABLE_PRIORS[p]() for p in args.priors] + load_mu(args)
     print(priors)
-    range_x = args.range_x if args.range_x is not None else DEFAULT_RANGE[args.param1]
-    range_y = args.range_y if args.range_y is not None else DEFAULT_RANGE[args.param2]
-    grid_params = {
-        args.param1: range_x + [args.resolution],
-        args.param2: range_y + [args.resolution],
-    }
     fixed = Planck18.copy()
     to_free = DEFAULT_FREE[args.cosmology].copy()
     for par in args.fix:
@@ -393,12 +387,47 @@ def run_explore(args):
             to_free.remove(par)
     for par in to_free + args.free:
         fixed.pop(par)
-    grid = contours.frequentist_contour_2D_sparse(
-        priors,
-        grid=grid_params,
-        fixed=fixed,
-        confidence_threshold=args.confidence_threshold,
-    )
+
+    range_x = args.range_x if args.range_x is not None else DEFAULT_RANGE[args.params[0]]
+    grid_params = {
+        args.params[0]: range_x + [args.resolution]
+        }
+    if len(args.params) == 2:
+        range_y = args.range_y if args.range_y is not None else DEFAULT_RANGE[args.params[1]]
+        grid_params[args.params[1]] = range_y + [args.resolution]
+    
+        grid = contours.frequentist_contour_2D_sparse(
+            priors,
+            grid=grid_params,
+            fixed=fixed,
+            confidence_threshold=args.confidence_threshold,
+        )
+    elif len(args.params) == 1:
+        grid = contours.frequentist_1D_profile(
+            priors,
+            grid=grid_params,
+            fixed=fixed,
+            #confidence_threshold=args.confidence_threshold,
+        )
+    else:
+        grid = {'list':[]}
+        for i, param1 in enumerate(args.params):
+            grid_params = {param1: DEFAULT_RANGE[param1] + [args.resolution]}
+            grid['list'].append(contours.frequentist_1D_profile(
+                priors,
+                grid=grid_params,
+                fixed=fixed,
+                #confidence_threshold=args.confidence_threshold,
+            ))
+            for j, param2 in enumerate(args.params[i+1:]):
+                grid_params = {param1: DEFAULT_RANGE[param1] + [args.resolution],
+                               param2:DEFAULT_RANGE[param2] + [args.resolution]}
+                grid['list'].append(contours.frequentist_contour_2D_sparse(
+                    priors,
+                    grid=grid_params,
+                    fixed=fixed,
+                    confidence_threshold=args.confidence_threshold,
+                ))
     if args.label:
         grid["label"] = args.label
     else:
@@ -416,15 +445,21 @@ def run_contour(args):
     plt.figure()
     for i, input_file in enumerate(args.input_files):
         grid = tools.load(input_file)
-        base_color = args.color.get(i, contours.color_theme[i])
+        color = args.color.get(i, contours.color_theme[i])
         label = args.label.get(i, None)
-        contours.plot_contours(
-            grid,
-            filled=i not in args.not_filled,
-            base_color=base_color,
-            label=label,
-            levels=args.levels,
-        )
+        if len(grid['params']) == 2:
+            contours.plot_contours(
+                grid,
+                filled=i not in args.not_filled,
+                color=color,
+                label=label,
+                levels=args.levels,
+            )
+        else:
+            display.plot_profile(
+                grid,
+                color=color,
+            )
     plt.legend(loc=args.legend_loc, frameon=False)
     plt.tight_layout()
     if args.output:
@@ -444,7 +479,14 @@ def run_corner(args):
     for i, input_file in enumerate(args.input_files):
         result = tools.load(input_file)
         # distinguish between fit results and chi2 maps
-        if "params" not in result:
+        if "list" in result:
+            axes, param_names = display.corner_plot_contours(
+                result['list'],
+                axes=axes,
+                param_names=param_names,
+                color=display.color_theme[i],
+            )
+        elif "params" not in result:
             axes, param_names = display.corner_plot_fisher(
                 result, axes=axes, param_names=param_names, color=display.color_theme[i]
             )
@@ -454,15 +496,13 @@ def run_corner(args):
         confidence_contours,
         axes=axes,
         param_names=param_names,
-        base_color=display.color_theme[i],
+        color=display.color_theme[i],
     )
     for i, label in enumerate(args.labels):
         axes[0, -1].plot(jnp.nan, jnp.nan, color=display.color_theme[i], label=label)
     axes[0, -1].legend(frameon=True)
     axes[0, -1].set_visible(True)
-    for sp in ["left", "right", "top", "bottom"]:
-        axes[0, -1].spines[sp].set_visible(False)
-    axes[0, -1].set_xticks([])
+    axes[0, -1].axis('off')
     plt.tight_layout()
     if args.output:
         plt.savefig(args.output, dpi=300)
