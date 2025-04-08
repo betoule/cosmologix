@@ -16,6 +16,14 @@ def test_composition(plot=False):
         ax1.legend(loc="best")
         ax2.axhline(0, color="k")
         ax2.plot(mbar, I_composite / I_numeric - 1, "r")
+        ax2.set_xlabel(r'$\bar m$')
+        ax1.set_ylabel(r'$I(\bar m)$')
+        ax2.set_ylabel(r'$I_{composite}/I_{numeric} -1$')
+        for ax in ax1, ax2:
+            ax.axvline(0.01, ls=':', color='k')
+            ax.axvline(1000, ls=':', color='k')
+        plt.tight_layout()
+        plt.savefig('doc/density_interpolation.pdf')
         plt.show()
     assert (jnp.abs(I_composite / I_numeric - 1) < 1e-5).all()
 

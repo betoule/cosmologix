@@ -30,28 +30,30 @@ bibliography: paper.bib
 
 # Summary
 
-Type-Ia supernovae are standardizable candles allowing to measure
-distances in the universe. Inference of cosmological parameters from
-such datasets is made easy by providing fully differentiable
-computation of the distance-redshift relation as function of the
-cosmological parameters. We also provide common fitting formulae for
-the acoustic scale so that the resulting code can be used for fast
-cosmological inference from supernovae in combination with BAO and CMB
-distance measurements. We check the accuracy of our computation
-against CCL and astropy.cosmology and show that our implementation can
-outperform both codes by X order of magnitudes in speed while
-maintaining a reasonable accuracy of X mag on distance modulii in the
-redshift range $0.01--1000$.
+Type-Ia supernovae are used to measure luminosity distances in the
+universe thanks to their property of standard -- or standardizable --
+candle. Cosmologix makes inference of cosmological parameters from
+thousands of such measurements easier and faster by providing fully
+differentiable computation of the distance-redshift relation as
+function of the cosmological parameters. It also provide common
+fitting formulae for the acoustic scale so that the resulting code can
+be used for fast cosmological inference from supernovae in combination
+with BAO or CMB distance measurements. We checked the accuracy of our
+computation against CCL and astropy.cosmology and show that our
+implementation can outperform both codes by 1 order of magnitudes in
+speed while maintaining a reasonable accuracy of $10^{-4}$ mag on
+distance modulii in the redshift range $0.01 < z < 1000$.
 
 # Statement of need
 
 Several software are available to compute cosmological distances
-including astropy, camb, class, ccl. To our knowledge only jax-cosmo
-provide automatic differentiation through the use of
-JAX. Unfortunately, at the time of writing, the distance computation
-in jax-cosmo is neglecting contributions to the energy density from
-neutrinos species. The accuracy of the resulting computation is
-insufficient for the need of the LEMAITRE analysis.
+including `astropy`, `camb`, `class`, `ccl`. To our knowledge only
+`jax-cosmo` and `cosmoprimo` may provide automatic differentiation
+through the use of JAX. Unfortunately, at the time of writing, the
+computation in cosmoprimo does not seem to be jitable and distance
+computation in jax-cosmo is neglecting contributions to the energy
+density from neutrinos species. The accuracy of the resulting
+computation is insufficient for the need of the LEMAITRE analysis.
 
 The LEMAITRE collaboration is therefore releasing its internal code
 for the computation of cosmological distances. The computation itself
@@ -86,7 +88,7 @@ and $r = S\left(\frac{\chi}{R_0}\right)$, the metrics rewrites:
 \end{equation}
 
 The first Friedman equation without the cosmological
-constant term (whose role is held by the fluid) reads:
+constant term (whose role will be held by the fluid) reads:
 
 \begin{equation}
   \label{eq:2}
@@ -98,23 +100,28 @@ where $\rho$ is the proper energy density, $R$ the scale factor, $H =
 spatial curvature. The value of constants (such as $G$) used in the
 code are given in Table
 
-Denoting, as usual, $\rho_{crit} = \frac{3 H_0^2}{8\pi G}$ the current
-value of the critical density, $\Omega_0 = \frac{\rho_0}{\rho_{crit}}$ the
-reduced energy density today and $\Omega_k = -\frac{k}{R^2_0H^2_0}$, one
-can rewrite equation under its most common form:
-	\begin{equation}
-  \label{eq:3}
-  \frac{H^2}{H_0^2} = \Omega_0 \frac{\rho}{\rho_0} + \Omega_k (1+z)^2
+Denoting, as usual, $\rho_{c} = \frac{3 H_0^2}{8\pi G}$ the
+critical value of the density for which the universe today is flat,
+$\Omega_0 = \frac{\rho_0}{\rho_{c}}$ the reduced energy density
+today and $\Omega_k = -\frac{k}{R^2_0H^2_0}$, one can rewrite equation
+under its most common form: \begin{equation} \label{eq:3}
+\frac{H^2}{H_0^2} = \Omega_0 \frac{\rho}{\rho_0} + \Omega_k (1+z)^2
 \end{equation}
 
 
 ## Densities
 
-We split the universe content into several components. Most of them
-are characterized by there reduced density today and their equation of
-state, but for neutrinos which, in the general case, transition from ultra-relativistic to non-relativistic over the period of interest.
+We follow the common practice to split the universe energy content
+into several components such as cold (pressureless) matter, radiation
+or dark energy. Most of the components are parameterized in the code
+by there reduced density today and the parameter of their equation of
+state, but for photons, for which we pass the observed temperature of
+the CMB $T_{cmb}$ instead, and for neutrinos which, in the general
+case, transition from ultra-relativistic to non-relativistic over the
+period of interest and whose energy density evolution needs numerical
+computation.
 
-### Equations of state
+### Species parameterized by reduced density and Equations of state
 
 For a perfect fluid $X$ with equation of state $\rho_X = w_x p_x$, the
 energy conservation writes:
@@ -130,26 +137,25 @@ which can be integrated to give:
   \log \frac{\rho_x}{\rho_x^0} = 3 \int_0^z \frac{1+w_x(z)}{1+z}dz
 \end{equation}
 
-In the code the following components follow this description, with simplification made when appropriate:
+In the code the following components follow this description, with
+simplification made when appropriate:
 
-- Baryonic matter: $\Omega_b, w_b=0 \rightarrow \frac{\rho_b}{\rho_b^0} = (1+z)^3$,
-- Cold dark matter: $\Omega_c, w_c=0 \rightarrow \frac{\rho_b}{\rho_b^0} = (1+z)^3$,
+- Baryonic matter: $\Omega_b, w_b=0$  which gives $\frac{\rho_b}{\rho_b^0} = (1+z)^3$,
+- Cold dark matter: $\Omega_c, w_c=0$ which gives $\frac{\rho_b}{\rho_b^0} = (1+z)^3$,
 - and dark energy $\Omega_x$.
+We allow dark energy to have a variable equation of state according to the parametrization: $w(z) = w + \frac{z}{1+z} w_a$ with $w$ and $w_a$ as free parameters. Once integrated this gives the following evolution for the contribution to density:
 
-We allow dark energy to have a variable equation of state according to the parametrization: $w(z) = w + \frac{z}{1+z} w_a \rightarrow \rho/\rho_0 =
-  \exp\left(3 (1 + w + w_a) \log(1+z) - 3 w_a \frac{z}{1+z}\right)$,
-  with $w$ and $w_a$ as free parameters.
+$$\rho_x/\rho_0 = \exp\left(3 (1 + w + w_a) \log(1+z) - 3 w_a \frac{z}{1+z}\right).$$
   
-## Radiation
+  
+### Relic photons
 
 In the more general case, the energy density of specie $i$ is obtained
 by integration over the distribution function: \begin{equation}
 \label{eq:12} \rho_i c^2= g_i \int N_i(p) E(p) \frac{4\pi p^2dp}{h^3}
 \end{equation} where $g_i$ is the degeneracy number of the species.
 
-### Photon
-
-For photons with two spin states:
+For photons with two spin states this reduces to Stephan's law, given that:
 \begin{equation}
   \label{eq:14}
   N_\gamma(p) = \frac{1}{e^{\frac{cp}{k_B T_\gamma}} + 1}, \quad g_i=2,
@@ -163,10 +169,12 @@ which gives, with the variable change $x=\frac{cp}{k_BT_\gamma}$:
 where we have used the result $\int_0^\infty u^{s-1}/(e^u - 1) du =
 \Gamma(s) \zeta(s)$. 
 
-Which brings use to the previous case with $w_\gamma=\frac13 \rightarrow
-  \frac{\rho_\gamma}{\rho_\gamma^0} = (1+z)^4$. However instead of providing $\Omega_\gamma^0$ the code expects $T_{cmb}$ to be given and computes:
-$\Omega_\gamma(T_\text{cmb}, h) =$
-As a default value the code uses $T_\gamma^0 = 2.7255 K$ 2009ApJ...707..916F.
+Instead of providing $\Omega_\gamma^0$ the code expects the
+temperature of the frozen thermal spectrum today denoted $T^0_\gamma =
+T_{cmb}$ from which it computes $\Omega_\gamma(T_\text{cmb}, H_0) =
+\rho_\gamma(T_{cmb}) / \rho_c(H_0)$. The density then evolves as
+$T_\gamma^4 \propto (1+z)^4$.  As a default value the code uses
+$T_\gamma^0 = 2.7255 K$ \cite{2009ApJ...707..916F}.
 
 ### Neutrinos
 
@@ -192,15 +200,13 @@ annihilation are related by:
   \label{eq:16}
   \frac{T_\nu}{T_\gamma} = \left( \frac{4}{11}\right)^{1/3} \left(\frac{N_\text{eff}}3\right)^{1/4}
 \end{equation}
-with $N_\text{eff} = 3.046$ {2005NuPhB.729..221M}, which gives an
+with a default value for $N_\text{eff} = 3.046$ \cite{2005NuPhB.729..221M}. The
 effective density for 6 species of relativistic neutrinos and
-anti-neutrinos:
+anti-neutrinos is:
 \begin{equation}
   \label{eq:18}
   \rho_\nu = \frac78 N_\text{eff}\left(\frac{4}{11}\right)^{4/3}\rho_\gamma\,.
 \end{equation}
-
-### Massive neutrinos
 
 The distribution of neutrinos after decoupling is frozen. The energy
 density for massive neutrinos, assuming that the decoupling occurs
@@ -210,33 +216,35 @@ when neutrinos are still ultra-relativistic, is given by:
   \rho_i & = g_i \frac{4\pi(k_B T_i)^4}{ c^3 h^3}  \int_0^\infty \frac{x^3\sqrt{1 + (\bar m/x)^2}}{e^x + 1} dx\\
   & = \rho^\text{nomass}_i \frac{120}{7\pi^4} I(\bar m)\,,
 \end{align}
-where we denote $\bar m = m_i c^2 / (k_B T_i)$.  In practice our
-implementation mimic the CAMB code\footnote{routine Nu\_rho}:
+where we denote $\bar m = m_i c^2 / (k_B T_i)$. Fast evalution of this integral is obtained as follows:
+
 \begin{itemize}
-\item ultra-relativistic $\bar m \leq 0.01$: $I(\bar m) \sim I(0) (1 + \frac5{7\pi^2} \bar m^2)$.
-\item intermediate $0.01 < \bar m < 600$: $I(\bar m)$ is evaluated
-  numerically using the Simpson rule in a log grid of $\bar m$. Values
-  are interpolated linearly in the grid.
-\item non-relativistic $\bar m \geq 600$: $I(\bar m) \sim \frac32 \zeta(3) \bar m + \frac{3}{4\bar m} 15 \zeta(5)$ 
+\item ultra-relativistic case ($\bar m \leq 0.01$): the integral is evaluated analytically through the expansion $I(\bar m) \sim I(0) (1 + \frac5{7\pi^2} \bar m^2)$.
+\item intermediate case $0.01 < \bar m < 1000$: $I(\bar m)$ is evaluated
+  numerically at 35 Chebyshev nodes in $\log10(\bar m)$. The $k^{th}$ of $ n=35$ Chebyshev nodes are defined on the segment $[-1, 1]$ as $\cos(k \pi / n)$, and mapped to the segment $[-2, 3]$ in the log space. The function is then evaluated as $I(\bar m) = N(\bar m)$ where $N$ is the Newton interpolation polynomial accross the 35 precomputed nodes. The numerical pre-computation of the integral at the 35 nodes uses the trapezoidal rule over $10^4$ points in $x$ with infrared and ultraviolet cutoff at $x=10^{-3}$ and $x=31$.
+\item non-relativistic case ($\bar m \geq 1000$): the integral is again evaluated analytically through the expansion $I(\bar m) \sim \frac32 \zeta(3) \bar m + \frac{3}{4\bar m} 15 \zeta(5)$ .
 \end{itemize}
 
-The baseline assumption in the Planck 2013 release is to postulate 3
-neutrinos with $N_\text{eff}=3.046$ and one massive eigenstate with
-$m_\nu = 0.06 {\rm eV}$, which we follow exactly to enable the direct
-use of their results. So to summarize, I use \emph{(The counting is still unclear to me but I think this is what matches the use in Planck)}:
-\begin{itemize}
-\item massless case: $\sum g_i = 6$,
-\item massive case: $\sum_{massless} g_i = 4$, $\sum_{massive} g_i = 2$ with $m_\nu = 0.06 {\rm eV}$.
-\end{itemize}
+The relative difference between the numerical computation and the fast and composite interpolation-expansion is shown in Fig. \autoref{fig:densityinterpolation}. The approximation is shown to have a worst case accuracy better than $10^{7}$ which is largely sufficient for the subdominant specy.
 
-Note that we count:
-\begin{align}
-  \label{eq:19}
-  \Omega_\nu h^2 &= \frac{n_\nu * m_\nu}{\rho_{crit}^0} = \frac{\rho^0_\gamma}{\rho_{crit}^0}h^2 \frac{45}{2\pi^4} \zeta(3) \frac{e}{k_B T_\gamma}\frac{4}{11} \left(\frac{N_\text{eff}}{3}\right)^{(3/4)} \sum \frac{g_i}{2}\frac{m_i}{\rm eV}\\
-  &= \left(\frac{N_\text{eff}}{3}\right)^{(3/4)} \sum \frac{g_i}{2}\frac{m_i}{94.073{\rm eV}}\\
-  &= 6.45 \cdot 10^{-4}\\
-\end{align}
-in $\Omega_m = \Omega_b + \Omega_c + \Omega_\nu$.
+![Comparison between the relatively slow numerical evaluation of integral $I(\bar m)$ and its fast interpolant. The top pannel shows the two evaluation of the function and the relative difference between the two is displayed in the bottom pannel. Vertical dotted lines display the switch between the analytical expansions and the Newton interpolant.\label{fig:densityinterpolation}](density_interpolation.pdf)
+
+The parametrisation of neutrinos density follows the common current practice to provide the value of the effective number $N_\text{eff}$ and the sum of neutrinos masses in $m_\nu$ ($0.06$ eV by default). For the computation, the entire mass is affected to one massive specie and the two others are kept massless. The code itself preforms the actual computation for the three species so that this convention can be easily changed.
+
+### Parameterization summary
+The default set of parameters in the code is as follows:
+
+```python
+{'Tcmb': 2.7255,
+ 'Omega_m': 0.31315017687047186,
+ 'H0': 67.37,
+ 'Omega_b_h2': 0.02233,
+ 'Omega_k': 0.0,
+ 'w': -1.0,
+ 'wa': 0.0,
+ 'm_nu': 0.06,
+ 'Neff': 3.046}
+```
 
 ## Distances
 
