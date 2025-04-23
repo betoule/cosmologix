@@ -77,7 +77,7 @@ $$
 S=\left\lbrace
     \begin{array}{l}
       \sinh \text{ if k = 1}\\
-      Id \text{ if k = 0}\\
+      \mathrm{Id} \text{ if k = 0}\\
       \sin \text{ if k = -1}\\
     \end{array}
   \right.,
@@ -118,8 +118,8 @@ by there reduced density today and the parameter of their equation of
 state, but for photons, for which we pass the observed temperature of
 the CMB $T_{cmb}$ instead, and for neutrinos which, in the general
 case, transition from ultra-relativistic to non-relativistic over the
-period of interest and whose energy density evolution needs numerical
-computation.
+period of interest and whose energy density evolution requires a
+specific numerical computation.
 
 ### Species parameterized by reduced density and Equations of state
 
@@ -143,7 +143,7 @@ simplification made when appropriate:
 - Baryonic matter: $\Omega_b, w_b=0$  which gives $\frac{\rho_b}{\rho_b^0} = (1+z)^3$,
 - Cold dark matter: $\Omega_c, w_c=0$ which gives $\frac{\rho_b}{\rho_b^0} = (1+z)^3$,
 - and dark energy $\Omega_x$.
-We allow dark energy to have a variable equation of state according to the parametrization: $w(z) = w + \frac{z}{1+z} w_a$ with $w$ and $w_a$ as free parameters. Once integrated this gives the following evolution for the contribution to density:
+We allow dark energy to have a variable equation of state according to the common (CPL, \cite{}) parametrization: $w(z) = w + \frac{z}{1+z} w_a$ with $w$ and $w_a$ as free parameters. Once integrated this gives the following evolution for the contribution to density:
 
 $$\rho_x/\rho_0 = \exp\left(3 (1 + w + w_a) \log(1+z) - 3 w_a \frac{z}{1+z}\right).$$
   
@@ -232,18 +232,19 @@ The relative difference between the numerical computation and the fast and compo
 The parametrisation of neutrinos density follows the common current practice to provide the value of the effective number $N_\text{eff}$ and the sum of neutrinos masses in $m_\nu$ ($0.06$ eV by default). For the computation, the entire mass is affected to one massive specie and the two others are kept massless. The code itself preforms the actual computation for the three species so that this convention can be easily changed.
 
 ### Parameterization summary
-The default set of parameters in the code is as follows:
+To summarize, the energy content and age of the Universe is parameterized in the code using the following minimal set of parameters, given along their default value as a python dictionnary:
 
 ```python
-{'Tcmb': 2.7255,
- 'Omega_m': 0.31315017687047186,
- 'H0': 67.37,
- 'Omega_b_h2': 0.02233,
- 'Omega_k': 0.0,
+{'Tcmb': 2.7255, # CMB temperature today in K
+ 'Omega_bc': 0.31315017687047186, # \Omega_b + \Omega_c
+ 'H0': 67.37, # Hubble constant in km/s/Mpc
+ 'Omega_b_h2': 0.02233, # \Omega_b * (H0/100)^2
+ 'Omega_k': 0.0, # \Omega_k
  'w': -1.0,
  'wa': 0.0,
- 'm_nu': 0.06,
- 'Neff': 3.046}
+ 'm_nu': 0.06, # Sum of neutrinos masses in eV
+ 'Neff': 3.046 # Effective number of neutrino species
+ }
 ```
 
 ## Distances
@@ -257,22 +258,34 @@ In the code, we denote:
 The comoving distance (coordinate) is:
 \begin{equation}
   \label{eq:25}
-  \chi(z) = D_h \int_o^z \frac{dz}{H/H_0}
-\end{equation}
-The transverse comoving distance is:
-\begin{equation}
-  \label{eq:1}
-  D(z) = D_h \vert\Omega_k\vert^{-1/2} S\left(\vert\Omega_k\vert^{1/2} \frac{\chi}{D_h}\right)\,.
+  \chi(z) = D_h \int_o^z \frac{dz'}{H/H_0}
 \end{equation}
 The integral is much easier to evaluate numerically with the following change of variable $u = (1+z)^{-1/2}$:
 \begin{equation}
   \label{eq:6}
-  D(u) = 2 D_h \vert\Omega_k\vert^{-1/2} S\left(\vert\Omega_k\vert^{1/2} \int_u^1 \frac{du}{u^3H/H_0}\right)\,.
+  D(u) =  2D_h\int_u^1 \frac{du'}{u'^3H/H_0}\,.
 \end{equation}
-The integrand in the last equation is:
+
+To speed up computation for large number of redshifts, the integrand
+is evaluated on a fixed grid of $1000$ points regularly spanning the
+interval $u=[0.02, 1]$. This corresponds to a maximum redshift of
+$2500$. The cummulative sum of the resulting vector multiplied by the
+grid step gives the rectangular rule approximation of the integral at
+each points in the grid in $u$. Linear interpolation in the result is
+then used to reconstruct the distance values at the requested
+redshifts efficiently.
+
+The same quadrature is used to compute the look-back time:
 \begin{equation}
-  \label{eq:7}
-  (u^3H/H_0)^{-1} = \left(\Omega_b + \Omega_c + \Omega_k u^2 + (\Omega_\gamma+\Omega_n) u^4 + \Omega_x e^{-6(w+w_a)\log u + 3 w_a (u^2-1) } \right)^{-1/2}
+  \label{eq:25}
+  T(z) = \frac{1}{H_0} \int_o^z \frac{dz'}{(1+z')H/H_0}
+\end{equation}
+
+
+The transverse comoving distance is:
+\begin{equation}
+  \label{eq:1}
+  D(z) = D_h \vert\Omega_k\vert^{-1/2} S\left(\vert\Omega_k\vert^{1/2} \frac{\chi}{D_h}\right)\,.
 \end{equation}
 
 ## Volume
