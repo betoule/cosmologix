@@ -35,7 +35,7 @@ from cosmologix import likelihoods, fit
 for var in J:
     if var == "Omega_b_h2":
         continue
-    axes[0, 1].plot(z_values, J[var], label=var)
+    axes[0, 1].plot(z_values, J[var], label=display.latex_translation[var])
 axes[0, 1].set_yscale("symlog", linthresh=1e-5)
 axes[0, 1].set_xscale("log")
 axes[0, 1].set_xlabel(r"$z$")
@@ -89,6 +89,9 @@ contours.plot_contours(
     ax=axes[1, 1],
     color=display.color_theme[0],
 )
+axes[1, 1].set_xlabel(display.latex_translation["Omega_bc"])
+axes[1, 1].set_ylabel(display.latex_translation["w"])
+
 plt.ion()
 plt.legend(loc="lower right", frameon=False)
 
