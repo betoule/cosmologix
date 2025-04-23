@@ -21,17 +21,17 @@ AVAILABLE_PRIORS = {
 # Default fixed parameters for flat w-CDM
 CMB_FREE = ["Omega_b_h2", "H0"]
 DEFAULT_FREE = {
-    "FLCDM": ["Omega_m"] + CMB_FREE,
-    "LCDM": ["Omega_m", "Omega_k"] + CMB_FREE,
-    "FwCDM": ["Omega_m", "w"] + CMB_FREE,
-    "wCDM": ["Omega_m", "Omega_k", "w"] + CMB_FREE,
-    "FwwaCDM": ["Omega_m", "w", "wa"] + CMB_FREE,
-    "wwaCDM": ["Omega_m", "Omega_k", "w", "wa"] + CMB_FREE,
+    "FLCDM": ["Omega_bc"] + CMB_FREE,
+    "LCDM": ["Omega_bc", "Omega_k"] + CMB_FREE,
+    "FwCDM": ["Omega_bc", "w"] + CMB_FREE,
+    "wCDM": ["Omega_bc", "Omega_k", "w"] + CMB_FREE,
+    "FwwaCDM": ["Omega_bc", "w", "wa"] + CMB_FREE,
+    "wwaCDM": ["Omega_bc", "Omega_k", "w", "wa"] + CMB_FREE,
 }
 
 # Default ranges for the exploration of parameters
 DEFAULT_RANGE = {
-    "Omega_m": [0.18, 0.48],
+    "Omega_bc": [0.18, 0.48],
     "Omega_k": [-0.3, 0.4],
     "w": [-0.6, -1.5],
     "wa": [-1, 1],
@@ -121,7 +121,7 @@ def main():
     )
     explore_parser.add_argument(
         "params", nargs='+',
-        help="parameters to explore (e.g., Omega_m w)"
+        help="parameters to explore (e.g., Omega_bc w)"
     )
     explore_parser.add_argument(
         "--resolution",

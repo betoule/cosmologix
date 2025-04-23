@@ -63,7 +63,7 @@ def params_to_astropy(params):
     # Omega_nu_mass = float(Omega_n_mass(params, 1.)[0])
     return cosmology.w0waCDM(
         H0=params["H0"],
-        Om0=params["Omega_m"],
+        Om0=params["Omega_bc"],
         Ob0=params["Omega_b"],
         Ode0=params["Omega_x"],
         m_nu=[params["m_nu"], 0, 0],
@@ -96,7 +96,7 @@ def mu_jaxcosmo(params, z):
     omega_b = params["Omega_b_h2"] / h**2
     a = 1 / (1 + z)
     jaxcosmo = jc.Cosmology(
-        Omega_c=params["Omega_m"] - omega_b,
+        Omega_c=params["Omega_bc"] - omega_b,
         Omega_b=omega_b,
         h=h,
         Omega_k=params["Omega_k"],
@@ -121,7 +121,7 @@ def mu_cosmoprimo(params, z):
         engine="eisenstein_hu",
         h=h,
         Omega_b=omega_b,
-        Omega_cdm=params["Omega_m"] - omega_b,
+        Omega_cdm=params["Omega_bc"] - omega_b,
         Omega_k=params["Omega_k"],
         Tcmb=params["Tcmb"],
         w0_fld=params["w"],

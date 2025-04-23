@@ -45,8 +45,8 @@ def restrict(f: Callable, fixed_params: dict = {}) -> Callable:
 
     Example:
     --------
-    If mu expects a dictionary with 'Omega_m' and 'w',
-    restrict(mu, {'w': -1}) returns a function of 'Omega_m' only.
+    If mu expects a dictionary with 'Omega_bc' and 'w',
+    restrict(mu, {'w': -1}) returns a function of 'Omega_bc' only.
     """
 
     def g(params, *args, **kwargs):

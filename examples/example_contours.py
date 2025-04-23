@@ -4,10 +4,10 @@ import matplotlib.pyplot as plt
 plt.ion()
 
 
-# Define the explored space (a regular grid in the plane Omega_m/w
+# Define the explored space (a regular grid in the plane Omega_bc/w
 # with 60 points between the boundaries)
 n = 60
-param_space = {"Omega_m": [0.18, 0.48, n], "w": [-0.6, -1.5, n]}
+param_space = {"Omega_bc": [0.18, 0.48, n], "w": [-0.6, -1.5, n]}
 
 # Define the parameter kept fixed during the exploration. Here we are
 # exploring a one parameter (free but constant w) expansion of the

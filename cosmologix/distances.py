@@ -207,7 +207,7 @@ def comoving_volume(
     ----------
     params : dict
         Dictionary of cosmological parameters, including 'Omega_k' (curvature parameter),
-        and others required by the volume computation functions (e.g., 'H0', 'Omega_m').
+        and others required by the volume computation functions (e.g., 'H0', 'Omega_bc').
     z : jax.numpy.ndarray
         Array of redshift values at which to compute the comoving volume.
     solid_angle : float, optional
@@ -242,7 +242,7 @@ def differential_comoving_volume(
     ----------
     params : dict
         Dictionary of cosmological parameters, including those needed for the Hubble
-        parameter 'H' and comoving distance 'dM' (e.g., 'H0', 'Omega_m', 'Omega_k').
+        parameter 'H' and comoving distance 'dM' (e.g., 'H0', 'Omega_bc', 'Omega_k').
     z : jax.numpy.ndarray
         Array of redshift values at which to compute the differential volume.
 

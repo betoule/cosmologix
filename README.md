@@ -64,7 +64,7 @@ print(result['bestfit'])
 from cosmologix import contours
 grid = contours.frequentist_contour_2D_sparse(
     priors,
-    grid={'Omega_m': [0.18, 0.48, 30], 'w': [-0.6, -1.5, 30]},
+    grid={'Omega_bc': [0.18, 0.48, 30], 'w': [-0.6, -1.5, 30]},
     fixed=fixed
     )
 
@@ -82,7 +82,7 @@ For most common use cases, there is also a simple command line interface to the 
 
 ```bash
 cosmologix fit --priors PR4 DESIDR2 --cosmology FwCDM -s
-cosmologix explore Omega_m w --priors PR4 DESIDR2 --cosmology FwCDM -o contours.pkl
+cosmologix explore Omega_bc w --priors PR4 DESIDR2 --cosmology FwCDM -o contours.pkl
 cosmologix contour contours.pkl -s -o contour.png
 ```
 
@@ -91,7 +91,7 @@ cosmologix contour contours.pkl -s -o contour.png
 ### Fixing Unconstrained Parameters
 
 Cosmologix uses a default set of cosmological parameters in its
-computations: `{'Tcmb', 'Omega_m', 'H0', 'Omega_b_h2', 'Omega_k', 'w',
+computations: `{'Tcmb', 'Omega_bc', 'H0', 'Omega_b_h2', 'Omega_k', 'w',
 'wa', 'm_nu', 'Neff'}`. However, certain combinations of cosmological
 probes may be entirely insensitive to some of these parameters,
 requiring their values to be fixed for the fitting process to
@@ -115,7 +115,7 @@ fixed = {'Omega_k': 0.0, 'm_nu': 0.06, 'Neff': 3.046, 'Tcmb': 2.7255, 'wa': 0.0}
 result = fit(priors, fixed=fixed)
 grid = contours.frequentist_contour_2D_sparse(
     priors,
-    grid={'Omega_m': [0.18, 0.48, 30], 'w': [-0.6, -1.5, 30]},
+    grid={'Omega_bc': [0.18, 0.48, 30], 'w': [-0.6, -1.5, 30]},
     fixed=fixed
 )
 ```
@@ -138,7 +138,7 @@ restricting the model to predefined configurations (e.g., flat \( w
 
 ```bash
 cosmologix fit -p DESI2024 -F H0 -c FwCDM
-cosmologix explore Omega_m w -p DESI2024 -c FwCDM -F H0 -o desi_fwcdm.pkl
+cosmologix explore Omega_bc w -p DESI2024 -c FwCDM -F H0 -o desi_fwcdm.pkl
 ```
 
 #### Automatic Parameter Fixing
@@ -158,7 +158,7 @@ Unconstrained Parameters:
   Omega_b_h2: FIM = 0.00 (effectively unconstrained)
 Fixing unconstrained parameter Omega_b_h2
 Try again fixing H0
-Omega_m = 0.272 ± 0.089
+Omega_bc = 0.272 ± 0.089
 w = -0.82 ± 0.17
 M = -0.053 ± 0.013
 ```

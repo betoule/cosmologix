@@ -13,7 +13,7 @@ def params_to_astropy(params):
     # Omega_nu_mass = float(Omega_n_mass(params, 1.)[0])
     return cosmology.w0waCDM(
         H0=params["H0"],
-        Om0=params["Omega_m"],
+        Om0=params["Omega_bc"],
         Ob0=params["Omega_b"],
         Ode0=params["Omega_x"],
         m_nu=[params["m_nu"], 0, 0],

@@ -50,10 +50,10 @@ fixed = {"Omega_k": 0.0, "m_nu": 0.06, "Neff": 3.046, "Tcmb": 2.7255, "wa": 0.0}
 
 result = fit(priors, fixed=fixed)
 display.pretty_print(result)
-display.plot_2D(result, "Omega_m", "w", ax=axes[1, 0])
+display.plot_2D(result, "Omega_bc", "w", ax=axes[1, 0])
 axes[1, 0].set_ylim(-1.5, -0.6)
 axes[1, 0].set_xlim(0.16, 0.48)
-axes[1, 0].set_xlabel(display.latex_translation["Omega_m"])
+axes[1, 0].set_xlabel(display.latex_translation["Omega_bc"])
 axes[1, 0].set_ylabel(display.latex_translation["w"])
 
 # Compute frequentist confidence contours
@@ -61,15 +61,15 @@ axes[1, 0].set_ylabel(display.latex_translation["w"])
 # the actual size of the explored region is unknown at the start of the calculation.
 # Improvements to this feature are planned.
 grid0 = contours.frequentist_contour_2D_sparse(
-    [priors[0]], grid={"Omega_m": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]}, fixed=fixed
+    [priors[0]], grid={"Omega_bc": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]}, fixed=fixed
 )
 grid1 = contours.frequentist_contour_2D_sparse(
     [priors[1]],
-    grid={"Omega_m": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]},
+    grid={"Omega_bc": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]},
     fixed=dict(fixed, H0=Planck18["H0"], Omega_b_h2=Planck18["Omega_b_h2"]),
 )
 grid = contours.frequentist_contour_2D_sparse(
-    priors, grid={"Omega_m": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]}, fixed=fixed
+    priors, grid={"Omega_bc": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]}, fixed=fixed
 )
 
 contours.plot_contours(

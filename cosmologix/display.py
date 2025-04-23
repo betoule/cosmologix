@@ -11,6 +11,7 @@ color_theme = ["#fbb4ae", "#b3cde3", "#ccebc5", "#decbe4", "#fed9a6", "#ffffcc"]
 latex_translation = {
     "Tcmb": r"$T_{cmb}$",
     "Omega_m": r"$\Omega_m$",
+    "Omega_bc": r"$\Omega_{bc}$",
     "H0": r"$H_0$",
     "Omega_b_h2": r"$\Omega_b h^2$",
     "Omega_k": r"$\Omega_k$",
@@ -220,7 +221,7 @@ def plot_contours(
         Dictionary or path to a pickle file containing a dictionary.
         The dictionary contains contour data, typically from `frequentist_contour_2D_sparse`.
         Expected keys:
-        - 'params': List of two parameter names (e.g., ['Omega_m', 'w']).
+        - 'params': List of two parameter names (e.g., ['Omega_bc', 'w']).
         - 'x', 'y': 1D arrays of grid coordinates for the two parameters.
         - 'chi2': 2D array of χ² values (transposed in plotting).
         - 'bestfit': Dict of best-fit parameter values (used if `bestfit=True`).
@@ -315,7 +316,7 @@ def corner_plot(param_names, axes=None, figsize=(12, 12)):
     Parameters
     ----------
     param_names : list
-        List of parameter names to define the grid size and labels (e.g., ['Omega_m', 'H0']).
+        List of parameter names to define the grid size and labels (e.g., ['Omega_bc', 'H0']).
     axes : numpy.ndarray, optional
         Pre-existing array of axes to populate; if None, a new figure and axes are created.
     figsize : (float, float) default (12,12)

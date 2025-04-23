@@ -6,8 +6,6 @@ import jax.numpy as jnp
 from typing import Callable, Tuple, Dict
 from .tools import Constants
 from .distances import dM
-
-# from .radiation import Omega_n_mass, Omega_n_rel, Tcmb_to_Omega_gamma
 from cosmologix import densities
 
 
@@ -18,7 +16,7 @@ def z_star(params):
     """Redshift of the recombination"""
     Obh2 = params["Omega_b_h2"]
     h2 = params["H0"] ** 2 * 1e-4
-    odm = params["Omega_m"] + params["Omega_nu"]
+    odm = params["Omega_bc"] + params["Omega_nu"]
     g1 = 0.0783 * Obh2**-0.238 / (1 + 39.5 * Obh2**0.763)
     g2 = 0.560 / (1 + 21.1 * Obh2**1.81)
     return 1048 * (1 + 0.00124 * Obh2**-0.738) * (1 + g1 * (odm * h2) ** g2)
@@ -30,7 +28,7 @@ def z_drag(params):
     Fitting formulae for adiabatic cold dark matter cosmology.
     Eisenstein & Hu (1997) Eq.4, ApJ 496:605
     """
-    omegamh2 = params["Omega_m"] * (params["H0"] * 1e-2) ** 2
+    omegamh2 = params["Omega_bc"] * (params["H0"] * 1e-2) ** 2
     b1 = 0.313 * (omegamh2**-0.419) * (1 + 0.607 * omegamh2**0.674)
     b2 = 0.238 * omegamh2**0.223
     return (
@@ -118,7 +116,7 @@ def rd_approx(params):
     Formula from DESI 1yr cosmological result paper arxiv:2404.03002
     """
     omega_b = params["Omega_b_h2"]
-    omega_m = params["Omega_m"] * (params["H0"] / 100) ** 2
+    omega_m = params["Omega_bc"] * (params["H0"] / 100) ** 2
     return (
         147.05
         * (omega_m / 0.1432) ** (-0.23)

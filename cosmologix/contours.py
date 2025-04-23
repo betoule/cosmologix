@@ -20,7 +20,7 @@ import numpy as np
 
 def frequentist_contour_2D(
     likelihoods,
-    grid={"Omega_m": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]},
+    grid={"Omega_bc": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]},
     varied=[],
     fixed=None,
 ):
@@ -97,7 +97,7 @@ def frequentist_contour_2D(
 
 def frequentist_contour_2D_sparse(
     likelihoods,
-    grid={"Omega_m": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]},
+    grid={"Omega_bc": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]},
     varied=[],
     fixed=None,
     confidence_threshold=95,  # 95% confidence for 2 parameters; adjust as needed
@@ -259,7 +259,7 @@ def frequentist_contour_2D_sparse(
 
 def frequentist_1D_profile(
     likelihoods,
-    grid={"Omega_m": []},
+    grid={"Omega_bc": []},
     fixed=None,
     confidence_threshold=99.74,  # 95% confidence for 2 parameters; adjust as needed
 ):

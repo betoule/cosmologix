@@ -172,7 +172,7 @@ class GeometricCMBLikelihood(Chi2FullCov):
     def model(self, params):
         params = densities.process_params(params)
         params["Omega_c_h2"] = params["Omega_c"] * (params["H0"] ** 2 * 1e-4)
-        params["Omega_bc_h2"] = params["Omega_m"] * (params["H0"] ** 2 * 1e-4)
+        params["Omega_bc_h2"] = params["Omega_bc"] * (params["H0"] ** 2 * 1e-4)
         params["100theta_MC"] = theta_MC(params)
         params["theta_MC"] = params["100theta_MC"] / 100.0
         return jnp.array([params[param] for param in self.param_names])
@@ -544,7 +544,7 @@ def SH0ES():
 # 10.1051/0004-6361/201833910
 Planck18 = {
     "Tcmb": 2.7255,  # from Planck18 arxiv:1807.06209 footnote 14 citing Fixsen 2009
-    "Omega_m": (0.02233 + 0.1198) / (67.37 / 100) ** 2,  # ±0.0074
+    "Omega_bc": (0.02233 + 0.1198) / (67.37 / 100) ** 2,  # ±0.0074
     "H0": 67.37,  # ±0.54
     "Omega_b_h2": 0.02233,  # ±0.00015
     "Omega_k": 0.0,
@@ -559,7 +559,7 @@ Planck18 = {
 # Baseline LCDM, Planck 2018 base_plikHM_TTTEEE_lowl_lowE_lensing mean
 DESI2024YR1_Fiducial = {
     "Tcmb": 2.7255,  # from Planck18 arxiv:1807.06209 footnote 14 citing Fixsen 2009
-    "Omega_m": (0.02237 + 0.1200) / (67.36 / 100) ** 2,
+    "Omega_bc": (0.02237 + 0.1200) / (67.36 / 100) ** 2,
     "H0": 67.36,  # ±0.54
     "Omega_b_h2": 0.02237,  # ±0.00015
     "Omega_k": 0.0,

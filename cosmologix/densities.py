@@ -183,7 +183,7 @@ def process_params(params):
     The Planck and CCL convention to count Omega_nu_massive as a
     contribution to Omega_m is very inconvenient in the context of our
     jax computations because it causes branching issues around m_nu =
-    0. Therefore we follow the convention that Omega_m = Omega_c +
+    0. Therefore we follow the convention that Omega_bc = Omega_c +
     Omega_b. To count Omega_nu_massive and Omega_nu_massless, use the
     function derived_parameters.
     """
@@ -198,12 +198,12 @@ def process_params(params):
     derived_params["m_nu_bar"] = neutrinos.convert_mass_to_reduced_parameter(
         params["m_nu"], derived_params["T_nu"]
     )
-    derived_params["Omega_c"] = params["Omega_m"] - derived_params["Omega_b"]
+    derived_params["Omega_c"] = params["Omega_bc"] - derived_params["Omega_b"]
     derived_params["Omega_nu"] = Omega_nu(derived_params, jnp.array([0]))[0]
     derived_params["Omega_x"] = (
         1
         - derived_params["Omega_k"]
-        - derived_params["Omega_m"]
+        - derived_params["Omega_bc"]
         - derived_params["Omega_gamma"]
         - derived_params["Omega_nu"]
     )
@@ -220,6 +220,7 @@ def derived_parameters(params):
     massless = params["m_nu_bar"] == 0
     params["Omega_nu_massless"] = rho_nu[:, massless].sum().item()
     params["Omega_nu_massive"] = rho_nu[:, ~massless].sum().item()
+    params["Omega_m"] = params["Omega_bc"] + params["Omega_nu_massive"]
     return params
 
 

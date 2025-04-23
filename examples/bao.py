@@ -16,15 +16,15 @@ desiu = likelihoods.DESIDR1Prior(True)
 
 # Prep for flat ΛCDM fit
 fixed = lcdm_deviation()
-fixed.pop("Omega_m")
+fixed.pop("Omega_bc")
 
 results = fit([desiu], fixed=fixed, verbose=True, initial_guess=lcdm_deviation())
 
 # Reconstruct the full vector of parameters
 aparams = lcdm_deviation(**results["bestfit"])
 
-# Extract the Omega_m and error
-Om = results["bestfit"]["Omega_m"]
+# Extract the Omega_bc and error
+Om = results["bestfit"]["Omega_bc"]
 eOm = jnp.sqrt(jnp.diag(results["FIM"]))[0]
 
 # Compute residuals
@@ -73,6 +73,6 @@ for dist_type, distfunc, zscale, label in [
     )
 ax2.set_xlabel(r"$z$")
 ax2.set_ylabel("residuals/model")
-ax2.axhline(0, color="k", label=rf"$\Omega_m = {Om:.3f} ± {eOm:.3f}$")
+ax2.axhline(0, color="k", label=rf"$\Omega_bc = {Om:.3f} ± {eOm:.3f}$")
 ax1.legend(loc="lower right", frameon=False)
 ax2.legend(loc="lower right", frameon=False)

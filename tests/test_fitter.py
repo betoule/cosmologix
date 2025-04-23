@@ -39,7 +39,7 @@ def control_fitter_bias_and_coverage(priors, point, fitter, ndraw=50):
 # @pytest.mark.slow
 # def test_newton_fitter():
 #    des = likelihoods.DES5yr()
-#    point = {"Omega_m": 0.3, "M": 0.0}
+#    point = {"Omega_bc": 0.3, "M": 0.0}
 #    control_fitter_bias_and_coverage([des], point, newton, ndraw=50)
 
 
@@ -55,7 +55,7 @@ def test_simple_fit():
     }
     result = fit(priors, fixed=fixed, verbose=True)
     display.pretty_print(result)
-    display.plot_2D(result, "Omega_m", "Omega_b_h2")
+    display.plot_2D(result, "Omega_bc", "Omega_b_h2")
 
 
 def test_de_fit():
@@ -80,13 +80,13 @@ if __name__ == "__main__":
     pl = likelihoods.Planck2018Prior()
     desiu = likelihoods.DESIDR1Prior(True)
     point = {
-        "Omega_m": 0.3,
+        "Omega_bc": 0.3,
         "M": 0.0,
     }
 
 
 #    fixed_params = Planck18.copy()
-#    fixed_params.pop("Omega_m")
+#    fixed_params.pop("Omega_bc")
 #    fixed_params.pop("w")
 #
 #    likelihoods = [des]
