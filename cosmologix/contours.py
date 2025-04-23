@@ -257,6 +257,7 @@ def frequentist_contour_2D_sparse(
         "extra": extra,
     }
 
+
 def frequentist_1D_profile(
     likelihoods,
     grid={"Omega_bc": []},
@@ -330,16 +331,10 @@ def frequentist_1D_profile(
     directions = [1, -1]  # right, left
 
     # Progress bar with estimated total
-    with tqdm(
-        total=grid_size, desc="Exploring contour (upper bound estimate)"
-    ) as pbar:
+    with tqdm(total=grid_size, desc="Exploring contour (upper bound estimate)") as pbar:
         while queue:
             i = queue.popleft()
-            if (
-                i in visited
-                or i < 0
-                or i >= grid_size
-            ):
+            if i in visited or i < 0 or i >= grid_size:
                 continue
 
             visited.add(i)

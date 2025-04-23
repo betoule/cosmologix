@@ -38,11 +38,13 @@ DEFAULT_RANGE = {
     "Omega_b_h2": [0.01, 0.04],
 }
 
+
 def validate_fix(*args):
     if args[0] in list(Planck18.keys()) + ["M", "rd"]:
         return args[0]
     else:
         return float(args[0])
+
 
 def main():
     parser = argparse.ArgumentParser(description="Cosmologix Command Line Interface")
@@ -120,8 +122,7 @@ def main():
         "explore", help="Explore a 2D parameter space"
     )
     explore_parser.add_argument(
-        "params", nargs='+',
-        help="parameters to explore (e.g., Omega_bc w)"
+        "params", nargs="+", help="parameters to explore (e.g., Omega_bc w)"
     )
     explore_parser.add_argument(
         "--resolution",
@@ -390,14 +391,16 @@ def run_explore(args):
         fixed.pop(par)
     for par, value in args.fix:
         fixed[par] = value
-    range_x = args.range_x if args.range_x is not None else DEFAULT_RANGE[args.params[0]]
-    grid_params = {
-        args.params[0]: range_x + [args.resolution]
-        }
+    range_x = (
+        args.range_x if args.range_x is not None else DEFAULT_RANGE[args.params[0]]
+    )
+    grid_params = {args.params[0]: range_x + [args.resolution]}
     if len(args.params) == 2:
-        range_y = args.range_y if args.range_y is not None else DEFAULT_RANGE[args.params[1]]
+        range_y = (
+            args.range_y if args.range_y is not None else DEFAULT_RANGE[args.params[1]]
+        )
         grid_params[args.params[1]] = range_y + [args.resolution]
-    
+
         grid = contours.frequentist_contour_2D_sparse(
             priors,
             grid=grid_params,
@@ -409,27 +412,33 @@ def run_explore(args):
             priors,
             grid=grid_params,
             fixed=fixed,
-            #confidence_threshold=args.confidence_threshold,
+            # confidence_threshold=args.confidence_threshold,
         )
     else:
-        grid = {'list':[]}
+        grid = {"list": []}
         for i, param1 in enumerate(args.params):
             grid_params = {param1: DEFAULT_RANGE[param1] + [args.resolution]}
-            grid['list'].append(contours.frequentist_1D_profile(
-                priors,
-                grid=grid_params,
-                fixed=fixed,
-                #confidence_threshold=args.confidence_threshold,
-            ))
-            for j, param2 in enumerate(args.params[i+1:]):
-                grid_params = {param1: DEFAULT_RANGE[param1] + [args.resolution],
-                               param2:DEFAULT_RANGE[param2] + [args.resolution]}
-                grid['list'].append(contours.frequentist_contour_2D_sparse(
+            grid["list"].append(
+                contours.frequentist_1D_profile(
                     priors,
                     grid=grid_params,
                     fixed=fixed,
-                    confidence_threshold=args.confidence_threshold,
-                ))
+                    # confidence_threshold=args.confidence_threshold,
+                )
+            )
+            for j, param2 in enumerate(args.params[i + 1 :]):
+                grid_params = {
+                    param1: DEFAULT_RANGE[param1] + [args.resolution],
+                    param2: DEFAULT_RANGE[param2] + [args.resolution],
+                }
+                grid["list"].append(
+                    contours.frequentist_contour_2D_sparse(
+                        priors,
+                        grid=grid_params,
+                        fixed=fixed,
+                        confidence_threshold=args.confidence_threshold,
+                    )
+                )
     if args.label:
         grid["label"] = args.label
     else:
@@ -449,7 +458,7 @@ def run_contour(args):
         grid = tools.load(input_file)
         color = args.color.get(i, contours.color_theme[i])
         label = args.label.get(i, None)
-        if len(grid['params']) == 2:
+        if len(grid["params"]) == 2:
             contours.plot_contours(
                 grid,
                 filled=i not in args.not_filled,
@@ -483,7 +492,7 @@ def run_corner(args):
         # distinguish between fit results and chi2 maps
         if "list" in result:
             axes, param_names = display.corner_plot_contours(
-                result['list'],
+                result["list"],
                 axes=axes,
                 param_names=param_names,
                 color=display.color_theme[i],
@@ -504,7 +513,7 @@ def run_corner(args):
         axes[0, -1].plot(jnp.nan, jnp.nan, color=display.color_theme[i], label=label)
     axes[0, -1].legend(frameon=True)
     axes[0, -1].set_visible(True)
-    axes[0, -1].axis('off')
+    axes[0, -1].axis("off")
     plt.tight_layout()
     if args.output:
         plt.savefig(args.output, dpi=300)

@@ -184,19 +184,21 @@ def plot_2D(
     ax.plot(*mean, marker=marker, ls="None", color=color, **kwargs)
     plot_confidence_ellipse(mean, cov, ax=ax, n_sigmas=n_sigmas, color=color, **kwargs)
 
+
 def plot_profile(
-        grid,
-        label=None,
-        ax=None,
-        color=color_theme[0],
+    grid,
+    label=None,
+    ax=None,
+    color=color_theme[0],
 ):
-    param = grid['params'][0]
+    param = grid["params"][0]
     chi2_min = grid["extra"]["loss"][-1]
     if ax is None:
         ax = plt.gca()
         ax.set_xlabel(latex_translation[param])
-    ax.plot(grid['x'], jnp.exp(-0.5 * (grid['chi2'] - chi2_min)), color=color)
-    
+    ax.plot(grid["x"], jnp.exp(-0.5 * (grid["chi2"] - chi2_min)), color=color)
+
+
 def plot_contours(
     grid,
     label=None,
@@ -432,7 +434,7 @@ def corner_plot_contours(grids=[], axes=None, param_names=None, **keys):
     if axes is None:
         axes = corner_plot(param_names)
     for grid in grids:
-        if len(grid['params']) == 2:
+        if len(grid["params"]) == 2:
             param, param2 = grid["params"]
             i = param_names.index(param)
             j = param_names.index(param2)
@@ -441,7 +443,7 @@ def corner_plot_contours(grids=[], axes=None, param_names=None, **keys):
             else:
                 plot_contours(grid, ax=axes[i, j], transpose=True, **keys)
         else:
-            param = grid['params'][0]
+            param = grid["params"][0]
             i = param_names.index(param)
             plot_profile(grid, ax=axes[i, i], **keys)
     return axes, param_names
