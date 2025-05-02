@@ -266,6 +266,7 @@ Detailed documentation for each function and module can be found in the source c
 - 1D profile likelihoods
 - Group exploration results in a single file
 - Improve handling of labels in corner plots
+- Change name of `Omega_m` to `Omega_bc` to lift possible confusion on neutrinos contribution accounting
 
 ### v0.9.5 (current)
 - Add DESI DR2 BAO measurements (rename DESI2024 to DESIDR1 for consistency)

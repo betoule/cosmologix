@@ -223,18 +223,9 @@ class Constants:
     sigma = (
         2 * jnp.pi**5 * k**4 / (15 * h**3 * c**2)
     )  # Stefan-Boltzmann constant J/s / K^4 /m^2
-    qmax = 30
-    nq = 100
-    const = 7.0 / 120 * jnp.pi**4
-    const2 = 5.0 / 7.0 / jnp.pi**2
-    N = 2000
-    am_min = 0.01
-    am_max = 600.0
     zeta3 = 1.2020569031595942853997
     zeta5 = 1.0369277551433699263313
-    neutrino_mass_fac = (
-        94.082  # Conversion factor for thermal neutrinos with Neff=3, TCMB=2.7255
-    )
+
 
 
 def load_csv_from_url(url, delimiter=","):

@@ -196,7 +196,7 @@ def distance_accuracy(params=Planck18.copy(), title="distance_accuracy"):
         "ccl": mu_ccl,
         "camb": mu_camb,
         "astropy": mu_astropy,
-        "cosmologix coarse (1000)": lambda params, z: mu(params, z, 1000),
+        "cosmologix coarse ($10^3$ nodes)": lambda params, z: mu(params, z, 1000),
         "cosmoprimo": mu_cosmoprimo,
         # "jax_cosmo": mu_jaxcosmo,
     }
@@ -211,7 +211,7 @@ def distance_accuracy(params=Planck18.copy(), title="distance_accuracy"):
     ax1.set_xscale("log")
     ax1.legend(frameon=False, loc="best")
     ax2.set_xlabel(r"$z$")
-    ax2.set_ylabel(r"$\mu - \mu_{baseline}$")
+    ax2.set_ylabel(r"$\mu - \mu_{fine}$")
     ax2.set_ylim([-1e-4, 1e-4])
     ax1.set_ylabel(r"$\mu$")
 
@@ -247,10 +247,10 @@ if __name__ == "__main__":
     plt.ion()
     plt.rc("text", usetex=True)
     plt.rc("axes.spines", top=False, right=False, bottom=True, left=True)
-
+    
     distance_accuracy()
     plt.tight_layout()
-    plt.savefig("doc/mu_accuracy.svg")
+    plt.savefig("doc/mu_accuracy.pdf")
     distance_accuracy(
         lcdm_deviation(m_nu=0.0), title="distance_accuracy (massless neutrinos)"
     )

@@ -13,7 +13,9 @@ from cosmologix import densities
 # Approximation for z_star and z_drag
 #
 def z_star(params):
-    """Redshift of the recombination"""
+    """Redshift of the recombination
+    From Hu & Sugiyama (1996) Eq. E-1 
+    """
     Obh2 = params["Omega_b_h2"]
     h2 = params["H0"] ** 2 * 1e-4
     odm = params["Omega_bc"] + params["Omega_nu"]
