@@ -46,6 +46,7 @@ test = [
     "scipy",
     "camb",
     "astropy",
+    "jax_cosmo",
 ]
 [project.urls]
 "Source Code" = "https://gitlab.in2p3.fr/lemaitre/cosmologix"

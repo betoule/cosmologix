@@ -16,9 +16,12 @@ authors:
   - name: Kuhn, Dylan
 	orcid: 0009-0005-8110-397X
     affiliation: 1
-  - name: Le Jeune, Maude
+  - name: Le Jeune, Maude
     orcid: 0000-0002-1008-3394
 	affiliation: 3
+  - name: Bernard, Mathieu
+    orcid: 0000-0000-0000-0000
+	affiliation: 1
 affiliations:
  - name: LPNHE, CNRS, France
    index: 1
@@ -55,14 +58,17 @@ distance modulus over the redshift range $0.01 < z < 1000$.
 # Statement of need
 
 Several software are available to compute cosmological distances
-including `astropy` [@astropy], `camb` [@Challinor:2011bk], `class` [@class1],
-`ccl` [@ccl]. To our knowledge only `jax-cosmo` [@jaxcosmo] and
-`cosmoprimo` [@cosmoprimo] provide automatic differentiation through
-the use of JAX. Unfortunately, at the time of writing, the computation
-in cosmoprimo does not seem to be jitable and distance computation in
-jax-cosmo is neglecting contributions to the energy density from
-neutrinos species. The accuracy of the resulting computation is
-insufficient for the need of the LEMAITRE analysis.
+including `astropy` [@astropy], `camb` [@Challinor:2011bk], `class`
+[@class1], `ccl` [@ccl]. To our knowledge only `jax-cosmo` [@jaxcosmo]
+and `cosmoprimo` [@cosmoprimo] provide automatic differentiation
+through the use of JAX. Unfortunately, at the time of writing, the
+computation in cosmoprimo does not seem to be jitable and distance
+computation in jax-cosmo is neglecting contributions to the energy
+density from neutrinos species. The accuracy of the resulting
+computation is insufficient for the need of the LEMAITRE analysis, a
+compilation of type-Ia Supernovae joining the very large sample of
+nearby events discovered by ZTF [@rigault:2025] to higher redshift
+events from the SNLS [@astier:2006] and HSC [@yasuda:2019].
 
 The LEMAITRE collaboration is therefore releasing its internal code
 for the computation of cosmological distances. The computation itself
@@ -71,17 +77,27 @@ while preserving reasonable accuracy.
 
 # Computations of the homogeneous background evolution
 
+The core of the library provides `jax` functions to compute the
+evolution of energy density in the universe (module
+`cosmologix.densities`) and use them to provide efficient computation
+of derived quantities such as cosmological distances (module
+`cosmologix.distances`). The goal of this section is to specifically
+document the core of the implementation. We adopt commonly used
+notations and the code itself follow the same notations, spelling-out
+greek letters, whenever possible.
+
 ## Friedmann equations
 
 All computations in `cosmologix` are made for the
 Friedman-Lemaitre-Robertson-Walker metric (isotropic and homogeneous
-universe).
+universe), whose length element $ds$ writes as a function of cosmological
+time $t$, scale factor $R(t)$ and spherical spatial coordinates $(r, \theta, \phi)$:
 \begin{equation}
   \label{eq:27}
   ds^2 = -c^2dt^2 + R^2(t) \left(\frac{dr^2}{1-kr^2} + r^2(d\theta^2 +
     sin^2\theta d\phi^2) \right) \quad \text{with} \quad k = \lbrace-1, 0, 1\rbrace.
 \end{equation}
-Denoting $a = \frac{R}{R_0}$ and:
+Denoting $a(t) = \frac{R(t)}{R_0}$ and:
 $$
 S=\left\lbrace
     \begin{array}{l}
@@ -91,9 +107,9 @@ S=\left\lbrace
     \end{array}
   \right.,
 $$
-and $r = S\left(\frac{\chi}{R_0}\right)$, the metrics rewrites:
+and $r = S\left(\frac{\chi}{R_0}\right)$, to define the comoving coordinate $\chi$, the metrics rewrites:
 \begin{equation}
-    ds^2 = -c^2 dt^2 +  a^2(t)\left( d\chi^2 + R_0^2 S^2\left(\frac{\chi}{R_0}\right) d\Omega^2\right)
+    ds^2 = -c^2 dt^2 +  a^2(t)\left( d\chi^2 + R_0^2 S^2\left(\frac{\chi}{R_0}\right) d\Omega^2\right).
 \end{equation}
 
 The first Friedman equation without the cosmological
@@ -104,19 +120,33 @@ constant term (whose role will be held by the fluid) reads:
   H^2 = \frac{8\pi G}{3}\rho - \frac{k}{R^2}\,,
 \end{equation}
 
-where $\rho$ is the proper energy density, $R$ the scale factor, $H =
+where $\rho$ is the proper energy density, $H =
 \dot R / R$ the Hubble parameter and $k = {-1, 0, 1}$ is the sign of
 spatial curvature. The value of constants (such as $G$) used in the
-code are given in Table
+code are given in \autoref{tab:constants}.
+
+: Physical constants used in the code\label{tab:constants}.
+
+| Variable | name                   | Value          | Unit       |
+|----------|------------------------|----------------|------------|
+| $G$      | Gravitational constant | 6.67384e-11    | m^3/kg/s^2 |
+| $c$      | Speed of light         | 299792458.0    | m/s        |
+| pc       | Parsec                 | 3.08567758e16  | m          |
+| $m_p$    | Proton mass            | 1.67262158e-27 | kg         |
+| $h$      | Planck constant        | 6.62617e-34    | J.s        |
+| $k$      | Boltzman constant      | 1.38066e-23    | J/K        |
+| $e$      | Electron charge        | 1.60217663e-19 | C          |
+
+
 
 Denoting, as usual, $\rho_{c} = \frac{3 H_0^2}{8\pi G}$ the
 critical value of the density for which the universe today is flat,
 $\Omega_0 = \frac{\rho_0}{\rho_{c}}$ the reduced energy density
-today and $\Omega_k = -\frac{k}{R^2_0H^2_0}$, one can rewrite equation
+today and $\Omega_k = -\frac{k}{R^2_0H^2_0}$, one can rewrite the equation
 under its most common form: \begin{equation} \label{eq:3}
-\frac{H^2}{H_0^2} = \Omega_0 \frac{\rho}{\rho_0} + \Omega_k (1+z)^2
+\frac{H^2}{H_0^2} = \Omega_0 \frac{\rho}{\rho_0} + \Omega_k (1+z)^2,
 \end{equation}
-
+with the redshift $z$ defined as $1+z = 1/a$. 
 
 ## Densities
 
@@ -143,7 +173,7 @@ which can be integrated to give:
 
 \begin{equation}
   \label{eq:5}
-  \log \frac{\rho_x}{\rho_x^0} = 3 \int_0^z \frac{1+w_x(z)}{1+z}dz
+  \log \frac{\rho_x}{\rho_x^0} = 3 \int_0^z \frac{1+w_x(z)}{1+z}dz\,.
 \end{equation}
 
 In the code the following components follow this description, with
@@ -263,12 +293,12 @@ We prefered the use of $\Omega_{bc}$ to $\Omega_m$ as a primary variable, becaus
 In the code, we denote:
 \begin{equation}
   \label{eq:28}
-  d_H = \frac{c}{H(z)}
+  d_H = \frac{c}{H(z)}\,.
 \end{equation}
 The comoving distance (coordinate) is:
 \begin{equation}
   \label{eq:25}
-  d_C(z) = \chi(z) = d_{H_0} \int_o^z \frac{dz'}{H/H_0}
+  d_C(z) = \chi(z) = d_{H_0} \int_o^z \frac{dz'}{H/H_0}\,.
 \end{equation}
 The integral is much easier to evaluate numerically with the following change of variable $u = (1+z)^{-1/2}$:
 \begin{equation}
