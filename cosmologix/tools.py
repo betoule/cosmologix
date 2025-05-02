@@ -1,26 +1,28 @@
-import time
-import jax.numpy as jnp
-from jax import lax
-import jax
-from typing import Callable, Tuple
-import numpy as np
-import os
+"""
+cache management.
+"""
+
 import hashlib
+import os
 from pathlib import Path
-import shutil
 import pickle
+import shutil
+import time
+from typing import Callable, Tuple
+import jax.numpy as jnp
+import jax
+import numpy as np
 
 
 def get_cache_dir():
     """Determine the appropriate cache directory based on the OS."""
     if os.name == "nt":  # Windows
         return str(Path(os.getenv("LOCALAPPDATA")) / "Cache" / "cosmologix")
-    elif os.name == "posix":  # Unix-like systems
+    if os.name == "posix":  # Unix-like systems
         if "XDG_CACHE_HOME" in os.environ:
             return str(Path(os.environ["XDG_CACHE_HOME"]) / "cosmologix")
         return str(Path.home() / ".cache" / "cosmologix")
-    else:
-        raise OSError("Unsupported operating system")
+    raise OSError("Unsupported operating system")
 
 
 jax.config.update("jax_compilation_cache_dir", get_cache_dir())
@@ -82,7 +84,7 @@ def cached_download(url, cache_dir=None):
 
     # Download the file
     # this module is a bit slow to import (don't unless needed)
-    import requests
+    import requests  # pylint: disable=import-outside-toplevel
 
     response = requests.get(url, stream=True)
     response.raise_for_status()
@@ -212,6 +214,9 @@ def trapezoidal_rule_integration(
 
 
 class Constants:
+    """Physical constants"""
+
+    # pylint: disable=too-few-public-methods
     G = 6.67384e-11  # m^3/kg/s^2
     c = 299792458.0  # m/s
     pc = 3.08567758e16  # m
@@ -298,7 +303,7 @@ def conflevel_to_delta_chi2(level, dof=2, max_iter=1000, tol=1e-6):
 # conveniency so that random vector can be obtained with onliners when
 # need. This will note ensure actual randomness nor reproducibility.
 # To be used cautiously
-global_key = None
+GLOBAL_KEY = None
 
 
 def randn(sigma, n=None, key=None):
@@ -336,15 +341,15 @@ def randn(sigma, n=None, key=None):
     >>> randn(1.0, (2, 3))  # 2x3 matrix of random numbers scaled by 1.0
     >>> randn(jnp.array([1, 2, 3]))  # Vector scaled by different sigmas
     """
-    global global_key
+    global GLOBAL_KEY
     if key is None:
-        if global_key is None:
+        if GLOBAL_KEY is None:
             # This global random key at the module level is provided for
             # conveniency so that random vector can be obtained with onliners when
             # need. This will note ensure actual randomness nor reproducibility.
             # To be used cautiously
-            global_key = jax.random.PRNGKey(42)
-        global_key, subkey = jax.random.split(global_key)
+            GLOBAL_KEY = jax.random.PRNGKey(42)
+        GLOBAL_KEY, subkey = jax.random.split(GLOBAL_KEY)
     else:
         subkey = key
     if n is None:
@@ -386,7 +391,7 @@ def speed_measurement(func, *args, n=10):
 
 def save(grid, filename):
     """Save data dictionary to a pickle file."""
-    import pickle
+    import pickle  # pylint: disable=import-outside-toplevel
 
     with open(filename, "wb") as fid:
         pickle.dump(grid, fid)
@@ -394,7 +399,7 @@ def save(grid, filename):
 
 def load(filename):
     """Load data dictionary from a pickle file."""
-    import pickle
+    import pickle  # pylint: disable=import-outside-toplevel
 
     with open(filename, "rb") as fid:
         return pickle.load(fid)

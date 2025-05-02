@@ -1,9 +1,13 @@
+"""
+interpolation facilities
+"""
+
+import hashlib
+import os
+import numpy as np
 import jax
 import jax.numpy as jnp
 from cosmologix.tools import get_cache_dir
-import numpy as np
-import hashlib
-import os
 
 
 def barycentric_weights(x):
@@ -26,7 +30,8 @@ def barycentric_weights(x):
 
 
 def chebyshev_nodes(n, a, b):
-    """Compute n Chebyshev nodes of the second kind on the interval [a, b]."""
+    """Compute n Chebyshev nodes of the second kind on the interval [a,b]."""
+
     # Compute indices k = 0, 1, ..., n
     k = np.arange(n + 1)
 
@@ -196,7 +201,8 @@ def linear_interpolation(
 
 
 def newton_interpolant(func, a, b, n=10):
-    """Return a polynomial interpolant of the provided function on interval [a, b] using n chebyshev_nodes
+    """Return a polynomial interpolant of the provided function on
+    interval [a, b] using n chebyshev_nodes
 
     The polynomial is evaluated using the Newton formula whose precomputation is in O(n²).
     """
@@ -205,7 +211,8 @@ def newton_interpolant(func, a, b, n=10):
 
 
 def barycentric_interpolant(func, a, b, n=10):
-    """Return a polynomial interpolant of the provided function on interval [a, b] using n chebyshev nodes.
+    """Return a polynomial interpolant of the provided function on
+    interval [a, b] using n chebyshev nodes.
 
     The polynomial is evaluated using the barycentric formula which is
     faster to precompute for chebyshev nodes than the newton formula
@@ -220,6 +227,7 @@ def barycentric_interpolant(func, a, b, n=10):
 
 
 def linear_interpolant(func, a, b, n=10):
-    """Return a linear interpolant of the provided function on interval [a, b] using n regularly spaced nodes."""
+    """Return a linear interpolant of the provided function on
+    interval [a, b] using n regularly spaced nodes."""
     nodes = jnp.linspace(a, b * (1 + 1e-6), n)
     return lambda x: linear_interpolation(x, func(nodes), nodes)
