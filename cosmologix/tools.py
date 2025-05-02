@@ -227,7 +227,6 @@ class Constants:
     zeta5 = 1.0369277551433699263313
 
 
-
 def load_csv_from_url(url, delimiter=","):
     """
     Load a CSV file from a URL directly into a NumPy array

@@ -247,7 +247,7 @@ if __name__ == "__main__":
     plt.ion()
     plt.rc("text", usetex=True)
     plt.rc("axes.spines", top=False, right=False, bottom=True, left=True)
-    
+
     distance_accuracy()
     plt.tight_layout()
     plt.savefig("doc/mu_accuracy.pdf")

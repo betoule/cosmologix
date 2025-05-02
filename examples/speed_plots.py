@@ -3,6 +3,7 @@ import time
 import jax
 import numpy as np
 
+
 def speed_measurement(func, params, z, n=10):
     tstart = time.time()
     result = func(params, z)
@@ -11,9 +12,9 @@ def speed_measurement(func, params, z, n=10):
     for _ in range(n):
         t0 = time.time()
         result = jax.block_until_ready(func(params, z))
-        dur.append(time.time()-t0)
+        dur.append(time.time() - t0)
     # return (len(z), tcomp-tstart, (tstop-tcomp)/n)
-    return (tcomp - tstart, np.mean(dur), np.std(dur)/np.sqrt(n))
+    return (tcomp - tstart, np.mean(dur), np.std(dur) / np.sqrt(n))
 
 
 if __name__ == "__main__":
@@ -48,7 +49,7 @@ if __name__ == "__main__":
     fig = plt.figure("mu_speed")
     ax1, ax2 = fig.subplots(1, 2, sharey=True, sharex=True)
     for func in tested:
-        ax2.errorbar(ns, result[func][:, 1], result[func[:, 2]],label=func)
+        ax2.errorbar(ns, result[func][:, 1], result[func[:, 2]], label=func)
     for func in tested:
         ax1.plot(ns, result[func][:, 0], label=func)
     ax1.set_title("first call")
