@@ -22,6 +22,20 @@ lint:
     - black --check --diff .
   allow_failure: false
 
+#Linting stage to check code style with pylint 
+pylint:
+  stage: lint
+  script:
+    - pip install pylint pylint-exit anybadge
+    - pylint cosmologix/*.py | tee pylint.txt || pylint-exit $?
+    - score=$(sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' pylint.txt)
+    - echo "Pylint score was $score"
+    - anybadge -l pylint -v $score -f pylint.svg 2=red 4=orange 8=yellow 10=green
+  artifacts:
+    paths:
+      - pylint.svg
+
+
 # Testing stage to run your tests
 test:
   stage: test
