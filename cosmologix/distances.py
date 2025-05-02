@@ -1,11 +1,14 @@
+"""
+Distance computation facilities
+"""
+
+from typing import Dict
+from functools import partial
 import jax.numpy as jnp
 from jax import lax
 import jax
-from typing import Callable, Tuple, Dict
-from .tools import Constants
-from .interpolation import linear_interpolation
 from cosmologix.densities import Omega
-from functools import partial
+from .tools import Constants
 
 jax.config.update("jax_enable_x64", True)
 

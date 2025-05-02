@@ -1,12 +1,16 @@
-from cosmologix import densities
+"""
+contribution from neutrinos
+
+"""
+
+import jax.numpy as jnp
+import jax
 from cosmologix.tools import Constants, trapezoidal_rule_integration, safe_vmap
 from cosmologix.interpolation import (
     chebyshev_nodes,
     newton_interp,
     cached_newton_divided_differences,
 )
-import jax.numpy as jnp
-import jax
 
 jax.config.update("jax_enable_x64", True)
 

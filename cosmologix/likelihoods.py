@@ -1,15 +1,20 @@
+"""
+Chi squared and log likelihood
+"""
+
+from functools import partial
+import numpy as np
+from jax import jit
+import jax.numpy as jnp
 from cosmologix.distances import dM, dH, dV
 from cosmologix.acoustic_scale import theta_MC, rd_approx
 from cosmologix import mu, densities
-import jax.numpy as jnp
 from cosmologix.tools import randn, cached
-from jax import lax, vmap, jit
-from functools import partial
-import numpy as np
 
 
 class Chi2:
-    """Abstract implementation of chi-squared (χ²) evaluation for statistical analysis.
+    """Abstract implementation of chi-squared (χ²) evaluation for
+    statistical analysis.
 
     This class provides a framework for computing the chi-squared
     statistic, which is commonly used to evaluate how well a model
@@ -26,6 +31,7 @@ class Chi2:
     - data: The observed data values.
     - model: A function or callable that takes parameters and returns model predictions.
     - error: The uncertainties or standard deviations of the data points.
+
     """
 
     def residuals(self, params):
@@ -53,9 +59,8 @@ class Chi2:
         return self.residuals(params) / self.error
 
     def negative_log_likelihood(self, params):
-        """
-        Compute the negative log-likelihood, which is equivalent to half the chi-squared
-        statistic for normally distributed errors.
+        """Compute the negative log-likelihood, which is equivalent to half
+        the chi-squared statistic for normally distributed errors.
 
         Parameters:
         - params: A dictionary or list of model parameters.
@@ -63,6 +68,7 @@ class Chi2:
         Returns:
         - float: The sum of the squares of the weighted residuals, representing
           -2 * ln(likelihood) for Gaussian errors.
+
         """
         return (self.weighted_residuals(params) ** 2).sum()
 
@@ -99,6 +105,7 @@ class Chi2FullCov(Chi2):
 
 
 class LikelihoodSum:
+
     def __init__(self, likelihoods):
         self.likelihoods = likelihoods
 
@@ -121,6 +128,7 @@ class LikelihoodSum:
 
 
 class MuMeasurements(Chi2FullCov):
+
     def __init__(self, z_cmb, mu, mu_cov=None, weights=None):
         self.z_cmb = jnp.atleast_1d(z_cmb)
         self.data = jnp.atleast_1d(mu)
@@ -196,7 +204,9 @@ class UncalibratedBAOLikelihood(Chi2FullCov):
 
         covariance: covariance matrix of vector mean
 
-        dist_type_labels: list of labels for distances among ['DV_over_rd', 'DM_over_rd', 'DH_over_rd']
+        dist_type_labels: list of labels for distances among
+        ['DV_over_rd', 'DM_over_rd', 'DH_over_rd']
+
         """
         self.redshifts = jnp.asarray(redshifts)
         self.data = jnp.asarray(distances)

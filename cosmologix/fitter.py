@@ -2,10 +2,10 @@
 problems
 """
 
-import jax
-import jax.numpy as jnp
 import time
 from typing import Callable
+import jax
+import jax.numpy as jnp
 from .likelihoods import LikelihoodSum, Planck18
 
 
@@ -26,10 +26,10 @@ def unflatten_vector(p, v):
 
 
 def restrict(f: Callable, fixed_params: dict = {}) -> Callable:
-    """
-    Modify a function by fixing some of its parameters.
+    """Modify a function by fixing some of its parameters.
 
-    This is similar to functools.partial but allows fixing parts of the first pytree argument.
+    This is similar to functools.partial but allows fixing parts of
+    the first pytree argument.
 
     Parameters:
     -----------
@@ -47,6 +47,7 @@ def restrict(f: Callable, fixed_params: dict = {}) -> Callable:
     --------
     If mu expects a dictionary with 'Omega_bc' and 'w',
     restrict(mu, {'w': -1}) returns a function of 'Omega_bc' only.
+
     """
 
     def g(params, *args, **kwargs):
@@ -104,11 +105,12 @@ def restrict_to(func, complete, varied, flat=True):
         V[p] = complete[p]
     if flat:
         return lambda x: func(dict(unflatten_vector(varied, x), fixed)), V
-    else:
-        return lambda x: func(dict(x, **fixed)), V
+    return lambda x: func(dict(x, **fixed)), V
 
 
 def partial(func, param_subset):
+    """adapt func to deal with a subset of the parameters"""
+
     def _func(x, point):
         return func(dict(unflatten_vector(param_subset, x), **point))
 
@@ -193,7 +195,8 @@ class DegenerateParametersError(Exception):
 
 
 def fit(likelihoods, fixed={}, verbose=False, initial_guess=Planck18):
-    """Fit a set of likelihoods using the Gauss-Newton method with partial parameter fixing.
+    """Fit a set of likelihoods using the Gauss-Newton method with
+    partial parameter fixing.
 
     This function combines multiple likelihoods, optimizes the
     parameters using an initial guess possibly augmented by fixed
@@ -210,26 +213,36 @@ def fit(likelihoods, fixed={}, verbose=False, initial_guess=Planck18):
     Returns:
     - dict: A dictionary containing:
         - 'x': The optimized parameter values in a flattened form.
-        - 'bestfit': The best-fit parameters as a dictionary matching the initial guess format.
-        - 'FIM': An approximation of the Fisher Information Matrix (FIM) at the best fit.
-        - 'loss': The progression of loss values during optimization (from `gauss_newton_partial`).
-        - 'timings': The time taken for each iteration of the optimization (from `gauss_newton_partial`).
+        - 'bestfit': The best-fit parameters as a dictionary matching
+          the initial guess format.
+        - 'FIM': An approximation of the Fisher Information Matrix
+          (FIM) at the best fit.
+        - 'loss': The progression of loss values during optimization
+          (from `gauss_newton_partial`).
+        - 'timings': The time taken for each iteration of the
+          optimization (from `gauss_newton_partial`).
 
     Notes:
-    - The function uses `LikelihoodSum` to combine multiple likelihoods into one,
-      which must be a class that can call `.initial_guess()` with `Planck18` for a starting point.
+    - The function uses `LikelihoodSum` to combine multiple
+      likelihoods into one, which must be a class that can call
+      `.initial_guess()` with `Planck18` for a starting point.
 
     The optimization process involves:
-    1. Determining an initial guess from the combined likelihoods, updating with fixed parameters.
+
+    1. Determining an initial guess from the combined likelihoods,
+    updating with fixed parameters.
     2. Preparing the weighted residuals and Jacobian for optimization.
-    3. Using a partial Gauss-Newton method for minimization, where only non-fixed parameters are optimized.
-    4. Computing the Fisher Information Matrix for the best fit, providing insight into parameter uncertainties.
+    3. Using a partial Gauss-Newton method for minimization, where
+    only non-fixed parameters are optimized.
+    4. Computing the Fisher Information Matrix for the best fit,
+    providing insight into parameter uncertainties.
 
     Example:
     >>> priors = [likelihoods.Planck2018Prior(), likelihoods.DES5yr()]
     >>> fixed = {'Omega_k':0., 'm_nu':0.06, 'Neff':3.046, 'Tcmb': 2.7255}
     >>> result = fit(priors, fixed=fixed)
     >>> print(result['bestfit'])
+
     """
     likelihood = LikelihoodSum(likelihoods)
 
@@ -307,8 +320,7 @@ def fit(likelihoods, fixed={}, verbose=False, initial_guess=Planck18):
 def gauss_newton_partial(
     wres, jac, x0, fixed, niter=50, tol=1e-3, full=False, verbose=False
 ):
-    """
-    Perform partial Gauss-Newton optimization for non-linear least squares problems.
+    """Perform partial Gauss-Newton optimization for non-linear least squares problems.
 
     This function implements the Gauss-Newton method with partial updates, where some
     parameters are fixed during optimization. It iteratively minimizes the sum of
@@ -325,7 +337,8 @@ def gauss_newton_partial(
     - fixed (array-like): Fixed parameters that are not optimized.
     - niter (int): Maximum number of iterations to perform. Default is 1000.
     - tol (float): Tolerance for convergence based on the change in loss. Default is 1e-3.
-    - full (bool): If True, includes the Fisher Information Matrix (FIM) in the output. Default is False.
+    - full (bool): If True, includes the Fisher Information Matrix
+      (FIM) in the output. Default is False.
 
     Returns:
     - x (array-like): Optimized values of the free parameters.
@@ -349,7 +362,9 @@ def gauss_newton_partial(
     Example:
     >>> def residuals(x, fixed): return x - fixed
     >>> def jacobian(x, fixed): return jnp.ones_like(x)
-    >>> result, info = gauss_newton_partial(residuals, jacobian, jnp.array([2.0]), jnp.array([1.0]), niter=10, tol=1e-6)
+    >>> result, info = gauss_newton_partial(residuals, jacobian,
+                                            jnp.array([2.0]),
+                                            jnp.array([1.0]), niter=10, tol=1e-6)
     """
     timings = [time.time()]
     x = x0

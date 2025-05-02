@@ -1,9 +1,14 @@
+"""
+Plotting functions
+"""
+
+from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 import numpy as np
 import jax.numpy as jnp
 import jax
-from pathlib import Path
+
 from cosmologix.tools import conflevel_to_delta_chi2, load
 
 color_theme = ["#fbb4ae", "#b3cde3", "#ccebc5", "#decbe4", "#fed9a6", "#ffffcc"]
@@ -135,6 +140,7 @@ def plot_1D(
     ax=None,
     color=color_theme[0],
 ):
+    """1D gaussian"""
     if ax is None:
         ax = plt.gca()
         ax.set_xlabel(latex_translation[param])
@@ -164,6 +170,8 @@ def plot_2D(
     color=color_theme[0],
     **kwargs,
 ):
+    """2D ellipse"""
+
     if ax is None:
         ax = plt.gca()
     bestfit = result["bestfit"]
@@ -196,7 +204,9 @@ def plot_profile(
     if ax is None:
         ax = plt.gca()
         ax.set_xlabel(latex_translation[param])
-    ax.plot(grid["x"], jnp.exp(-0.5 * (grid["chi2"] - chi2_min)), color=color)
+    ax.plot(
+        grid["x"], jnp.exp(-0.5 * (grid["chi2"] - chi2_min)), color=color, label=label
+    )
 
 
 def plot_contours(
