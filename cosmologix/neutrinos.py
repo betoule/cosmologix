@@ -231,4 +231,3 @@ def compute_composite_integral(x):
 
     # Use lax.switch to select the appropriate branch
     return jax.lax.switch(index, branches, x)
-
