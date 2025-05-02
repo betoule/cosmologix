@@ -3,10 +3,9 @@ Fitting formulae for the acoustic scale
 """
 
 import jax.numpy as jnp
-from typing import Callable, Tuple, Dict
+from cosmologix import densities
 from .tools import Constants
 from .distances import dM
-from cosmologix import densities
 
 
 #
@@ -42,6 +41,7 @@ def z_drag(params):
 
 
 def a4H2(params, a):
+    """a**4 times H**2"""
     z = 1 / a - 1
     return a**4 * densities.Omega(params, z)
 

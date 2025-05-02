@@ -1,8 +1,16 @@
+"""
+2D contour plots backend.
+"""
+
+from collections import deque
+import numpy as np
+import jax.numpy as jnp
+from tqdm import tqdm
+
 from cosmologix.likelihoods import LikelihoodSum
 from cosmologix.fitter import (
     restrict_to,
     restrict,
-    partial,
     flatten_vector,
     gauss_newton_partial,
     gauss_newton_prep,
@@ -10,12 +18,10 @@ from cosmologix.fitter import (
 )
 from cosmologix.tools import conflevel_to_delta_chi2
 from cosmologix import Planck18
-import jax.numpy as jnp
-import matplotlib.pyplot as plt
-from collections import deque
-from tqdm import tqdm
-from cosmologix.display import color_theme, latex_translation, plot_contours
-import numpy as np
+from cosmologix.display import (
+    plot_contours,
+    color_theme,
+)  # pylint: disable=unused-import
 
 
 def frequentist_contour_2D(

@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 
+"""
+Cosmologix Command Line Interface
+"""
+
 import argparse
-import pickle
-from cosmologix import mu, fit, contours, likelihoods, Planck18, fitter, display, tools
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
+
+from cosmologix import fit, contours, likelihoods, Planck18, fitter, display, tools
 
 # Define available priors (extend this as needed)
 AVAILABLE_PRIORS = {
@@ -40,13 +44,18 @@ DEFAULT_RANGE = {
 
 
 def validate_fix(*args):
+    """string or float"""
+    # pylint: disable=consider-iterating-dictionary
     if args[0] in list(Planck18.keys()) + ["M", "rd"]:
         return args[0]
-    else:
-        return float(args[0])
+    return float(args[0])
 
 
 def main():
+    """
+    actual main
+    """
+    # pylint: disable=too-many-statements
     parser = argparse.ArgumentParser(description="Cosmologix Command Line Interface")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
@@ -327,7 +336,8 @@ def main():
 
 
 def load_mu(args):
-    import numpy as np
+    """Load distance measurement."""
+    import numpy as np  # pylint: disable=import-outside-toplevel
 
     if args.mu:
         muobs = np.load(args.mu[0])
@@ -339,11 +349,11 @@ def load_mu(args):
                 muobs["z"], muobs["mu"], muobs["muerr"]
             )
         return [like]
-    else:
-        return []
+    return []
 
 
 def auto_restricted_fit(priors, fixed, verbose):
+    """Test if there is unconstrained parameters"""
     for retry in range(3):
         try:
             result = fit(priors, fixed=fixed, verbose=verbose)
@@ -352,8 +362,8 @@ def auto_restricted_fit(priors, fixed, verbose):
             for param in e.params:
                 print(f"Fixing unconstrained parameter {param[0]}")
                 fixed[param[0]] = Planck18[param[0]]
-        except fitter.DegenerateParametersError as e:
-            print(f"Try again fixing H0")
+        except fitter.DegenerateParametersError:
+            print("Try again fixing H0")
             fixed["H0"] = Planck18["H0"]
     return result
 
@@ -484,6 +494,7 @@ def run_contour(args):
 
 
 def run_corner(args):
+    """make the corner plot."""
     axes = None
     param_names = None
     confidence_contours = []
