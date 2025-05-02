@@ -134,7 +134,7 @@ def plot_confidence_ellipse(
     return ellipse
 
 
-def plot_1D(
+def plot_1d(
     result,
     param,
     ax=None,
@@ -160,7 +160,7 @@ def plot_1D(
     ax.plot(x, np.exp(-0.5 * (x - mean) ** 2 / sigma**2), color=color)
 
 
-def plot_2D(
+def plot_2d(
     result,
     param1,
     param2,
@@ -231,7 +231,7 @@ def plot_contours(
     ----------
     grid : dict or str or path
         Dictionary or path to a pickle file containing a dictionary.
-        The dictionary contains contour data, typically from `frequentist_contour_2D_sparse`.
+        The dictionary contains contour data, typically from `frequentist_contour_2d_sparse`.
         Expected keys:
         - 'params': List of two parameter names (e.g., ['Omega_bc', 'w']).
         - 'x', 'y': 1D arrays of grid coordinates for the two parameters.
@@ -377,7 +377,7 @@ def corner_plot_fisher(results, param_names=None, axes=None, **keys):
     This function overlays 1D Gaussian distributions on the diagonal and 2D confidence
     ellipses in the lower triangle of a corner plot, based on Fisher matrix results.
     It builds on `corner_plot` for the grid layout and uses helper functions `plot_1D`
-    and `plot_2D` for the actual plotting.
+    and `plot_2d` for the actual plotting.
 
     Parameters
     ----------
@@ -388,7 +388,7 @@ def corner_plot_fisher(results, param_names=None, axes=None, **keys):
     axes : numpy.ndarray, optional
         Pre-existing array of axes; if None, created via `corner_plot`.
     **keys : dict
-        Additional keyword arguments passed to `plot_1D`, and `plot_2D`.
+        Additional keyword arguments passed to `plot_1d`, and `plot_2d`.
 
     Returns
     -------
@@ -404,9 +404,9 @@ def corner_plot_fisher(results, param_names=None, axes=None, **keys):
     for i, param in enumerate(param_names):
         for j, param2 in enumerate(param_names):
             if i == j:
-                plot_1D(results, param, ax=axes[i, i], **keys)
+                plot_1d(results, param, ax=axes[i, i], **keys)
             elif j > i:
-                plot_2D(results, param, param2, ax=axes[j, i], **keys)
+                plot_2d(results, param, param2, ax=axes[j, i], **keys)
     return axes, param_names
 
 

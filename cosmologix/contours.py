@@ -24,7 +24,7 @@ from cosmologix.display import (
 )  # pylint: disable=unused-import
 
 
-def frequentist_contour_2D(
+def frequentist_contour_2d(
     likelihoods,
     grid={"Omega_bc": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]},
     varied=[],
@@ -33,7 +33,7 @@ def frequentist_contour_2D(
     """Full explore a 2D parameter space to build confidence contours.
 
     Note: This can be unecessary slow for well behaved connected
-    contours. Have a look to Use frequentist_contour_2D_sparse for a
+    contours. Have a look to Use frequentist_contour_2d_sparse for a
     more lazy exploration.
 
     Args:
@@ -101,7 +101,7 @@ def frequentist_contour_2D(
     }
 
 
-def frequentist_contour_2D_sparse(
+def frequentist_contour_2d_sparse(
     likelihoods,
     grid={"Omega_bc": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]},
     varied=[],
@@ -116,14 +116,16 @@ def frequentist_contour_2D_sparse(
     are marked as NaN in the output grid.
 
     Important Note:
-    This assumes that the contour is connected. Use frequentist_contour_2D when in doubt.
+    This assumes that the contour is connected. Use frequentist_contour_2d when in doubt.
 
     Args:
         likelihoods: List of likelihood functions.
         grid: Dict defining parameter ranges and grid sizes (e.g., {"param": [min, max, n]}).
         varied: Additional parameters to vary at each grid point (fixed can be provided instead).
         fixed: Dict of fixed parameter values.
-        chi2_threshold: largest confidence level in percent for contour boundary. A Δχ² threshold is computed for this value assuming 2 degrees of freedom. (default: 95% corresponding to 6.17 for 2 params).
+        chi2_threshold: largest confidence level in percent for contour boundary.
+            A Δχ² threshold is computed for this value assuming 2 degrees of freedom.
+            (default: 95% corresponding to 6.17 for 2 params).
 
     Returns:
         Dict with params, x, y, chi2 grid, bestfit, and extra info.
@@ -264,29 +266,36 @@ def frequentist_contour_2D_sparse(
     }
 
 
-def frequentist_1D_profile(
+def frequentist_1d_profile(
     likelihoods,
     grid={"Omega_bc": []},
     fixed=None,
     confidence_threshold=99.74,  # 95% confidence for 2 parameters; adjust as needed
 ):
-    """
-    Compute 1D likelihood profile.
+    """Compute 1d likelihood profile.
 
     Explores a grid starting from the best-fit point, stopping at a Δχ² threshold,
     assuming. Unexplored points are marked as NaN in the output grid.
 
     Important Note:
-    This assumes that the region above confidence_threshold is connected. Use a confidence_threshold of 100% when in doubt.
+    ---------------
+    
+    This assumes that the region above confidence_threshold is
+    connected. Use a confidence_threshold of 100% when in doubt.
 
     Args:
+    -----
         likelihoods: List of likelihood functions.
         grid: Dict defining parameter ranges and grid sizes (e.g., {"param": [min, max, n]}).
         fixed: Dict of fixed parameter values.
-        chi2_threshold: largest confidence level in percent for contour boundary. A Δχ² threshold is computed for this value assuming 1 degrees of freedom. (default: 99.74% corresponding to 3 sigmas).
+        chi2_threshold: largest confidence level in percent for contour boundary.
+            A Δχ² threshold is computed for this value assuming 1 degrees of freedom.
+            (default: 99.74% corresponding to 3 sigmas).
 
     Returns:
+    --------
         Dict with params, x, chi2 grid, bestfit, and extra info.
+
     """
     chi2_threshold = conflevel_to_delta_chi2(confidence_threshold, 1)
 

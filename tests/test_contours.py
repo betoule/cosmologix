@@ -27,7 +27,7 @@ def compare_dicts(dict1, dict2):
 def test_contours(tmp_path):
     fixed = {"Omega_k": 0.0, "m_nu": 0.06, "Neff": 3.046, "Tcmb": 2.7255, "wa": 0.0}
     priors = [likelihoods.Planck2018Prior(), likelihoods.JLA()]
-    grid = contours.frequentist_contour_2D_sparse(
+    grid = contours.frequentist_contour_2d_sparse(
         priors, grid={"Omega_bc": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]}, fixed=fixed
     )
     assert jnp.isfinite(grid["chi2"].any())
@@ -36,7 +36,7 @@ def test_contours(tmp_path):
     grid2 = tools.load(temp_file)
     assert compare_dicts(grid, grid2)
     contours.plot_contours(grid)
-    grid_coarse = contours.frequentist_contour_2D(
+    grid_coarse = contours.frequentist_contour_2d(
         priors, grid={"Omega_bc": [0.18, 0.48, 10], "w": [-0.6, -1.5, 10]}, fixed=fixed
     )
     assert jnp.isfinite(grid_coarse["chi2"].any())

@@ -91,7 +91,8 @@ def main():
         nargs=2,
         type=validate_fix,
         metavar="PARAM VALUE",
-        help="Fix the specified PARAM at the specified value (e.g. -F H0 70 -F Omega_b_h2 0.02222).",
+        help="Fix the specified PARAM at the specified value"
+        " (e.g. -F H0 70 -F Omega_b_h2 0.02222).",
     )
     fit_parser.add_argument(
         "--free",
@@ -111,7 +112,8 @@ def main():
         "--auto-constrain",
         action="store_true",
         default=False,
-        help="Attempt to impose hard priors on parameters not constrained by the selected dataset. Use with caution.",
+        help="Attempt to impose hard priors on parameters not constrained by the selected dataset."
+        " Use with caution.",
     )
     fit_parser.add_argument(
         "-s",
@@ -235,7 +237,8 @@ def main():
         type=int,
         metavar="INDEX",
         default=[],
-        help="Specify to use line contours instead of filled contour at INDEX (e.g, --not-filled 0)",
+        help="Specify to use line contours instead of filled contour at INDEX"
+        " (e.g, --not-filled 0)",
     )
     contour_parser.add_argument(
         "--color",
@@ -354,7 +357,7 @@ def load_mu(args):
 
 def auto_restricted_fit(priors, fixed, verbose):
     """Test if there is unconstrained parameters"""
-    for retry in range(3):
+    for _ in range(3):
         try:
             result = fit(priors, fixed=fixed, verbose=verbose)
             break
@@ -411,14 +414,14 @@ def run_explore(args):
         )
         grid_params[args.params[1]] = range_y + [args.resolution]
 
-        grid = contours.frequentist_contour_2D_sparse(
+        grid = contours.frequentist_contour_2d_sparse(
             priors,
             grid=grid_params,
             fixed=fixed,
             confidence_threshold=args.confidence_threshold,
         )
     elif len(args.params) == 1:
-        grid = contours.frequentist_1D_profile(
+        grid = contours.frequentist_1d_profile(
             priors,
             grid=grid_params,
             fixed=fixed,
@@ -429,20 +432,20 @@ def run_explore(args):
         for i, param1 in enumerate(args.params):
             grid_params = {param1: DEFAULT_RANGE[param1] + [args.resolution]}
             grid["list"].append(
-                contours.frequentist_1D_profile(
+                contours.frequentist_1d_profile(
                     priors,
                     grid=grid_params,
                     fixed=fixed,
                     # confidence_threshold=args.confidence_threshold,
                 )
             )
-            for j, param2 in enumerate(args.params[i + 1 :]):
+            for param2 in args.params[i + 1 :]:
                 grid_params = {
                     param1: DEFAULT_RANGE[param1] + [args.resolution],
                     param2: DEFAULT_RANGE[param2] + [args.resolution],
                 }
                 grid["list"].append(
-                    contours.frequentist_contour_2D_sparse(
+                    contours.frequentist_contour_2d_sparse(
                         priors,
                         grid=grid_params,
                         fixed=fixed,
@@ -514,12 +517,13 @@ def run_corner(args):
             )
         else:
             confidence_contours.append(result)
-    axes, param_names = display.corner_plot_contours(
-        confidence_contours,
-        axes=axes,
-        param_names=param_names,
-        color=display.color_theme[i],
-    )
+    if confidence_contours:
+        axes, param_names = display.corner_plot_contours(
+            confidence_contours,
+            axes=axes,
+            param_names=param_names,
+            color=display.color_theme[i],
+        )
     for i, label in enumerate(args.labels):
         axes[0, -1].plot(jnp.nan, jnp.nan, color=display.color_theme[i], label=label)
     axes[0, -1].legend(frameon=True)

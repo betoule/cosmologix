@@ -62,7 +62,7 @@ print(result['bestfit'])
 # Improvements to this feature are planned.
 
 from cosmologix import contours
-grid = contours.frequentist_contour_2D_sparse(
+grid = contours.frequentist_contour_2d_sparse(
     priors,
     grid={'Omega_bc': [0.18, 0.48, 30], 'w': [-0.6, -1.5, 30]},
     fixed=fixed
@@ -105,7 +105,7 @@ unconstrained without additional data.
 
 #### Setting Fixed Parameters
 In Cosmologix, you can fix parameters by passing the optional `fixed`
-argument to the `fit` and `contours.frequentist_contour_2D_sparse`
+argument to the `fit` and `contours.frequentist_contour_2d_sparse`
 functions. This mechanism also enables exploration of simplified
 cosmological models, such as enforcing flatness (`Omega_k = 0`) or a
 cosmological constant dark energy behavior (`w = -1`, `wa = 0`):
@@ -113,7 +113,7 @@ cosmological constant dark energy behavior (`w = -1`, `wa = 0`):
 ```python
 fixed = {'Omega_k': 0.0, 'm_nu': 0.06, 'Neff': 3.046, 'Tcmb': 2.7255, 'wa': 0.0}
 result = fit(priors, fixed=fixed)
-grid = contours.frequentist_contour_2D_sparse(
+grid = contours.frequentist_contour_2d_sparse(
     priors,
     grid={'Omega_bc': [0.18, 0.48, 30], 'w': [-0.6, -1.5, 30]},
     fixed=fixed
@@ -124,7 +124,7 @@ grid = contours.frequentist_contour_2D_sparse(
 Recent versions of Cosmologix include a safeguard in the `fit`
 function: it checks for perfect degeneracies among the provided priors
 and fixed parameters before proceeding, raising an explicit error
-message if any remain. The `contours.frequentist_contour_2D_sparse`
+message if any remain. The `contours.frequentist_contour_2d_sparse`
 function, however, skips this check to allow exploration of partially
 degenerate parameter combinations, offering flexibility for diagnostic
 purposes.

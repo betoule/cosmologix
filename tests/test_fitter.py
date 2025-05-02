@@ -55,7 +55,7 @@ def test_simple_fit():
     }
     result = fit(priors, fixed=fixed, verbose=True)
     display.pretty_print(result)
-    display.plot_2D(result, "Omega_bc", "Omega_b_h2")
+    display.plot_2d(result, "Omega_bc", "Omega_b_h2")
 
 
 def test_de_fit():
@@ -72,7 +72,7 @@ def test_de_fit():
     }
     result = fit(priors, fixed=fixed, verbose=True)
     display.pretty_print(result)
-    display.plot_2D(result, "w", "wa")
+    display.plot_2d(result, "w", "wa")
 
 
 if __name__ == "__main__":

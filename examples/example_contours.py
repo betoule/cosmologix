@@ -16,7 +16,7 @@ fixed = {"Omega_k": 0.0, "m_nu": 0.06, "Neff": 3.046, "Tcmb": 2.7255, "wa": 0.0}
 
 # Compute BAO constraints keeping Omega_b_h2 fixed to the best-fit
 # Planck value
-grid_bao = contours.frequentist_contour_2D_sparse(
+grid_bao = contours.frequentist_contour_2d_sparse(
     [likelihoods.DESIDR2Prior(uncalibrated=True)],
     grid=param_space,
     fixed=dict(fixed, Omega_b_h2=Planck18["Omega_b_h2"], H0=Planck18["H0"]),
@@ -27,13 +27,13 @@ tools.save(grid_bao, "contour_desi.pkl")
 # supernovae. Baryon and cold dark matter densities have exactly the
 # same impact on the expansion rate, so that only the sum of the two
 # is constrained by the luminosity distance measurement.
-grid_sn = contours.frequentist_contour_2D_sparse(
+grid_sn = contours.frequentist_contour_2d_sparse(
     [likelihoods.DES5yr()],
     grid=param_space,
     fixed=dict(fixed, H0=Planck18["H0"], Omega_b_h2=Planck18["Omega_b_h2"]),
 )
 
-grid_jla = contours.frequentist_contour_2D_sparse(
+grid_jla = contours.frequentist_contour_2d_sparse(
     [likelihoods.JLA()],
     grid=param_space,
     fixed=dict(fixed, H0=Planck18["H0"], Omega_b_h2=Planck18["Omega_b_h2"]),
@@ -42,21 +42,21 @@ tools.save(grid_jla, "contour_jla.pkl")
 
 # Compute CMB constraints. The "geometric" summary used in this code
 # only constrain the angular distance to the last diffusion surface.,
-grid_cmb = contours.frequentist_contour_2D_sparse(
+grid_cmb = contours.frequentist_contour_2d_sparse(
     [likelihoods.Planck2018Prior()],
     grid=param_space,
     fixed=fixed,
 )
 tools.save(grid_cmb, "contour_planck.pkl")
 
-cmb_bao = contours.frequentist_contour_2D_sparse(
+cmb_bao = contours.frequentist_contour_2d_sparse(
     [likelihoods.Planck2018Prior(), likelihoods.DESIDR2Prior()],
     grid=param_space,
     fixed=fixed,
 )
 tools.save(cmb_bao, "contour_planck_desi.pkl")
 
-cmb_sn = contours.frequentist_contour_2D_sparse(
+cmb_sn = contours.frequentist_contour_2d_sparse(
     [likelihoods.Planck2018Prior(), likelihoods.JLA()],
     grid=param_space,
     fixed=fixed,

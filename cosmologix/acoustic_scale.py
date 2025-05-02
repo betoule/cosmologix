@@ -15,12 +15,12 @@ def z_star(params):
     """Redshift of the recombination
     From Hu & Sugiyama (1996) Eq. E-1
     """
-    Obh2 = params["Omega_b_h2"]
+    Omega_b_h2 = params["Omega_b_h2"]
     h2 = params["H0"] ** 2 * 1e-4
-    odm = params["Omega_bc"] + params["Omega_nu"]
-    g1 = 0.0783 * Obh2**-0.238 / (1 + 39.5 * Obh2**0.763)
-    g2 = 0.560 / (1 + 21.1 * Obh2**1.81)
-    return 1048 * (1 + 0.00124 * Obh2**-0.738) * (1 + g1 * (odm * h2) ** g2)
+    Omega_m = params["Omega_bc"] + params["Omega_nu"]
+    g1 = 0.0783 * Omega_b_h2**-0.238 / (1 + 39.5 * Omega_b_h2**0.763)
+    g2 = 0.560 / (1 + 21.1 * Omega_b_h2**1.81)
+    return 1048 * (1 + 0.00124 * Omega_b_h2**-0.738) * (1 + g1 * (Omega_m * h2) ** g2)
 
 
 def z_drag(params):
@@ -40,12 +40,6 @@ def z_drag(params):
     )
 
 
-def a4H2(params, a):
-    """a**4 times H**2"""
-    z = 1 / a - 1
-    return a**4 * densities.Omega(params, z)
-
-
 def dsound_da_approx(params, a):
     """Approximate form of the sound horizon used by cosmomc for theta
 
@@ -55,8 +49,11 @@ def dsound_da_approx(params, a):
     This is to be used in comparison with values in the cosmomc chains
 
     """
+    z = 1 / a - 1
     return 1.0 / (
-        jnp.sqrt(a4H2(params, a) * (1.0 + 3e4 * params["Omega_b_h2"] * a))
+        jnp.sqrt(
+            a**4 * densities.Omega(params, z) * (1.0 + 3e4 * params["Omega_b_h2"] * a)
+        )
         * params["H0"]
     )
 
@@ -68,9 +65,11 @@ def dsound_da(params, a):
     -----
     see e.g. Komatsu et al. (2009) eq. 6
     """
+    z = 1 / a - 1
     return 1.0 / (
         jnp.sqrt(
-            a4H2(params, a)
+            a**4
+            * densities.Omega(params, z)
             * (1.0 + 0.75 * (params["Omega_b"] / params["Omega_gamma"]) * a)
         )
         * params["H0"]
@@ -84,8 +83,7 @@ def rs(params, z):
     _a = jnp.linspace(1e-8, a, nstep)
     _a = 0.5 * (_a[1:] + _a[:-1])
     step = _a[1] - _a[0]
-    R = Constants.c * 1e-3 / jnp.sqrt(3) * dsound_da(params, _a).sum() * step
-    return R
+    return Constants.c * 1e-3 / jnp.sqrt(3) * dsound_da(params, _a).sum() * step
 
 
 def rs_approx(params, z):
@@ -100,8 +98,7 @@ def rs_approx(params, z):
     _a = jnp.linspace(1e-8, a, nstep)
     _a = 0.5 * (_a[1:] + _a[:-1])
     step = _a[1] - _a[0]
-    R = Constants.c * 1e-3 / jnp.sqrt(3) * dsound_da_approx(params, _a).sum() * step
-    return R
+    return Constants.c * 1e-3 / jnp.sqrt(3) * dsound_da_approx(params, _a).sum() * step
 
 
 def rd(params):
