@@ -61,7 +61,7 @@ print(result['bestfit'])
 # the actual size of the explored region is unknown at the start of the calculation.
 # Improvements to this feature are planned.
 
-from cosmologix import contours
+from cosmologix import contours, display
 grid = contours.frequentist_contour_2d_sparse(
     priors,
     grid={'Omega_bc': [0.18, 0.48, 30], 'w': [-0.6, -1.5, 30]},
@@ -69,7 +69,7 @@ grid = contours.frequentist_contour_2d_sparse(
     )
 
 import matplotlib.pyplot as plt
-contours.plot_contours(grid, filled=True, label='CMB+SN')
+display.plot_contours(grid, filled=True, label='CMB+SN')
 plt.ion()
 plt.legend(loc='lower right', frameon=False)
 plt.show()

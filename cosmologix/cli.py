@@ -472,7 +472,7 @@ def run_contour(args):
         color = args.color.get(i, contours.color_theme[i])
         label = args.label.get(i, None)
         if len(grid["params"]) == 2:
-            contours.plot_contours(
+            display.plot_contours(
                 grid,
                 filled=i not in args.not_filled,
                 color=color,
