@@ -1,6 +1,10 @@
+""" Compute energy density evolution in the FLRW universe.
+
+The main function is Omega(params, z)
+"""
 import jax.numpy as jnp
 import jax
-from cosmologix.tools import safe_vmap, Constants
+from cosmologix.tools import Constants
 from cosmologix import neutrinos
 
 
