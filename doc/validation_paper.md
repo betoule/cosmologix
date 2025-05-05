@@ -40,20 +40,26 @@ bibliography: paper.bib
 # Summary
 
 Type-Ia supernovae serve as standardizable candles to measure
-luminosity distances in the universe. `Cosmologix` makes inference of
-cosmological parameters from thousands of measurements faster and
-easier by providing fully differentiable computation of the
-distance-redshift relation as function of the cosmological
-parameters. It also provide common fitting formulae for the acoustic
-scale so that the resulting code can be used for fast cosmological
-inference from supernovae in combination with BAO or CMB distance
-measurements. We checked the accuracy of our computation against
-`CAMB`, `CCL` and `astropy.cosmology`. We demonstrate that our
-implementation is approximately ten times faster than existing
-cosmological distance computation libraries, computing distances for
-1000 redshifts in approximately 500 microseconds on a standard laptop
-CPU, while maintaining an accuracy of $10^{-4}$ magnitudes in the
-distance modulus over the redshift range $0.01 < z < 1000$.
+luminosity distances in the universe. Cosmologix accelerates and
+simplifies cosmological parameter inference from large datasets by
+providing fully differentiable calculations of the distance-redshift
+relation as a function of cosmological parameters. It incorporates the
+density evolution of all relevant species, including neutrinos.
+`Cosmologix` makes inference of cosmological parameters from thousands
+of measurements faster and easier by providing fully differentiable
+computation the distance-redshift relation as function of the
+cosmological parameters accounting for the density evolution of all
+common species (including neutrinos). It also provides common fitting
+formulae for the acoustic scale so that the resulting code can be used
+for fast cosmological inference from supernovae in combination with
+BAO or CMB distance measurements. We checked the accuracy of our
+computation against `CAMB`, `CCL` and `astropy.cosmology`. We
+demonstrate that our implementation is approximately ten times faster
+than existing cosmological distance computation libraries, computing
+distances for 1000 redshifts in approximately 500 microseconds on a
+standard laptop CPU, while maintaining an accuracy of $10^{-4}$
+magnitudes in the distance modulus over the redshift range $0.01 < z <
+1000$.
 
 # Statement of need
 
@@ -64,7 +70,7 @@ and `cosmoprimo` [@cosmoprimo] provide automatic differentiation
 through the use of JAX. Unfortunately, at the time of writing, the
 computation in cosmoprimo does not seem to be jitable and distance
 computation in jax-cosmo is neglecting contributions to the energy
-density from neutrinos species. The accuracy of the resulting
+density from neutrinos and photons. The accuracy of the resulting
 computation is insufficient for the need of the LEMAITRE analysis, a
 compilation of type-Ia Supernovae joining the very large sample of
 nearby events discovered by ZTF [@rigault:2025] to higher redshift
@@ -95,19 +101,19 @@ time $t$, scale factor $R(t)$ and spherical spatial coordinates $(r, \theta, \ph
 \begin{equation}
   \label{eq:27}
   ds^2 = -c^2dt^2 + R^2(t) \left(\frac{dr^2}{1-kr^2} + r^2(d\theta^2 +
-    sin^2\theta d\phi^2) \right) \quad \text{with} \quad k = \lbrace-1, 0, 1\rbrace.
+    \sin^2\theta d\phi^2) \right) \quad \text{with} \quad k = \lbrace-1, 0, 1\rbrace.
 \end{equation}
 Denoting $a(t) = \frac{R(t)}{R_0}$ and:
 $$
 S=\left\lbrace
     \begin{array}{l}
-      \sinh \text{ if k = 1}\\
-      \mathrm{Id} \text{ if k = 0}\\
-      \sin \text{ if k = -1}\\
+      \sinh \text{ if }k = 1\\
+      \mathrm{Id} \text{ if }k = 0\\
+      \sin \text{ if }k = -1\\
     \end{array}
   \right.,
 $$
-and $r = S\left(\frac{\chi}{R_0}\right)$, to define the comoving coordinate $\chi$, the metrics rewrites:
+we define the comoving coordinate $\chi$ as $r = S\left(\frac{\chi}{R_0}\right)$. The metrics then rewrites:
 \begin{equation}
     ds^2 = -c^2 dt^2 +  a^2(t)\left( d\chi^2 + R_0^2 S^2\left(\frac{\chi}{R_0}\right) d\Omega^2\right).
 \end{equation}
@@ -127,15 +133,15 @@ code are given in \autoref{tab:constants}.
 
 : Physical constants used in the code\label{tab:constants}.
 
-| Variable | name                   | Value          | Unit       |
-|----------|------------------------|----------------|------------|
-| $G$      | Gravitational constant | 6.67384e-11    | m^3/kg/s^2 |
-| $c$      | Speed of light         | 299792458.0    | m/s        |
-| pc       | Parsec                 | 3.08567758e16  | m          |
-| $m_p$    | Proton mass            | 1.67262158e-27 | kg         |
-| $h$      | Planck constant        | 6.62617e-34    | J.s        |
-| $k$      | Boltzman constant      | 1.38066e-23    | J/K        |
-| $e$      | Electron charge        | 1.60217663e-19 | C          |
+| Variable | name                   | Value          | Unit                  |
+|----------|------------------------|----------------|-----------------------|
+| $G$      | Gravitational constant | 6.67384e-11    | m$^3$kg$^{-1}s$^{-2}$ |
+| $c$      | Speed of light         | 299792458.0    | m/s                   |
+| pc       | Parsec                 | 3.08567758e16  | m                     |
+| $m_p$    | Proton mass            | 1.67262158e-27 | kg                    |
+| $h$      | Planck constant        | 6.62617e-34    | J.s                   |
+| $k$      | Boltzman constant      | 1.38066e-23    | J/K                   |
+| $e$      | Electron charge        | 1.60217663e-19 | C                     |
 
 
 
@@ -154,15 +160,15 @@ We follow the standard practice of dividing the universe's energy
 content into components such as cold (pressureless) matter, radiation,
 and dark energy.  Most of the components are parameterized in the code
 by their reduced density today and the parameter of their equation of
-state, but for photons, for which we pass the observed temperature of
-the CMB $T_{cmb}$ instead, and for neutrinos which, in the general
-case, transition from ultra-relativistic to non-relativistic over the
-period of interest and whose energy density evolution requires a
-specific numerical computation.
+state. The exceptions are photons, for which we pass the observed
+temperature of the CMB $T_{cmb}$ instead, and for neutrinos which, in
+the general case, transition from ultra-relativistic to
+non-relativistic over the period of interest and whose energy density
+evolution requires a specific numerical computation.
 
 ### Species parameterized by reduced density and equations of state
 
-For a perfect fluid $X$ with equation of state $\rho_X = w_x p_x$, the
+For a perfect fluid $x$ with equation of state $\rho_x = w_x p_x$, the
 energy conservation writes:
 
 \begin{equation}
@@ -180,7 +186,7 @@ In the code the following components follow this description, with
 simplification made when appropriate:
 
 - Baryonic matter: $\Omega_b, w_b=0$  which gives $\frac{\rho_b}{\rho_b^0} = (1+z)^3$,
-- Cold dark matter: $\Omega_c, w_c=0$ which gives $\frac{\rho_b}{\rho_b^0} = (1+z)^3$,
+- Cold dark matter: $\Omega_c, w_c=0$ which gives $\frac{\rho_c}{\rho_c^0} = (1+z)^3$,
 - Dark energy $\Omega_x$.
 We allow dark energy to have a variable equation of state according to the common CPL [@cheval:2001] parametrization: $w(z) = w + \frac{z}{1+z} w_a$ with $w$ and $w_a$ as free parameters. Once integrated this gives the following evolution for the contribution to density:
 
@@ -190,46 +196,46 @@ $$\rho_x/\rho_0 = \exp\left(3 (1 + w + w_a) \log(1+z) - 3 w_a \frac{z}{1+z}\righ
 ### Relic photons
 
 In the more general case, the energy density of species $i$ is obtained
-by integration over the distribution function: \begin{equation}
-\label{eq:12} \rho_i c^2= g_i \int N_i(p) E(p) \frac{4\pi p^2dp}{h^3}
+by integration over the distribution function: 
+\begin{equation}
+\label{eq:12} \rho_i = g_i \int n_i(p) E(p) \frac{4\pi p^2dp}{h^3}
 \end{equation} where $g_i$ is the degeneracy number of the species.
 
-For photons with two spin states this reduces to Stephan's law, given that:
+For photons with two spin states this will reduce to Stephan's law. Given that:
 \begin{equation}
   \label{eq:14}
-  N_\gamma(p) = \frac{1}{e^{\frac{cp}{k_B T_\gamma}} + 1}, \quad g_i=2,
+  n_\gamma(p) = \frac{1}{e^{\frac{cp}{k_B T_\gamma}} + 1}, \quad g_i=2,
 \end{equation}
-which gives, with the variable change $x=\frac{cp}{k_BT_\gamma}$:
-\begin{align}
+we obtain, with the variable change $x=\frac{cp}{k_BT_\gamma}$:
+\begin{equation}
   \label{eq:15}
-  \rho_\gamma c^2 &= \frac{8\pi(k_B T_\gamma)^4}{ c^3 h^3}  \int_0^\infty \frac{x^3}{e^x - 1} dx\\
-  &=\frac{8\pi^5(k_B T_\gamma)^4}{15 c^3 h^3} 
-\end{align}
+  \rho_\gamma = \frac{8\pi(k_B T_\gamma)^4}{ c^3 h^3}  \int_0^\infty \frac{x^3}{e^x - 1} dx=\frac{8\pi^5(k_B T_\gamma)^4}{15 c^3 h^3} 
+\end{equation}
 where we have used the result $\int_0^\infty u^{s-1}/(e^u - 1) du =
 \Gamma(s) \zeta(s)$. 
 
 Instead of providing $\Omega_\gamma^0$ the code expects the
 temperature of the frozen thermal spectrum today denoted $T^0_\gamma =
-T_{cmb}$ from which it computes $\Omega_\gamma(T_\text{cmb}, H_0) =
+T_\text{cmb}$ from which it computes $\Omega_\gamma(T_\text{cmb}, H_0) =
 \rho_\gamma(T_{cmb}) / \rho_c(H_0)$. The density then evolves as
 $T_\gamma^4 \propto (1+z)^4$.  As a default value the code uses
 $T_\gamma^0 = 2.7255 K$ [@fixen:2009ApJ].
 
 ### Neutrinos
 
-For neutrinos following the Fermi-Dirac distribution, neglecting
-the chemical potential at high temperature, we have:
+For neutrinos following the Fermi-Dirac distribution, neglecting the
+chemical potential at high temperature, the particle density for a
+neutrino species $i$ of mass $m_i$ at temperature $T_i$ is:
 \begin{equation}
   \label{eq:11}
-  N_i(p) = \frac{1}{e^{\frac{E}{k_B T_i}} + 1}
+  n_i(p) = \frac{1}{e^{\frac{E}{k_B T_i}} + 1}
 \end{equation}
-with $E(p)^2 = c^2p^2 + m^2c^4$. While relativistic, with the same
-variable change as above:
-\begin{align}
+with $E(p)^2 = c^2p^2 + m_i^2c^4$. While relativistic, with the same
+variable change as above, we obtain the energy density:
+\begin{equation}
   \label{eq:13}
-  \rho^\text{nomass}_i c^2&= g_i \frac{4\pi(k_B T_i)^4}{ c^3 h^3}  \int_0^\infty \frac{x^3}{e^x + 1} dx\\
-  &=\frac{g_i 4\pi^5(k_B T_i)^4}{15 c^3 h^3}\frac{7}{8}
-\end{align}
+  \rho^\text{nomass}_i = g_i \frac{4\pi(k_B T_i)^4}{ c^3 h^3}  \int_0^\infty \frac{x^3}{e^x + 1} dx = \frac{g_i 4\pi^5(k_B T_i)^4}{15 c^3 h^3}\frac{7}{8}
+\end{equation}
 where we have used $\int_0^\infty u^{s-1}/(e^u + 1) du = \Gamma(s)
 \zeta(s) (1-1/2^{s-1})$. The universe is heated by the
 electron-positron annihilation when the decoupling of neutrinos is
@@ -244,7 +250,7 @@ effective density for 6 species of relativistic neutrinos and
 anti-neutrinos is:
 \begin{equation}
   \label{eq:18}
-  \rho_\nu = \frac78 N_\text{eff}\left(\frac{4}{11}\right)^{4/3}\rho_\gamma\,.
+  \rho^\text{nomass}_\nu = \frac78 N_\text{eff}\left(\frac{4}{11}\right)^{4/3}\rho_\gamma\,.
 \end{equation}
 
 The distribution of neutrinos after their decoupling is frozen. The energy
@@ -259,15 +265,15 @@ where we denote $\bar m = m_i c^2 / (k_B T_i)$. Fast evalution of this integral 
 \begin{itemize}
 \item ultra-relativistic case ($\bar m \leq 0.01$): the integral is evaluated analytically through the expansion $I(\bar m) \sim I(0) (1 + \frac5{7\pi^2} \bar m^2)$.
 \item intermediate case $0.01 < \bar m < 1000$: $I(\bar m)$ is evaluated
-  numerically at 35 Chebyshev nodes in $\log10(\bar m)$. The $k^{th}$ of $ n=35$ Chebyshev nodes are defined on the segment $[-1, 1]$ as $\cos(k \pi / n)$, and mapped to the segment $[-2, 3]$ in the log space. The function is then evaluated as $I(\bar m) = N(\bar m)$ where $N$ is the Newton interpolation polynomial accross the 35 precomputed nodes. The numerical pre-computation of the integral at the 35 nodes uses the trapezoidal rule over $10^4$ points in $x$ with infrared and ultraviolet cutoff at $x=10^{-3}$ and $x=31$.
+  numerically at 35 Chebyshev nodes in $\log_{10}(\bar m)$. The $k^{th}$ of $n=35$ Chebyshev nodes are defined on the segment $[-1, 1]$ as $\cos(k \pi / n)$, and mapped to the segment $[-2, 3]$ in the log space. The function is then evaluated as $I(\bar m) = N(\bar m)$ where $N$ is the Newton interpolation polynomial accross the 35 precomputed nodes. The numerical pre-computation of the integral at the 35 nodes uses the trapezoidal rule over $10^4$ points in $x$ with infrared and ultraviolet cutoff at $x=10^{-3}$ and $x=31$.
 \item non-relativistic case ($\bar m \geq 1000$): the integral is again evaluated analytically through the expansion $I(\bar m) \sim \frac32 \zeta(3) \bar m + \frac{3}{4\bar m} 15 \zeta(5)$ .
 \end{itemize}
 
-The relative difference between the numerical computation and the fast and composite interpolation-expansion is shown in \autoref{fig:densityinterpolation}. The approximation is shown to have a worst case accuracy better than $10^{7}$ which is largely sufficient for this subdominant species.
+The relative difference between the numerical computation and the fast and composite interpolation-expansion is shown in \autoref{fig:densityinterpolation}. The approximation is shown to have a worst case accuracy better than $10^{-7}$ which is largely sufficient for this subdominant species.
 
 ![Comparison between the relatively slow numerical evaluation of integral $I(\bar m)$ and its fast interpolant. The top pannel shows the two evaluation of the function and the relative difference between the two is displayed in the bottom pannel. Vertical dotted lines display the switch between the analytical expansions and the Newton interpolant.\label{fig:densityinterpolation}](density_interpolation.pdf)
 
-Our parametrisation of neutrinos density follows the common current practice to provide the value of the effective number $N_\text{eff}$ and the sum of neutrinos masses as $m_\nu$ ($0.06$ eV by default). For the computation, the entire mass is affected to one massive specie and the two others are kept massless. The code itself preforms the actual computation for the three species so that this convention can be easily changed.
+Our parametrisation of the density of neutrinos follows the common current practice to provide the value of the effective number $N_\text{eff}$ and the sum of neutrinos masses as $m_\nu$ ($0.06$ eV by default). For the computation, the entire mass is affected to one massive specie and the two others are kept massless. The code itself preforms the actual computation for the three species so that this convention can be easily changed.
 
 ### Parameterization summary
 To summarize, the energy content and age of the Universe are parameterized in the code using the following minimal set of parameters, given along their default value as a python dictionnary:
@@ -290,7 +296,7 @@ We prefered the use of $\Omega_{bc}$ to $\Omega_m$ as a primary variable, becaus
 ## Distances
 
 \label{sec:distances}
-In the code, we denote:
+In the code, we denote the Hubble distance:
 \begin{equation}
   \label{eq:28}
   d_H = \frac{c}{H(z)}\,.
@@ -298,12 +304,12 @@ In the code, we denote:
 The comoving distance (coordinate) is:
 \begin{equation}
   \label{eq:25}
-  d_C(z) = \chi(z) = d_{H_0} \int_o^z \frac{dz'}{H/H_0}\,.
+  d_C(z) = \chi(z) = d_{H_0} \int_o^z \frac{dz'}{H(z')/H_0}\,.
 \end{equation}
 The integral is much easier to evaluate numerically with the following change of variable $u = (1+z)^{-1/2}$:
 \begin{equation}
   \label{eq:6}
-  d_C(u) =  2d_{H_0}\int_u^1 \frac{du'}{u'^3H/H_0}\,.
+  d_C(u) =  2d_{H_0}\int_u^1 \frac{du'}{u'^3H(u')/H_0}\,.
 \end{equation}
 
 To speed up computation for large number of redshifts, the integrand
@@ -321,7 +327,7 @@ is further assessed in \autoref{sec:numerical_results} numerical result.
 The same quadrature is used to compute the look-back time:
 \begin{equation}
   \label{eq:25}
-  T(z) = \frac{1}{H_0} \int_o^z \frac{dz'}{(1+z')H/H_0}\,.
+  t_\text{back}(z) = \frac{1}{H_0} \int_o^z \frac{dz'}{(1+z')H/H_0}\,.
 \end{equation}
 
 The transverse comoving distance is obtained as:
@@ -347,13 +353,13 @@ The elementary comoving volume defined in a comoving distance slice $d\chi$ and 
 Integration in a flat universe is simpler and gives:
 \begin{equation}
   \label{eq:26}
-  V(z) = d\Omega \int_0^{\chi(z)}\chi^2 d\chi = \frac{\chi^3d\Omega }{3}
+  V(z) = d\Omega \int_0^{\chi(z)}\chi^2 d\chi = \frac{\chi(z)^3d\Omega }{3}
 \end{equation}
 In non-flat universes, a bit of trigonometric manipulation gives:
 \begin{align}
   \label{eq:26}
   V(z) &= \frac{d\Omega d_{H_0}^2}{\vert \Omega_K\vert}\int_0^{\chi(z)} S^2\left(\sqrt{\vert \Omega_k\vert}\frac{\chi}{d_{H_0}}\right) d\chi\\
-  &= \frac{d\Omega d_{H_0}^2}{2 \Omega_k} \left[D(z) \sqrt{1 + \Omega_k \left(\frac{D(z)}{d_{H_0}}\right)^2} - \chi\right]
+  &= \frac{d\Omega d_{H_0}^2}{2 \Omega_k} \left[d_M(z) \sqrt{1 + \Omega_k \left(\frac{d_M(z)}{d_{H_0}}\right)^2} - \chi(z)\right]
 \end{align}
 
 ## Sound horizon and fit formulae
@@ -368,7 +374,7 @@ Distance measurement calibrated on the acoustic scale requires computation of th
 For some reason, `cosmomc` uses an approximate formulae instead:
 \begin{equation}
 \label{eq:9}
-  r_s(z) = \frac{c}{\sqrt{3}} \int_0^{1/(1+z)} \frac{da}{a^2H(a) \sqrt{1+30000 a \Omega_b}}
+  r^\text{approx}_s(z) = \frac{c}{\sqrt{3}} \int_0^{1/(1+z)} \frac{da}{a^2H(a) \sqrt{1+30000 a \Omega_b}}
 \end{equation}
 
 The redshift of last scattering is approximated using the fit formula
@@ -381,11 +387,13 @@ Eq. 2.5 of [@DESIDRI:VI].
 \label{sec:numerical_results}
 
 ## Accuracy
+
 To assess the numerical accuracy of our baseline distance computation,
-we compared its results with those from the same integral evaluated at
-10-fold higher resolution, using $10^4$ equally spaced points over the
-interval $0 \leq u \leq 0.02$. The difference is displayed in
-\autoref{fig:accuracy} for the baseline Planck $\Lambda$CDM model. The
+we compared its results with those from the same $\chi(u)$ integral
+evaluated at 10-fold higher resolution, using $10^4$ equally spaced
+points over the interval $0 \leq u \leq 0.02$. The difference is
+displayed in \autoref{fig:accuracy} for the baseline Planck
+$\Lambda$CDM model, reported in Table 1 in [@planck2018VI]. The
 difference in distance modulus between the coarse and fine resolution
 computation is smaller than $10^{-4}$ mag over the redshift range
 $0.01 < z < 1000$, dominated by the interpolation error.
@@ -402,7 +410,7 @@ neutrino contributions to energy density, precluding a meaningful
 comparison.
 
 ![Difference in distance modulus for the Planck best-fit
-$\Lambda$-CDM model with respect to the higher resolution quadrature
+$\Lambda$CDM model with respect to the higher resolution quadrature
 computation in cosmologix.\label{fig:accuracy}](mu_accuracy.pdf)
 
 ## Computation speed
@@ -420,7 +428,7 @@ not yet manage to jit-compile the luminosity distance computation in
 `cosmoprimo`, due to a compilation error. The speed measurement may
 change significantly when this issue is solved.
 
-While `cosmologix` overperform all other tested codes by a significant
+While `cosmologix` overperforms all other tested codes by a significant
 margin in subsequent calls, specific efforts must be taken to avoid
 triggering recompilation in order to benefit from this improvement.
 
@@ -454,9 +462,9 @@ $L_p(\beta) = L(\tilde \alpha, \beta)$ needs to be minimized. We take
 advantage of the quadratic nature of the chi-square to perform the
 minimization using the Gauss-Newton algorithm, which requires only the
 function returning the standardized residuals $R(\beta)$ and its
-Jacobian to perform efficient second-order optimization, approximating
-the chi-square Hessian as $J^T J$. Two details are instrumental in
-speeding up this computation.
+Jacobian $J$ to perform efficient second-order optimization,
+approximating the chi-square Hessian as $J^T J$. Two details are
+instrumental in speeding up this computation.
 
 Firstly we offset the compilation overhead by forming the restricted
 function $R(\beta, \alpha)$ outside the exploration loop, so that the

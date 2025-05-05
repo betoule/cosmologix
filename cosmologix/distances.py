@@ -99,6 +99,7 @@ def _dM_close(
 
 @partial(jax.jit, static_argnames=("nstep",))
 def dM(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
+    """ Compute the transverse comoving distance in Mpc."""
     index = -jnp.sign(params["Omega_k"]).astype(jnp.int8) + 1
     # we need to pass nstep explicitly to branches to avoid
     # lax.switch’s dynamic argument passing
