@@ -469,7 +469,7 @@ def run_contour(args):
     plt.figure()
     for i, input_file in enumerate(args.input_files):
         grid = tools.load(input_file)
-        color = args.color.get(i, contours.color_theme[i])
+        color = args.color.get(i, display.color_theme[i])
         label = args.label.get(i, None)
         if len(grid["params"]) == 2:
             display.plot_contours(

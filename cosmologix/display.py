@@ -74,12 +74,11 @@ def pretty_print(result):
     # If the fit involves w and wa print the FOM
     print(f"p-value: {pvalue*100:.2f}%")
     if "w" in param_names and "wa" in param_names:
-        fom = detf_fom(result)
-        print(f"FOM={fom:.1f}")
+        print(f"FOM={detf_fom(result):.1f}")
 
 
 def plot_confidence_ellipse(
-    mean, cov, ax=None, n_sigmas=[1.5, 2.5], color=color_theme[0], **kwargs
+    mean, cov, ax=None, n_sigmas=None, color=color_theme[0], **kwargs
 ):
     """Plot a confidence ellipse for two parameters given their mean and covariance.
 
@@ -101,6 +100,8 @@ def plot_confidence_ellipse(
     matplotlib.patches.Ellipse
         The plotted ellipse object.
     """
+    if n_sigmas is None:
+        n_sigmas = [1.5, 2.5]
     if ax is None:
         ax = plt.gca()
 
@@ -165,13 +166,14 @@ def plot_2d(
     param1,
     param2,
     ax=None,
-    n_sigmas=[1.5, 2.5],
+    n_sigmas=None,
     marker="s",
     color=color_theme[0],
     **kwargs,
 ):
     """2D ellipse"""
-
+    if n_sigmas is None:
+        n_sigmas = [1.5, 2.5]
     if ax is None:
         ax = plt.gca()
     bestfit = result["bestfit"]
@@ -254,7 +256,8 @@ def plot_contours(
     transpose: bool, default=False
         Exchange x and y parameters when plotting
     **keys : dict
-        Additional keyword arguments passed to `contour` and `contourf` (e.g., `linewidths`, `linestyles`).
+        Additional keyword arguments passed to `contour` and `contourf`
+        (e.g., `linewidths`, `linestyles`).
 
     Notes
     -----
