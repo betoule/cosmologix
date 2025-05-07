@@ -261,31 +261,58 @@ def analyze_fim_for_degeneracies(fim, param_names):
 
 
 class LikelihoodSum:
-
+    """ Utility class to sum a list of Chi2 objects
+    """
     def __init__(self, likelihoods):
+        """
+        Parameters:
+        ------------
+        likelihoods: list of instances of likelihoods.Chi2 (or its derivatives)
+        """
         self.likelihoods = likelihoods
 
     def negative_log_likelihood(self, params):
+        """Compute the sum of negative log-likelihood, which is
+        equivalent to half the chi-squared statistic for normally
+        distributed errors.
+        
+        Parameters:
+        - params: A dictionary of model parameters.
+
+        Returns:
+        - float: The sum of the squares of the weighted residuals, representing
+          -2 * ln(likelihood) for Gaussian errors.
+        """
         return jnp.sum(
             jnp.array([l.negative_log_likelihood(params) for l in self.likelihoods])
         )
 
     def weighted_residuals(self, params):
+        """
+        Calculate the concatenation of weighted residuals, normalized by their respective errors.
+        
+        Parameters:
+        - params: A dictionary or list of model parameters.
+
+        Returns:
+        - numpy.ndarray: An array where each element is residual/error.
+        """
         return jnp.hstack([l.weighted_residuals(params) for l in self.likelihoods])
 
     def initial_guess(self, params):
+        """
+        Append relevant starting point for all nuisance parameters to the parameter dictionary
+
+        """
         for l in self.likelihoods:
             params = l.initial_guess(params)
         return params
-
-    def draw(self, params):
-        for l in self.likelihoods:
-            l.draw(params)
 
 
 def gauss_newton_prep(
     func: Callable, params_subset: Dict[str, Any]
 ) -> tuple[Callable, Callable]:
+
     """Prepare a function and its Jacobian for the Gauss-Newton algorithm.
 
     This function creates a restricted version of the input function that operates on

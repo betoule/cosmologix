@@ -3,13 +3,12 @@ Chi squared and log likelihood
 """
 
 from functools import partial
+import gzip
+
 import numpy as np
 from jax import jit
 import jax.numpy as jnp
-from cosmologix.distances import dM, dH, dV
-from cosmologix.acoustic_scale import theta_MC, rd_approx
-from cosmologix import mu, densities
-from cosmologix.tools import randn, cached
+from . import distances, acoustic_scale, densities, tools
 
 
 class Chi2:
@@ -105,13 +104,13 @@ class Chi2:
 
         Used in simulation and test
         """
-        self.data = self.model(params) + randn(self.error)
+        self.data = self.model(params) + tools.randn(self.error)
 
 
 class Chi2FullCov(Chi2):
     """Same as Chi2 but with dense covariane instead of independant errors
 
-    The class assumes that self.U containts the upper cholesky factor
+    The class assumes that self.upper_factor containts the upper cholesky factor
     of the inverse of the covariance matrix of the measurements.
 
     """
@@ -126,10 +125,21 @@ class Chi2FullCov(Chi2):
         Returns:
         - numpy.ndarray: An array where each element is residual/error.
         """
-        return self.U @ self.residuals(params)
+        return self.upper_factor @ self.residuals(params)
 
 
 class MuMeasurements(Chi2FullCov):
+    """Fully correlated measurements of distance modulus at given redshifts
+
+    Note:
+    -----
+
+    Using this prior introduce a new nuisance parameter "M" which is
+    the absolute magnitude of Supernovae. Be careful when combining
+    several supernovae measurement, because they will all share the
+    same nuisance parameter.
+
+    """
 
     def __init__(self, z_cmb, mu, mu_cov=None, weights=None):
         self.z_cmb = jnp.atleast_1d(z_cmb)
@@ -139,70 +149,97 @@ class MuMeasurements(Chi2FullCov):
             self.weights = jnp.linalg.inv(self.cov)
         else:
             self.weights = weights
-        self.U = jnp.linalg.cholesky(self.weights, upper=True)
+        self.upper_factor = jnp.linalg.cholesky(self.weights, upper=True)
 
     def model(self, params):
-        return mu(params, self.z_cmb) + params["M"]
+        return distances.mu(params, self.z_cmb) + params["M"]
 
     def initial_guess(self, params):
         return dict(params, M=0.0)
 
 
 class DiagMuMeasurements(Chi2):
+    """Independent measurements of distance modulus at given redshifts
+
+    Note:
+    -----
+
+    Using this prior introduce a new nuisance parameter "M" which is
+    the absolute magnitude of Supernovae. Be careful when combining
+    several supernovae measurement, because they will all share the
+    same nuisance parameter.
+    """
+
     def __init__(self, z_cmb, mu, mu_err):
         self.z_cmb = jnp.atleast_1d(z_cmb)
         self.data = jnp.atleast_1d(mu)
         self.error = jnp.atleast_1d(mu_err)
 
     def model(self, params):
-        return mu(params, self.z_cmb) + params["M"]
+        return distances.mu(params, self.z_cmb) + params["M"]
 
     def initial_guess(self, params):
         return dict(params, M=0.0)
 
 
 class GeometricCMBLikelihood(Chi2FullCov):
-    def __init__(
-        self, mean, covariance, param_names=["Omega_b_h2", "Omega_c_h2", "100theta_MC"]
-    ):
-        """An easy-to-work-with summary of CMB measurements
+    """An easy-to-work-with summary of CMB measurements
 
+    Note:
+    -----
+
+    See e.g. Komatsu et al. 2009 for a discussion on the compression
+    of the CMB measurement into a scale measurement. At first order
+    the covariance matrix between the density parameters and the
+    angular scale capture the same constraints as the scale parameter.
+    """
+
+    def __init__(self, mean, covariance, param_names=None):
+        """
         Parameters:
         -----------
-        mean: best-fit values for Omega_bh2, Omega_c_h2, and 100theta_MC
-
+        mean: best-fit values for the parameters
         covariance: covariance matrix of vector mean
+        param_names: Parameter names constrained by the prior
+                     (by default ["Omega_bh2", "Omega_c_h2", and "100theta_MC"])
+                     Can be any combination of names from the primary parameter vector
+                     and secondary parameters computed in the model function
         """
+        if param_names is None:
+            param_names = ["Omega_b_h2", "Omega_c_h2", "100theta_MC"]
         self.data = jnp.array(mean)
         self.cov = np.array(covariance)
-        self.W = np.linalg.inv(self.cov)
-        self.U = jnp.array(np.linalg.cholesky(self.W).T)  # , upper=True)
+        self.weight_matrix = np.linalg.inv(self.cov)
+        self.upper_factor = jnp.array(
+            np.linalg.cholesky(self.weight_matrix).T
+        )  # , upper=True)
         self.param_names = param_names
 
     def model(self, params):
         params = densities.process_params(params)
         params["Omega_c_h2"] = params["Omega_c"] * (params["H0"] ** 2 * 1e-4)
         params["Omega_bc_h2"] = params["Omega_bc"] * (params["H0"] ** 2 * 1e-4)
-        params["100theta_MC"] = theta_MC(params)
+        params["100theta_MC"] = acoustic_scale.theta_MC(params)
         params["theta_MC"] = params["100theta_MC"] / 100.0
         return jnp.array([params[param] for param in self.param_names])
         # return jnp.array([params["Omega_b_h2"], Omega_c_h2, theta_MC(params)])
 
     def draw(self, params):
         m = self.model(params)
-        n = jnp.linalg.solve(self.U, randn(1, n=len(m)))
+        n = jnp.linalg.solve(self.upper_factor, tools.randn(1, n=len(m)))
         self.data = m + n
 
 
 class UncalibratedBAOLikelihood(Chi2FullCov):
-    def __init__(self, redshifts, distances, covariance, dist_type_labels):
-        """An easy-to-work-with summary of CMB measurements
+    """BAO measurements with r_d as a free parameter"""
 
+    def __init__(self, redshifts, data, covariance, dist_type_labels):
+        """
         Parameters:
         -----------
         redshifts: BAO redshifts
 
-        distances: BAO distances
+        data: BAO distances
 
         covariance: covariance matrix of vector mean
 
@@ -211,14 +248,16 @@ class UncalibratedBAOLikelihood(Chi2FullCov):
 
         """
         self.redshifts = jnp.asarray(redshifts)
-        self.data = jnp.asarray(distances)
+        self.data = jnp.asarray(data)
         self.cov = np.asarray(covariance)
-        self.W = np.linalg.inv(self.cov)
-        self.U = jnp.array(np.linalg.cholesky(self.W).T)  # , upper=True)
+        self.weight_matrix = np.linalg.inv(self.cov)
+        self.upper_factor = jnp.array(
+            np.linalg.cholesky(self.weight_matrix).T
+        )  # , upper=True)
         self.dist_type_labels = dist_type_labels
         if len(self.data) != len(self.dist_type_labels):
             raise ValueError(
-                f"Distance and dist_type_indices array must have the same length."
+                "Distance and dist_type_indices array must have the same length."
             )
         self.dist_type_indices = self._convert_labels_to_indices()
 
@@ -233,10 +272,12 @@ class UncalibratedBAOLikelihood(Chi2FullCov):
     @partial(jit, static_argnums=(0,))
     def model(self, params) -> jnp.ndarray:
         rd = params["rd"]
-        _dV = dV(params, self.redshifts)
-        _dM = dM(params, self.redshifts)
-        _dH = dH(params, self.redshifts)
-        return jnp.choose(self.dist_type_indices, [_dV, _dM, _dH], mode="clip") / rd
+        choices = [
+            distances.dV(params, self.redshifts),
+            distances.dM(params, self.redshifts),
+            distances.dH(params, self.redshifts),
+        ]
+        return jnp.choose(self.dist_type_indices, choices, mode="clip") / rd
 
     def initial_guess(self, params):
         """
@@ -247,8 +288,10 @@ class UncalibratedBAOLikelihood(Chi2FullCov):
 
 
 class CalibratedBAOLikelihood(UncalibratedBAOLikelihood):
+    """BAO measurements with rd computed from other parameters"""
+
     def model(self, params):
-        rd = rd_approx(params)
+        rd = acoustic_scale.rd_approx(params)
         return super().model(dict(params, rd=rd))
 
     def initial_guess(self, params):
@@ -259,17 +302,18 @@ class CalibratedBAOLikelihood(UncalibratedBAOLikelihood):
         return params
 
 
-@cached
+@tools.cached
 def Pantheonplus():
-    from cosmologix.tools import load_csv_from_url, cached_download
-    import gzip
+    """ Return likelihood from the Pantheon+SHOES SNe-Ia measurement
 
-    data = load_csv_from_url(
+    bibcode: 2022ApJ...938..113S
+    """
+    data = tools.load_csv_from_url(
         "https://github.com/PantheonPlusSH0ES/DataRelease/raw/refs/heads/main/Pantheon+_Data/"
         "4_DISTANCES_AND_COVAR/Pantheon+SH0ES.dat",
         delimiter=" ",
     )
-    covmat = cached_download(
+    covmat = tools.cached_download(
         "https://github.com/PantheonPlusSH0ES/DataRelease/raw/refs/heads/main/Pantheon+_Data/"
         "4_DISTANCES_AND_COVAR/Pantheon+SH0ES_STAT+SYS.cov"
     )
@@ -282,16 +326,17 @@ def Pantheonplus():
     return MuMeasurements(data["zHD"], data["MU_SH0ES"], cov_matrix)
 
 
-@cached
+@tools.cached
 def DES5yr():
-    from cosmologix.tools import load_csv_from_url, cached_download
-    import gzip
+    """ Return likelihood from the DES 5year SNe-Ia survey
 
-    des_data = load_csv_from_url(
+    bibcode: 2024ApJ...973L..14D
+    """
+    des_data = tools.load_csv_from_url(
         "https://github.com/des-science/DES-SN5YR/raw/refs/heads/main/4_DISTANCES_COVMAT/"
         "DES-SN5YR_HD+MetaData.csv"
     )
-    covmat = cached_download(
+    covmat = tools.cached_download(
         "https://github.com/des-science/DES-SN5YR/raw/refs/heads/main/4_DISTANCES_COVMAT/"
         "STAT+SYS.txt.gz"
     )
@@ -304,12 +349,15 @@ def DES5yr():
     return MuMeasurements(des_data["zHD"], des_data["MU"], cov_matrix)
 
 
-@cached
+@tools.cached
 def Union3():
-    from cosmologix.tools import cached_download
-    from astropy.io import fits
+    """ Return likelihood from the Union 3 compilation
 
-    union3_file = cached_download(
+    bibcode: 2023arXiv231112098R
+    """
+    from astropy.io import fits  # pylint: disable=import-outside-toplevel
+
+    union3_file = tools.cached_download(
         "https://github.com/rubind/union3_release/raw/refs/heads/main/mu_mat_union3_cosmo=2_mu.fits"
     )
     union3_mat = fits.getdata(union3_file)
@@ -319,24 +367,39 @@ def Union3():
     return MuMeasurements(z, mu, weights=inv_cov)
 
 
-@cached
+@tools.cached
 def JLA():
-    from cosmologix.tools import cached_download
-    from astropy.io import fits
+    """ Return likelihood from the Joint Light-curve Analysis compilation
+
+    bibcode: 2014A&A...568A..22B
+    """
+    from astropy.io import fits  # pylint: disable=import-outside-toplevel
 
     binned_distance_moduli = np.loadtxt(
-        cached_download("https://cdsarc.cds.unistra.fr/ftp/J/A+A/568/A22/tablef1.dat")
+        tools.cached_download(
+            "https://cdsarc.cds.unistra.fr/ftp/J/A+A/568/A22/tablef1.dat"
+        )
     )
     cov_mat = fits.getdata(
-        cached_download("https://cdsarc.cds.unistra.fr/ftp/J/A+A/568/A22/tablef2.fit")
+        tools.cached_download(
+            "https://cdsarc.cds.unistra.fr/ftp/J/A+A/568/A22/tablef2.fit"
+        )
     )
     return MuMeasurements(
         binned_distance_moduli[:, 0], binned_distance_moduli[:, 1], cov_mat
     )
 
 
-# Extracted from
 def Planck2018Prior():
+    """Geometric prior for Planck 2018 release
+
+    The values have been extracted from the cosmomc archive. Relevant
+    files for the central values and covariance were:
+    
+    - base_plikHM_TTTEEE_lowl_lowE.likestats
+    - base_plikHM_TTTEEE_lowl_lowE.covmat
+
+    """
     planck2018_prior = GeometricCMBLikelihood(
         [2.2337930e-02, 1.2041740e-01, 1.0409010e00],
         [
@@ -388,7 +451,7 @@ def DESIDR2Prior(uncalibrated=False):
             2.330,
             2.330,
         ],
-        distances=[
+        data=[
             7.944,
             13.587,
             21.863,
@@ -458,7 +521,7 @@ def DESIDR1Prior(uncalibrated=False):
             2.330,
             2.330,
         ],
-        distances=[
+        data=[
             7.93,
             13.62,
             20.98,
@@ -505,7 +568,8 @@ def DESIDR1Prior(uncalibrated=False):
 
 
 class BBNNeffLikelihood(GeometricCMBLikelihood):
-
+    """ Prior of the couple (Omega_b_h2, Neff)
+    """
     def __init__(self, mean, covariance):
         GeometricCMBLikelihood.__init__(self, mean, covariance)
 

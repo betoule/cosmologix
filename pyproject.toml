@@ -31,6 +31,7 @@ dependencies = [
     "matplotlib>=3.4.0",  # Optional, for examples and plotting
     "requests",
     "tqdm",
+    "astropy", # for pyfits and tests
 ]
 
 [project.scripts]
@@ -45,7 +46,6 @@ test = [
     "black",
     "scipy",
     "camb",
-    "astropy",
     "jax_cosmo",
 ]
 [project.urls]
