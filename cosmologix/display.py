@@ -5,6 +5,7 @@ Plotting functions
 from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
+from matplotlib.colors import to_rgba
 import numpy as np
 import jax.numpy as jnp
 import jax
@@ -116,8 +117,7 @@ def plot_confidence_ellipse(
     # Angle of rotation in degrees (from eigenvector)
     angle = np.degrees(np.arctan2(*eigenvectors[:, 0][::-1]))
 
-    alphas = np.linspace(1, 0.5, len(n_sigmas))
-    for n_sigma, alpha in zip(n_sigmas, alphas):
+    for n_sigma, alpha in zip(n_sigmas, np.linspace(1, 0.5, len(n_sigmas))):
         # Create the ellipse
         ellipse = Ellipse(
             xy=mean,
@@ -201,6 +201,28 @@ def plot_profile(
     ax=None,
     color=color_theme[0],
 ):
+    """Plot a 1D profile likelihood from a chi2 vector.
+
+    Parameters
+    ----------
+    grid:  dict or str or path
+        Dictionary or path to a pickle file containing a dictionary.
+        The dictionary contains contour data, typically from `frequentist_1d_profile`.
+        Expected keys:
+        - 'params': List of 1 parameter name (e.g., ['Omega_bc']).
+        - 'x': 1D array of grid coordinates for the explored parameter.
+        - 'chi2': 1D array of χ² values.
+        - 'bestfit': Dict of best-fit parameter values (used if `bestfit=True`).
+        - 'extra': Dict with 'loss' key containing optimization results (last value used as χ²_min).
+    label : str, optional
+        Label for the contour set, used in the legend if provided.
+    ax : matplotlib.axes.Axes, optional
+        Axes object to plot on. If None, uses the current axes (`plt.gca()`).
+    color : str, default is a light red hue.
+    """
+    if isinstance(grid, (str, Path)):
+        grid = load(grid)
+
     param = grid["params"][0]
     chi2_min = grid["extra"]["loss"][-1]
     if ax is None:
@@ -219,7 +241,7 @@ def plot_contours(
     color=color_theme[0],
     filled=False,
     transpose=False,
-    levels=[68.3, 95.5],
+    levels=None,
     **keys,
 ):
     """Plot 2D confidence contours from a chi-square grid.
@@ -267,16 +289,15 @@ def plot_contours(
     - Parameter names in axes labels are translated to LaTeX if present in `latex_translation`.
     - For filled contours, an invisible proxy patch is added for legend compatibility.
     """
-    from matplotlib.colors import to_rgba
+    if levels is None:
+        levels = [68.3, 95.5]
 
     if isinstance(grid, (str, Path)):
         grid = load(grid)
 
     x, y = grid["params"]
     if transpose:
-        xp = x
-        x = y
-        y = xp
+        x, y = y, x
         xl = "y"
         yl = "x"
         values = grid["chi2"]
@@ -296,7 +317,7 @@ def plot_contours(
         label = grid["label"]
     _levels = [conflevel_to_delta_chi2(l) for l in jnp.array(levels)]
     if filled:
-        contours = ax.contourf(
+        ax.contourf(
             grid[xl],
             grid[yl],
             values - grid["extra"]["loss"][-1],  # grid["chi2"].min(),
@@ -307,7 +328,7 @@ def plot_contours(
         ax.add_patch(plt.Rectangle((jnp.nan, jnp.nan), 1, 1, fc=colors[0], label=label))
     else:
         ax.add_line(plt.Line2D((jnp.nan,), (jnp.nan,), color=colors[0], label=label))
-    contours = ax.contour(
+    ax.contour(
         grid[xl],
         grid[yl],
         values - grid["extra"]["loss"][-1],  # grid["chi2"].min(),
@@ -413,7 +434,7 @@ def corner_plot_fisher(results, param_names=None, axes=None, **keys):
     return axes, param_names
 
 
-def corner_plot_contours(grids=[], axes=None, param_names=None, **keys):
+def corner_plot_contours(grids=None, axes=None, param_names=None, **keys):
     """Plot 2D contour grids on a corner plot for multiple parameter pairs.
 
     This function adds 2D contour plots to the lower triangle of a corner plot, using
@@ -438,7 +459,8 @@ def corner_plot_contours(grids=[], axes=None, param_names=None, **keys):
         (axes, param_names), where axes is the array of matplotlib axes and param_names is the
         list of parameters in the grid.
     """
-
+    if grids is None:
+        grids = []
     if param_names is None:
         param_names = []
         for grid in grids:

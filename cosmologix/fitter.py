@@ -3,19 +3,66 @@ problems
 """
 
 import time
-from typing import Callable
+from typing import Callable, Dict, Any
 import jax
 import jax.numpy as jnp
 from .likelihoods import LikelihoodSum, Planck18
 
 
 def flatten_vector(v):
-    """Transforms a vector with a pytree structure into a standard array"""
+    """Flatten a vector with a pytree structure into a 1D array.
+
+    This function takes a dictionary representing a pytree (a nested structure of arrays)
+    and concatenates all arrays into a single 1D array by raveling each component.
+
+    Parameters
+    ----------
+    v : dict
+        A dictionary where each value is a JAX array or a nested structure that can be
+        flattened into an array.
+
+    Returns
+    -------
+    jnp.ndarray
+        A 1D JAX array containing the flattened and concatenated values from the input.
+
+    Examples
+    --------
+    >>> v = {'a': jnp.array([1, 2]), 'b': jnp.array([[3, 4], [5, 6]])}
+    >>> flatten_vector(v)
+    DeviceArray([1, 2, 3, 4, 5, 6], dtype=int32)
+    """
     return jnp.hstack([jnp.ravel(v[p]) for p in v])
 
 
 def unflatten_vector(p, v):
-    """Give a standard array v the exact same pytree structure as p"""
+    """Reconstruct a pytree structure from a flattened array using a template.
+
+    This function takes a flattened 1D array and reshapes it to match the structure
+    of the template dictionary `p`, restoring the original shapes of the arrays.
+
+    Parameters
+    ----------
+    p : dict
+        A dictionary serving as a template, where each value is a JAX array whose shape
+        defines the structure to be restored.
+    v : jnp.ndarray
+        A 1D JAX array containing the flattened values to be reshaped.
+
+    Returns
+    -------
+    dict
+        A dictionary with the same keys as `p` and values reshaped to match the
+        corresponding array shapes in `p`.
+
+    Examples
+    --------
+    >>> p = {'a': jnp.array([0, 0]), 'b': jnp.array([[0, 0], [0, 0]])}
+    >>> v = jnp.array([1, 2, 3, 4, 5, 6])
+    >>> unflatten_vector(p, v)
+    {'a': DeviceArray([1, 2], dtype=int32),
+     'b': DeviceArray([[3, 4], [5, 6]], dtype=int32)}
+    """
     st = {}
     i = 0
     for k in p:
@@ -25,7 +72,7 @@ def unflatten_vector(p, v):
     return st
 
 
-def restrict(f: Callable, fixed_params: dict = {}) -> Callable:
+def restrict(f: Callable, fixed_params: dict = None) -> Callable:
     """Modify a function by fixing some of its parameters.
 
     This is similar to functools.partial but allows fixing parts of
@@ -49,6 +96,8 @@ def restrict(f: Callable, fixed_params: dict = {}) -> Callable:
     restrict(mu, {'w': -1}) returns a function of 'Omega_bc' only.
 
     """
+    if fixed_params is None:
+        fixed_params = {}
 
     def g(params, *args, **kwargs):
         updated_params = fixed_params.copy()
@@ -99,25 +148,51 @@ def restrict_to(func, complete, varied, flat=True):
 
     """
     fixed = complete.copy()
-    V = {}
+    varied_dict = {}
     for p in varied:
         fixed.pop(p)
-        V[p] = complete[p]
+        varied_dict[p] = complete[p]
     if flat:
-        return lambda x: func(dict(unflatten_vector(varied, x), fixed)), V
-    return lambda x: func(dict(x, **fixed)), V
+        return lambda x: func(dict(unflatten_vector(varied, x), fixed)), varied_dict
+    return lambda x: func(dict(x, **fixed)), varied_dict
 
 
-def partial(func, param_subset):
-    """adapt func to deal with a subset of the parameters"""
+def partial(func: Callable, param_subset: Dict[str, Any]) -> Callable:
+    """Create a new function that operates on a subset of parameters.
 
+    This function adapts an input function to accept a flattened array representing
+    a subset of parameters, while fixing the remaining parameters from a provided point.
+
+    Parameters
+    ----------
+    func : callable
+        The original function that takes a dictionary of parameters and returns a value.
+    param_subset : dict
+        A dictionary specifying the structure of the parameter subset to be optimized.
+
+    Returns
+    -------
+    callable
+        A new function that takes a flattened array `x` (representing the subset of
+        parameters) and a dictionary `point` (containing fixed parameters), and returns
+        the result of `func` applied to the combined parameters.
+
+    Examples
+    --------
+    >>> def func(params): return params['a'] + params['b']
+    >>> param_subset = {'a': jnp.array([0])}
+    >>> new_func = partial(func, param_subset)
+    >>> point = {'b': jnp.array([10])}
+    >>> new_func(jnp.array([5]), point)
+    DeviceArray([15], dtype=int32)
+    """
     def _func(x, point):
         return func(dict(unflatten_vector(param_subset, x), **point))
 
     return _func
 
 
-def analyze_FIM_for_unconstrained(fim, param_names):
+def analyze_fim_for_unconstrained(fim, param_names):
     """Analyze FIM for unconstrained parameters and degeneracies."""
     # Check for unconstrained parameters (zero entries in the FIM)
     threshold = 1e-10  # Arbitrary large value for "unconstrained"
@@ -133,7 +208,7 @@ def analyze_FIM_for_unconstrained(fim, param_names):
     return unconstrained
 
 
-def analyze_FIM_for_degeneracies(fim, param_names):
+def analyze_fim_for_degeneracies(fim, param_names):
     """Analyze FIM for degeneracies between parameters."""
     # Compute covariance matrix
     cov = jnp.linalg.inv(fim)
@@ -147,10 +222,10 @@ def analyze_FIM_for_degeneracies(fim, param_names):
     # Check for perfect degeneracies (|corr| ≈ 1, excluding diagonal)
     degeneracy_threshold = 0.999  # Close to ±1
     degeneracies = []
-    for i in range(len(param_names)):
+    for i, name in enumerate(param_names):
         for j in range(i + 1, len(param_names)):
             if abs(corr[i, j]) > degeneracy_threshold:
-                degeneracies.append((param_names[i], param_names[j], float(corr[i, j])))
+                degeneracies.append((name, param_names[j], float(corr[i, j])))
 
     # if degeneracies:
     #    print("\nPerfect Degeneracies Detected (|correlation| > 0.999):")
@@ -161,12 +236,47 @@ def analyze_FIM_for_degeneracies(fim, param_names):
     return degeneracies
 
 
-# def newton_prep(func, params_subset):
-#    f = jax.jit(partial(func, params_subset))
-#    return f, jax.jit(jax.grad(f)), jax.jit(jax.hessian(f))
+def gauss_newton_prep(func: Callable, params_subset: Dict[str, Any] ) -> tuple[Callable, Callable]:
+    """Prepare a function and its Jacobian for the Gauss-Newton algorithm.
 
+    This function creates a restricted version of the input function that operates on
+    a subset of parameters and computes its Jacobian using JAX's forward-mode
+    automatic differentiation. The result is suitable for use in Gauss-Newton optimization.
 
-def gauss_newton_prep(func, params_subset):
+    Parameters
+    ----------
+    func : callable
+        The original function that takes a dictionary of parameters and returns a value.
+        Typically, this is a residual or cost function.
+    params_subset : dict
+        A dictionary specifying the structure of the parameter subset to be optimized.
+
+    Returns
+    -------
+    tuple[callable, callable]
+        A tuple containing:
+        - The restricted function, JIT-compiled, that operates on a flattened array of
+          the parameter subset and fixed parameters.
+        - The Jacobian of the restricted function, JIT-compiled, computed with respect
+          to the flattened parameter subset.
+
+    Notes
+    -----
+    The returned functions are JIT-compiled for performance using `jax.jit`. The Jacobian
+    is computed using forward-mode automatic differentiation (`jax.jacfwd`).
+
+    Examples
+    --------
+    >>> def func(params): return params['a'] ** 2 + params['b']
+    >>> params_subset = {'a': jnp.array([0.])}
+    >>> f, jac = gauss_newton_prep(func, params_subset)
+    >>> x = jnp.array([2.])
+    >>> point = {'b': jnp.array([3.])}
+    >>> f(x, point)
+    DeviceArray(7., dtype=float32)
+    >>> jac(x, point)
+    DeviceArray([[4.]], dtype=float32)
+    """
     f = jax.jit(partial(func, params_subset))
     return f, jax.jit(jax.jacfwd(f))
 
@@ -194,7 +304,7 @@ class DegenerateParametersError(Exception):
         super().__init__(message)
 
 
-def fit(likelihoods, fixed={}, verbose=False, initial_guess=Planck18):
+def fit(likelihoods, fixed=None, verbose=False, initial_guess=None):
     """Fit a set of likelihoods using the Gauss-Newton method with
     partial parameter fixing.
 
@@ -244,6 +354,11 @@ def fit(likelihoods, fixed={}, verbose=False, initial_guess=Planck18):
     >>> print(result['bestfit'])
 
     """
+    if fixed is None:
+        fixed = {}
+
+    if initial_guess is None:
+        initial_guess = Planck18.copy()
     likelihood = LikelihoodSum(likelihoods)
 
     # Pick up a good starting point
@@ -263,24 +378,24 @@ def fit(likelihoods, fixed={}, verbose=False, initial_guess=Planck18):
         print(initial_guess)
 
     # Quick inspection to look for degeracies
-    J = wjac(x0, fixed)
-    FIM = J.T @ J
-    unconstrained = analyze_FIM_for_unconstrained(FIM, list(initial_guess.keys()))
+    jac = wjac(x0, fixed) # pylint: disable=not-callable
+    fim = jac.T @ jac
+    unconstrained = analyze_fim_for_unconstrained(fim, list(initial_guess.keys()))
     if unconstrained:
         raise UnconstrainedParameterError(unconstrained)
-    degenerate = analyze_FIM_for_degeneracies(FIM, list(initial_guess.keys()))
+    degenerate = analyze_fim_for_degeneracies(fim, list(initial_guess.keys()))
     if degenerate:
         raise DegenerateParametersError(degenerate)
     # Minimization
     xbest, extra = gauss_newton_partial(wres, wjac, x0, fixed, verbose=verbose)
 
     # report the residuals at the end of the fit
-    extra["residuals"] = wres(xbest, fixed)
+    extra["residuals"] = wres(xbest, fixed) # pylint: disable=not-callable
 
     # Compute approximation of the FIM
-    J = wjac(xbest, fixed)
-    inverse_FIM = jnp.linalg.inv(J.T @ J)
-    extra["inverse_FIM"] = inverse_FIM
+    jac = wjac(xbest, fixed) # pylint: disable=not-callable
+    inverse_fim = jnp.linalg.inv(jac.T @ jac)
+    extra["inverse_FIM"] = inverse_fim
 
     # Unflatten the vectors for conveniency
     extra["x"] = xbest
@@ -316,7 +431,7 @@ def fit(likelihoods, fixed={}, verbose=False, initial_guess=Planck18):
 #    timings = jnp.array(timings)
 #    return unflatten_vector(x0, xi), {"loss": losses, "timings": timings}
 
-
+# pylint: disable=invalid-name
 def gauss_newton_partial(
     wres, jac, x0, fixed, niter=50, tol=1e-3, full=False, verbose=False
 ):

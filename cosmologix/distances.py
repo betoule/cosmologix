@@ -78,7 +78,7 @@ def lookback_time(params, z, nstep=1000):
 
 
 @partial(jax.jit, static_argnames=("nstep",))
-def _dM_open(
+def _transverse_comoving_distance_open(
     params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000
 ) -> jnp.ndarray:
     com_dist = dC(params, z, nstep)
@@ -88,7 +88,7 @@ def _dM_open(
 
 
 @partial(jax.jit, static_argnames=("nstep",))
-def _dM_close(
+def _transverse_comoving_distance_closed(
     params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000
 ) -> jnp.ndarray:
     com_dist = dC(params, z, nstep)
@@ -99,16 +99,16 @@ def _dM_close(
 
 @partial(jax.jit, static_argnames=("nstep",))
 def dM(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
-    """ Compute the transverse comoving distance in Mpc."""
+    """Compute the transverse comoving distance in Mpc."""
     index = -jnp.sign(params["Omega_k"]).astype(jnp.int8) + 1
     # we need to pass nstep explicitly to branches to avoid
     # lax.switch’s dynamic argument passing
     return lax.switch(
         index,
         [
-            lambda p, z: _dM_open(p, z, nstep),
+            lambda p, z: _transverse_comoving_distance_open(p, z, nstep),
             lambda p, z: dC(p, z, nstep),
-            lambda p, z: _dM_close(p, z, nstep),
+            lambda p, z: _transverse_comoving_distance_closed(p, z, nstep),
         ],
         params,
         z,
@@ -118,8 +118,6 @@ def dM(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarr
 def dL(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
     """Compute the luminosity distance in Mpc."""
     return (1 + z) * dM(params, z, nstep)
-    # return (1 + z) * dM(params, z, nstep)
-    # return (1 + z) * dC(params, z, nstep)
 
 
 def dA(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarray:
@@ -158,13 +156,6 @@ def mu(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarr
     return 5 * jnp.log10(dL(params, z, nstep)) + 25
 
 
-def dVc(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
-    """Calculate the differential comoving volume."""
-    dh = Constants.c / params["H0"] * 1e-3
-    u = 1.0 / jnp.sqrt(1 + z)
-    return 4 * jnp.pi * (dC(params, z) ** 2) * dh * dzoveru3H(params, u) * u**3
-
-
 def dV(params: Dict[str, float], z: jnp.ndarray) -> jnp.ndarray:
     """Calculate the volumic distance.
     See formula 2.6 in DESI 1yr cosmological results arxiv:2404.03002
@@ -177,28 +168,38 @@ def _flat_comoving_volume(params, z):
 
 
 def _open_comoving_volume(params, z):
-    _dC = dC(params, z)
+    comoving_coordinate = dC(params, z)
     dh = Constants.c / params["H0"] * 1e-3  # Hubble distance in Mpc
     sqrt_omegak = jnp.sqrt(jnp.abs(params["Omega_k"]))
-    _dM = (dh / sqrt_omegak) * jnp.sinh(sqrt_omegak * _dC / dh)
-    d = _dM / dh
+    comoving_distance = (dh / sqrt_omegak) * jnp.sinh(
+        sqrt_omegak * comoving_coordinate / dh
+    )
+    d = comoving_distance / dh
     return (
         dh**2
         / (2.0 * params["Omega_k"])
-        * (_dM * jnp.sqrt(1 + params["Omega_k"] * d**2) - _dC)
+        * (
+            comoving_distance * jnp.sqrt(1 + params["Omega_k"] * d**2)
+            - comoving_coordinate
+        )
     )
 
 
 def _close_comoving_volume(params, z):
-    _dC = dC(params, z)
+    comoving_coordinate = dC(params, z)
     dh = Constants.c / params["H0"] * 1e-3  # Hubble distance in Mpc
     sqrt_omegak = jnp.sqrt(jnp.abs(params["Omega_k"]))
-    _dM = (dh / sqrt_omegak) * jnp.sin(sqrt_omegak * _dC / dh)
-    d = _dM / dh
+    comoving_distance = (dh / sqrt_omegak) * jnp.sin(
+        sqrt_omegak * comoving_coordinate / dh
+    )
+    d = comoving_distance / dh
     return (
         dh**2
         / (2.0 * params["Omega_k"])
-        * (_dM * jnp.sqrt(1 + params["Omega_k"] * d**2) - _dC)
+        * (
+            comoving_distance * jnp.sqrt(1 + params["Omega_k"] * d**2)
+            - comoving_coordinate
+        )
     )
 
 
