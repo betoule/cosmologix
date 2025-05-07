@@ -1,5 +1,16 @@
 """
-cache management.
+Collection of tools used in cosmologix:
+- Physical constants:
+  Constants
+- Cache management:
+  get_cache_dir, clear_cache, cached_download, cached (decorator)
+- input/output files:
+  load_csv_from_url, save, load
+- Integration:
+  trapezoidal_rule_integration
+- stats:
+  conflevel_to_delta_chi2, randn, speed_measurement
+- wrapper around vmap: safe_vmap
 """
 
 import hashlib
@@ -12,6 +23,25 @@ from typing import Callable, Tuple
 import jax.numpy as jnp
 import jax
 import numpy as np
+
+
+class Constants:
+    """Physical constants"""
+
+    # pylint: disable=too-few-public-methods
+    G = 6.67384e-11  # m^3/kg/s^2
+    c = 299792458.0  # m/s
+    pc = 3.08567758e16  # m
+    mp = 1.67262158e-27  # kg
+    h = 6.62617e-34  # J.s
+    k = 1.38066e-23  # J/K
+    e = 1.60217663e-19  # C
+    year = 31557600.0  # s
+    sigma = (
+        2 * jnp.pi**5 * k**4 / (15 * h**3 * c**2)
+    )  # Stefan-Boltzmann constant J/s / K^4 /m^2
+    zeta3 = 1.2020569031595942853997
+    zeta5 = 1.0369277551433699263313
 
 
 def get_cache_dir():
@@ -51,11 +81,8 @@ def clear_cache(cache_dir=None):
         )  # Assuming get_cache_dir() is defined as in the previous example
 
     if os.path.exists(cache_dir):
-        try:
-            shutil.rmtree(cache_dir)  # Remove the entire directory
-            print(f"Cache directory {cache_dir} has been cleared.")
-        except Exception as e:
-            print(f"An error occurred while clearing the cache: {e}")
+        shutil.rmtree(cache_dir)  # Remove the entire directory
+        print(f"Cache directory {cache_dir} has been cleared.")
     else:
         print(f"Cache directory {cache_dir} does not exist.")
 
@@ -86,7 +113,7 @@ def cached_download(url, cache_dir=None):
     # this module is a bit slow to import (don't unless needed)
     import requests  # pylint: disable=import-outside-toplevel
 
-    response = requests.get(url, stream=True)
+    response = requests.get(url, stream=True, timeout=30)
     response.raise_for_status()
 
     with open(cache_path, "wb") as file:
@@ -187,7 +214,7 @@ def safe_vmap(in_axes: Tuple[None | int, ...] = (None, 0)) -> Callable:
 
 
 def trapezoidal_rule_integration(
-    f: Callable, bound_inf: float, bound_sup: float, n_step: int = 1000, *args, **kwargs
+    f: Callable, bound_inf: float, bound_sup: float, n_step: int = 1000, **kwargs
 ) -> float:
     """
     Compute the integral of f over [bound_inf, bound_sup] using the trapezoidal rule.
@@ -200,7 +227,7 @@ def trapezoidal_rule_integration(
         Integration bounds.
     n_step: int
         Number of subdivisions.
-    *args, **kwargs:
+    kwargs:
         Additional arguments passed to f.
 
     Returns:
@@ -208,28 +235,9 @@ def trapezoidal_rule_integration(
     float: The computed integral.
     """
     x = jnp.linspace(bound_inf, bound_sup, n_step)
-    y = f(x, *args, **kwargs)
+    y = f(x, **kwargs)
     h = (bound_sup - bound_inf) / (n_step - 1)
     return (h / 2) * (y[1:] + y[:-1]).sum()
-
-
-class Constants:
-    """Physical constants"""
-
-    # pylint: disable=too-few-public-methods
-    G = 6.67384e-11  # m^3/kg/s^2
-    c = 299792458.0  # m/s
-    pc = 3.08567758e16  # m
-    mp = 1.67262158e-27  # kg
-    h = 6.62617e-34  # J.s
-    k = 1.38066e-23  # J/K
-    e = 1.60217663e-19  # C
-    year = 31557600.0  # s
-    sigma = (
-        2 * jnp.pi**5 * k**4 / (15 * h**3 * c**2)
-    )  # Stefan-Boltzmann constant J/s / K^4 /m^2
-    zeta3 = 1.2020569031595942853997
-    zeta5 = 1.0369277551433699263313
 
 
 def load_csv_from_url(url, delimiter=","):
@@ -246,7 +254,7 @@ def load_csv_from_url(url, delimiter=","):
     # Decode the response content and split into lines
     # lines = response.content.decode("utf-8").splitlines()
     path = cached_download(url)
-    with open(path, "r") as fid:
+    with open(path, "r", encoding="utf-8") as fid:
         lines = fid.readlines()
 
     # Process the CSV data
@@ -306,6 +314,7 @@ def conflevel_to_delta_chi2(level, dof=2, max_iter=1000, tol=1e-6):
 GLOBAL_KEY = None
 
 
+# pylint: disable=global-statement
 def randn(sigma, n=None, key=None):
     """
     Generate a Gaussian random vector scaled by sigma.
@@ -365,19 +374,19 @@ def speed_measurement(func, *args, n=10):
     """
     jax.clear_caches()  # make sure that compilation is triggered
     tstart = time.time()
-    result = jax.block_until_ready(func(*args))
+    jax.block_until_ready(func(*args))
     tcomp = time.time()
     for _ in range(n):
-        result = jax.block_until_ready(func(*args))
+        jax.block_until_ready(func(*args))
     tstop1 = time.time()
     jax.clear_caches()  # make sure that compilation is triggered
     tstart2 = time.time()
     jfunc = jax.jit(func)
     tjit = time.time()
-    result = jax.block_until_ready(jfunc(*args))
+    jax.block_until_ready(jfunc(*args))  # pylint: disable=not-callable
     tcomp2 = time.time()
     for _ in range(n):
-        result = jax.block_until_ready(jfunc(*args))
+        jax.block_until_ready(jfunc(*args))  # pylint: disable=not-callable
     tstop2 = time.time()
     # return (len(z), tcomp-tstart, (tstop-tcomp)/n)
     return (
@@ -391,15 +400,11 @@ def speed_measurement(func, *args, n=10):
 
 def save(grid, filename):
     """Save data dictionary to a pickle file."""
-    import pickle  # pylint: disable=import-outside-toplevel
-
     with open(filename, "wb") as fid:
         pickle.dump(grid, fid)
 
 
 def load(filename):
     """Load data dictionary from a pickle file."""
-    import pickle  # pylint: disable=import-outside-toplevel
-
     with open(filename, "rb") as fid:
         return pickle.load(fid)

@@ -6,7 +6,7 @@ import time
 from typing import Callable, Dict, Any
 import jax
 import jax.numpy as jnp
-from .likelihoods import LikelihoodSum, Planck18
+from .parameters import Planck18
 
 
 def flatten_vector(v):
@@ -186,10 +186,34 @@ def partial(func: Callable, param_subset: Dict[str, Any]) -> Callable:
     >>> new_func(jnp.array([5]), point)
     DeviceArray([15], dtype=int32)
     """
+
     def _func(x, point):
         return func(dict(unflatten_vector(param_subset, x), **point))
 
     return _func
+
+
+class UnconstrainedParameterError(Exception):
+    """Raised when a parameter is unconstrained in the fit."""
+
+    def __init__(self, unconstrained_params):
+        self.params = unconstrained_params
+        message = "Unconstrained parameters detected:\n" + "\n".join(
+            f"  {name}: σ = {unc:.2f}" for name, unc in unconstrained_params
+        )
+        super().__init__(message)
+
+
+class DegenerateParametersError(Exception):
+    """Raised when perfect degeneracy between parameters is detected."""
+
+    def __init__(self, degeneracies):
+        self.params = degeneracies
+        message = "Unconstrained parameters detected:\n" + "\n".join(
+            f"  {param1} <-> {param2}: correlation = {corr_val:.4f}"
+            for param1, param2, corr_val in degeneracies
+        )
+        super().__init__(message)
 
 
 def analyze_fim_for_unconstrained(fim, param_names):
@@ -236,7 +260,32 @@ def analyze_fim_for_degeneracies(fim, param_names):
     return degeneracies
 
 
-def gauss_newton_prep(func: Callable, params_subset: Dict[str, Any] ) -> tuple[Callable, Callable]:
+class LikelihoodSum:
+
+    def __init__(self, likelihoods):
+        self.likelihoods = likelihoods
+
+    def negative_log_likelihood(self, params):
+        return jnp.sum(
+            jnp.array([l.negative_log_likelihood(params) for l in self.likelihoods])
+        )
+
+    def weighted_residuals(self, params):
+        return jnp.hstack([l.weighted_residuals(params) for l in self.likelihoods])
+
+    def initial_guess(self, params):
+        for l in self.likelihoods:
+            params = l.initial_guess(params)
+        return params
+
+    def draw(self, params):
+        for l in self.likelihoods:
+            l.draw(params)
+
+
+def gauss_newton_prep(
+    func: Callable, params_subset: Dict[str, Any]
+) -> tuple[Callable, Callable]:
     """Prepare a function and its Jacobian for the Gauss-Newton algorithm.
 
     This function creates a restricted version of the input function that operates on
@@ -279,29 +328,6 @@ def gauss_newton_prep(func: Callable, params_subset: Dict[str, Any] ) -> tuple[C
     """
     f = jax.jit(partial(func, params_subset))
     return f, jax.jit(jax.jacfwd(f))
-
-
-class UnconstrainedParameterError(Exception):
-    """Raised when a parameter is unconstrained in the fit."""
-
-    def __init__(self, unconstrained_params):
-        self.params = unconstrained_params
-        message = "Unconstrained parameters detected:\n" + "\n".join(
-            f"  {name}: σ = {unc:.2f}" for name, unc in unconstrained_params
-        )
-        super().__init__(message)
-
-
-class DegenerateParametersError(Exception):
-    """Raised when perfect degeneracy between parameters is detected."""
-
-    def __init__(self, degeneracies):
-        self.params = degeneracies
-        message = "Unconstrained parameters detected:\n" + "\n".join(
-            f"  {param1} <-> {param2}: correlation = {corr_val:.4f}"
-            for param1, param2, corr_val in degeneracies
-        )
-        super().__init__(message)
 
 
 def fit(likelihoods, fixed=None, verbose=False, initial_guess=None):
@@ -378,7 +404,7 @@ def fit(likelihoods, fixed=None, verbose=False, initial_guess=None):
         print(initial_guess)
 
     # Quick inspection to look for degeracies
-    jac = wjac(x0, fixed) # pylint: disable=not-callable
+    jac = wjac(x0, fixed)  # pylint: disable=not-callable
     fim = jac.T @ jac
     unconstrained = analyze_fim_for_unconstrained(fim, list(initial_guess.keys()))
     if unconstrained:
@@ -390,10 +416,10 @@ def fit(likelihoods, fixed=None, verbose=False, initial_guess=None):
     xbest, extra = gauss_newton_partial(wres, wjac, x0, fixed, verbose=verbose)
 
     # report the residuals at the end of the fit
-    extra["residuals"] = wres(xbest, fixed) # pylint: disable=not-callable
+    extra["residuals"] = wres(xbest, fixed)  # pylint: disable=not-callable
 
     # Compute approximation of the FIM
-    jac = wjac(xbest, fixed) # pylint: disable=not-callable
+    jac = wjac(xbest, fixed)  # pylint: disable=not-callable
     inverse_fim = jnp.linalg.inv(jac.T @ jac)
     extra["inverse_FIM"] = inverse_fim
 
@@ -430,6 +456,7 @@ def fit(likelihoods, fixed=None, verbose=False, initial_guess=None):
 #            break
 #    timings = jnp.array(timings)
 #    return unflatten_vector(x0, xi), {"loss": losses, "timings": timings}
+
 
 # pylint: disable=invalid-name
 def gauss_newton_partial(

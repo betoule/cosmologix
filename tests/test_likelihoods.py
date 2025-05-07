@@ -1,5 +1,5 @@
 from cosmologix import Planck18, likelihoods, tools
-from cosmologix.fitter import unflatten_vector, flatten_vector
+from cosmologix.fitter import unflatten_vector, flatten_vector, LikelihoodSum
 import jax
 import jax.numpy as jnp
 from numpy.testing import assert_allclose
@@ -54,7 +54,7 @@ def test_likelihoods(fix=["Omega_k"]):
         "BBNNeff": likelihoods.BBNNeffSchoneberg2024Prior,
         "SH0ES": likelihoods.SH0ES,
     }
-    priors["sum"] = lambda: likelihoods.LikelihoodSum(
+    priors["sum"] = lambda: LikelihoodSum(
         [likelihoods.Planck2018Prior(), likelihoods.Union3()]
     )
     for name, likelihood in priors.items():

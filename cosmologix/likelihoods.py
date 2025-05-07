@@ -13,7 +13,7 @@ from cosmologix.tools import randn, cached
 
 
 class Chi2:
-    """Abstract implementation of chi-squared (χ²) evaluation for
+    """Basic implementation of chi-squared (χ²) evaluation for
     statistical analysis.
 
     This class provides a framework for computing the chi-squared
@@ -25,14 +25,35 @@ class Chi2:
     - negative_log_likelihood: Computes the sum of squared weighted residuals,
       which corresponds to negative twice the log-likelihood for Gaussian errors.
 
-    It should be derived to additionnally provide the following
-    attributes:
+    In this base implementation we assume that we have a simple
+    measurement of a single parameter with its 1-sigma error. The
+    class can be derived to implement different behavior by
+    overwriting the following attributes:
 
     - data: The observed data values.
     - model: A function or callable that takes parameters and returns model predictions.
     - error: The uncertainties or standard deviations of the data points.
 
     """
+
+    def __init__(self, parameter, mean, error):
+        """Likelihood for a single parameter measurement
+
+        Parameters:
+        - parameter: 'str' name of the measured parameter
+        - mean: float measured value
+        - error: float 1-sigma error
+        """
+        self.data = jnp.array([mean])
+        self.error = jnp.array([error])
+        self.parameter = parameter
+
+    def model(self, params):
+        """Model evaluation
+
+        In this basic case we simply return the parameter value
+        """
+        return jnp.array(params[self.parameter])
 
     def residuals(self, params):
         """
@@ -80,6 +101,10 @@ class Chi2:
         return params
 
     def draw(self, params):
+        """Draw a Gaussian random realisation of the model
+
+        Used in simulation and test
+        """
         self.data = self.model(params) + randn(self.error)
 
 
@@ -102,29 +127,6 @@ class Chi2FullCov(Chi2):
         - numpy.ndarray: An array where each element is residual/error.
         """
         return self.U @ self.residuals(params)
-
-
-class LikelihoodSum:
-
-    def __init__(self, likelihoods):
-        self.likelihoods = likelihoods
-
-    def negative_log_likelihood(self, params):
-        return jnp.sum(
-            jnp.array([l.negative_log_likelihood(params) for l in self.likelihoods])
-        )
-
-    def weighted_residuals(self, params):
-        return jnp.hstack([l.weighted_residuals(params) for l in self.likelihoods])
-
-    def initial_guess(self, params):
-        for l in self.likelihoods:
-            params = l.initial_guess(params)
-        return params
-
-    def draw(self, params):
-        for l in self.likelihoods:
-            l.draw(params)
 
 
 class MuMeasurements(Chi2FullCov):
@@ -263,11 +265,13 @@ def Pantheonplus():
     import gzip
 
     data = load_csv_from_url(
-        "https://github.com/PantheonPlusSH0ES/DataRelease/raw/refs/heads/main/Pantheon+_Data/4_DISTANCES_AND_COVAR/Pantheon+SH0ES.dat",
+        "https://github.com/PantheonPlusSH0ES/DataRelease/raw/refs/heads/main/Pantheon+_Data/"
+        "4_DISTANCES_AND_COVAR/Pantheon+SH0ES.dat",
         delimiter=" ",
     )
     covmat = cached_download(
-        "https://github.com/PantheonPlusSH0ES/DataRelease/raw/refs/heads/main/Pantheon+_Data/4_DISTANCES_AND_COVAR/Pantheon+SH0ES_STAT+SYS.cov"
+        "https://github.com/PantheonPlusSH0ES/DataRelease/raw/refs/heads/main/Pantheon+_Data/"
+        "4_DISTANCES_AND_COVAR/Pantheon+SH0ES_STAT+SYS.cov"
     )
     cov_matrix = np.loadtxt(covmat)
     nside = int(cov_matrix[0])
@@ -284,10 +288,12 @@ def DES5yr():
     import gzip
 
     des_data = load_csv_from_url(
-        "https://github.com/des-science/DES-SN5YR/raw/refs/heads/main/4_DISTANCES_COVMAT/DES-SN5YR_HD+MetaData.csv"
+        "https://github.com/des-science/DES-SN5YR/raw/refs/heads/main/4_DISTANCES_COVMAT/"
+        "DES-SN5YR_HD+MetaData.csv"
     )
     covmat = cached_download(
-        "https://github.com/des-science/DES-SN5YR/raw/refs/heads/main/4_DISTANCES_COVMAT/STAT+SYS.txt.gz"
+        "https://github.com/des-science/DES-SN5YR/raw/refs/heads/main/4_DISTANCES_COVMAT/"
+        "STAT+SYS.txt.gz"
     )
     with gzip.open(covmat, "rt") as f:  # 'rt' mode for text reading
         cov_matrix = np.loadtxt(f)
@@ -498,16 +504,6 @@ def DESIDR1Prior(uncalibrated=False):
     return desi2024_prior
 
 
-class GaussianPrior(Chi2):
-    def __init__(self, parameter, mean, error):
-        self.data = jnp.array([mean])
-        self.error = jnp.array([error])
-        self.parameter = parameter
-
-    def model(self, params):
-        return jnp.array(params[self.parameter])
-
-
 class BBNNeffLikelihood(GeometricCMBLikelihood):
 
     def __init__(self, mean, covariance):
@@ -534,7 +530,7 @@ def BBNSchoneberg2024Prior():
     BBN measurement from https://arxiv.org/abs/2401.15054
     """
 
-    bbn_prior = GaussianPrior("Omega_b_h2", 0.02218, 0.00055)
+    bbn_prior = Chi2("Omega_b_h2", 0.02218, 0.00055)
     return bbn_prior
 
 
@@ -542,39 +538,4 @@ def SH0ES():
     """
     H0 measurement from Murakami et al. 2023 (doi:10.1088/1475-7516/2023/11/046)
     """
-    return GaussianPrior("H0", 73.29, 0.90)
-
-
-#######################
-# Best fit cosmologies
-#######################
-
-# Base-ΛCDM cosmological parameters from Planck
-# TT,TE,EE+lowE+lensing. Taken from Table 1. in
-# 10.1051/0004-6361/201833910
-Planck18 = {
-    "Tcmb": 2.7255,  # from Planck18 arxiv:1807.06209 footnote 14 citing Fixsen 2009
-    "Omega_bc": (0.02233 + 0.1198) / (67.37 / 100) ** 2,  # ±0.0074
-    "H0": 67.37,  # ±0.54
-    "Omega_b_h2": 0.02233,  # ±0.00015
-    "Omega_k": 0.0,
-    "w": -1.0,
-    "wa": 0.0,
-    "m_nu": 0.06,  # jnp.array([0.06, 0.0, 0.0]),
-    "Neff": 3.046,
-}
-
-# Fiducial cosmology used in DESI 2024 YR1 BAO measurements
-# Referred as abacus_cosm000 at https://abacussummit.readthedocs.io/en/latest/ cosmologies.html
-# Baseline LCDM, Planck 2018 base_plikHM_TTTEEE_lowl_lowE_lensing mean
-DESI2024YR1_Fiducial = {
-    "Tcmb": 2.7255,  # from Planck18 arxiv:1807.06209 footnote 14 citing Fixsen 2009
-    "Omega_bc": (0.02237 + 0.1200) / (67.36 / 100) ** 2,
-    "H0": 67.36,  # ±0.54
-    "Omega_b_h2": 0.02237,  # ±0.00015
-    "Omega_k": 0.0,
-    "w": -1.0,
-    "wa": 0.0,
-    "m_nu": 0.06,  # jnp.array([0.06, 0.0, 0.0]),  # 0.00064420   2.0328
-    "Neff": 3.04,
-}
+    return Chi2("H0", 73.29, 0.90)

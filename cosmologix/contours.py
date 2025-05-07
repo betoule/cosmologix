@@ -7,7 +7,6 @@ import numpy as np
 import jax.numpy as jnp
 from tqdm import tqdm
 
-from cosmologix.likelihoods import LikelihoodSum
 from cosmologix.fitter import (
     restrict_to,
     restrict,
@@ -15,6 +14,7 @@ from cosmologix.fitter import (
     gauss_newton_partial,
     gauss_newton_prep,
     unflatten_vector,
+    LikelihoodSum,
 )
 from cosmologix.tools import conflevel_to_delta_chi2
 from cosmologix import Planck18
