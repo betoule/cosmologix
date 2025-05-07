@@ -261,8 +261,8 @@ def analyze_fim_for_degeneracies(fim, param_names):
 
 
 class LikelihoodSum:
-    """ Utility class to sum a list of Chi2 objects
-    """
+    """Utility class to sum a list of Chi2 objects"""
+
     def __init__(self, likelihoods):
         """
         Parameters:
@@ -275,7 +275,7 @@ class LikelihoodSum:
         """Compute the sum of negative log-likelihood, which is
         equivalent to half the chi-squared statistic for normally
         distributed errors.
-        
+
         Parameters:
         - params: A dictionary of model parameters.
 
@@ -290,7 +290,7 @@ class LikelihoodSum:
     def weighted_residuals(self, params):
         """
         Calculate the concatenation of weighted residuals, normalized by their respective errors.
-        
+
         Parameters:
         - params: A dictionary or list of model parameters.
 
@@ -312,7 +312,6 @@ class LikelihoodSum:
 def gauss_newton_prep(
     func: Callable, params_subset: Dict[str, Any]
 ) -> tuple[Callable, Callable]:
-
     """Prepare a function and its Jacobian for the Gauss-Newton algorithm.
 
     This function creates a restricted version of the input function that operates on

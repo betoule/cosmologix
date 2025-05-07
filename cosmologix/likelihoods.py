@@ -304,7 +304,7 @@ class CalibratedBAOLikelihood(UncalibratedBAOLikelihood):
 
 @tools.cached
 def Pantheonplus():
-    """ Return likelihood from the Pantheon+SHOES SNe-Ia measurement
+    """Return likelihood from the Pantheon+SHOES SNe-Ia measurement
 
     bibcode: 2022ApJ...938..113S
     """
@@ -328,7 +328,7 @@ def Pantheonplus():
 
 @tools.cached
 def DES5yr():
-    """ Return likelihood from the DES 5year SNe-Ia survey
+    """Return likelihood from the DES 5year SNe-Ia survey
 
     bibcode: 2024ApJ...973L..14D
     """
@@ -351,7 +351,7 @@ def DES5yr():
 
 @tools.cached
 def Union3():
-    """ Return likelihood from the Union 3 compilation
+    """Return likelihood from the Union 3 compilation
 
     bibcode: 2023arXiv231112098R
     """
@@ -369,7 +369,7 @@ def Union3():
 
 @tools.cached
 def JLA():
-    """ Return likelihood from the Joint Light-curve Analysis compilation
+    """Return likelihood from the Joint Light-curve Analysis compilation
 
     bibcode: 2014A&A...568A..22B
     """
@@ -395,7 +395,7 @@ def Planck2018Prior():
 
     The values have been extracted from the cosmomc archive. Relevant
     files for the central values and covariance were:
-    
+
     - base_plikHM_TTTEEE_lowl_lowE.likestats
     - base_plikHM_TTTEEE_lowl_lowE.covmat
 
@@ -568,8 +568,8 @@ def DESIDR1Prior(uncalibrated=False):
 
 
 class BBNNeffLikelihood(GeometricCMBLikelihood):
-    """ Prior of the couple (Omega_b_h2, Neff)
-    """
+    """Prior of the couple (Omega_b_h2, Neff)"""
+
     def __init__(self, mean, covariance):
         GeometricCMBLikelihood.__init__(self, mean, covariance)
 
