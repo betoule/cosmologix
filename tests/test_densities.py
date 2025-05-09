@@ -1,6 +1,8 @@
 from test_distances import params_to_ccl
 from cosmologix.tools import speed_measurement
-from cosmologix import densities, Planck18, mu, neutrinos
+from cosmologix import densities, neutrinos
+from cosmologix.parameters import Planck18
+from cosmologix.distances import mu
 import jax.numpy as jnp
 import pyccl as ccl
 from numpy.testing import assert_allclose

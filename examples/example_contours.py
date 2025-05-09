@@ -1,4 +1,4 @@
-from cosmologix import likelihoods, Planck18, contours, tools
+from cosmologix import likelihoods, parameters, contours, tools, display
 import matplotlib.pyplot as plt
 
 plt.ion()
@@ -17,9 +17,9 @@ fixed = {"Omega_k": 0.0, "m_nu": 0.06, "Neff": 3.046, "Tcmb": 2.7255, "wa": 0.0}
 # Compute BAO constraints keeping Omega_b_h2 fixed to the best-fit
 # Planck value
 grid_bao = contours.frequentist_contour_2d_sparse(
-    [likelihoods.DESIDR2Prior(uncalibrated=True)],
+    [likelihoods.DESIDR2(uncalibrated=True)],
     grid=param_space,
-    fixed=dict(fixed, Omega_b_h2=Planck18["Omega_b_h2"], H0=Planck18["H0"]),
+    fixed=dict(fixed, Omega_b_h2=parameters.Planck18["Omega_b_h2"], H0=parameters.Planck18["H0"]),
 )
 tools.save(grid_bao, "contour_desi.pkl")
 # Compute SN constraints. H0 is not constrained by the data, because
@@ -30,34 +30,34 @@ tools.save(grid_bao, "contour_desi.pkl")
 grid_sn = contours.frequentist_contour_2d_sparse(
     [likelihoods.DES5yr()],
     grid=param_space,
-    fixed=dict(fixed, H0=Planck18["H0"], Omega_b_h2=Planck18["Omega_b_h2"]),
+    fixed=dict(fixed, H0=parameters.Planck18["H0"], Omega_b_h2=parameters.Planck18["Omega_b_h2"]),
 )
 
 grid_jla = contours.frequentist_contour_2d_sparse(
     [likelihoods.JLA()],
     grid=param_space,
-    fixed=dict(fixed, H0=Planck18["H0"], Omega_b_h2=Planck18["Omega_b_h2"]),
+    fixed=dict(fixed, H0=parameters.Planck18["H0"], Omega_b_h2=parameters.Planck18["Omega_b_h2"]),
 )
 tools.save(grid_jla, "contour_jla.pkl")
 
 # Compute CMB constraints. The "geometric" summary used in this code
 # only constrain the angular distance to the last diffusion surface.,
 grid_cmb = contours.frequentist_contour_2d_sparse(
-    [likelihoods.Planck2018Prior()],
+    [likelihoods.Planck2018()],
     grid=param_space,
     fixed=fixed,
 )
 tools.save(grid_cmb, "contour_planck.pkl")
 
 cmb_bao = contours.frequentist_contour_2d_sparse(
-    [likelihoods.Planck2018Prior(), likelihoods.DESIDR2Prior()],
+    [likelihoods.Planck2018(), likelihoods.DESIDR2()],
     grid=param_space,
     fixed=fixed,
 )
 tools.save(cmb_bao, "contour_planck_desi.pkl")
 
 cmb_sn = contours.frequentist_contour_2d_sparse(
-    [likelihoods.Planck2018Prior(), likelihoods.JLA()],
+    [likelihoods.Planck2018(), likelihoods.JLA()],
     grid=param_space,
     fixed=fixed,
 )
@@ -67,19 +67,19 @@ tools.save(cmb_bao, "contour_planck_JLA.pkl")
 # Plot the result
 plt.rc("text", usetex=True)
 plt.rc("axes.spines", top=False, right=False, bottom=False, left=False)
-contours.plot_contours(
-    grid_bao, color=contours.color_theme[0], filled=True, label="DESI"
+display.plot_contours(
+    grid_bao, color=display.color_theme[0], filled=True, label="DESI"
 )
-contours.plot_contours(
-    grid_cmb, color=contours.color_theme[1], filled=True, label="Planck"
+display.plot_contours(
+    grid_cmb, color=display.color_theme[1], filled=True, label="Planck"
 )
-contours.plot_contours(
-    grid_jla, color=contours.color_theme[2], filled=True, label="JLA"
+display.plot_contours(
+    grid_jla, color=display.color_theme[2], filled=True, label="JLA"
 )
-contours.plot_contours(
+display.plot_contours(
     cmb_bao, color="red", filled=False, label="Planck+DESI", bestfit=True
 )
-contours.plot_contours(
+display.plot_contours(
     cmb_sn, color="green", filled=False, label="Planck+JLA", bestfit=True
 )
 plt.axhline(-1, color="k", ls=":", lw=0.5)

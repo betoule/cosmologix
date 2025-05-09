@@ -1,13 +1,11 @@
 from cosmologix import (
-    Planck18,
     likelihoods,
-    lcdm_deviation,
-    fit,
     distances,
     acoustic_scale,
     display,
 )
-from cosmologix.fitter import flatten_vector, unflatten_vector, restrict_to
+from cosmologix.parameters import Planck18, lcdm_deviation
+from cosmologix.fitter import flatten_vector, unflatten_vector, restrict_to, fit
 import jax.numpy as jnp
 import jax
 import time
@@ -44,7 +42,7 @@ def control_fitter_bias_and_coverage(priors, point, fitter, ndraw=50):
 
 
 def test_simple_fit():
-    priors = [likelihoods.Planck2018Prior()]
+    priors = [likelihoods.Planck2018()]
     fixed = {
         "Omega_k": 0.0,
         "m_nu": 0.06,
@@ -60,9 +58,9 @@ def test_simple_fit():
 
 def test_de_fit():
     priors = [
-        likelihoods.Planck2018Prior(),
+        likelihoods.Planck2018(),
         likelihoods.DES5yr(),
-        likelihoods.DESIDR1Prior(),
+        likelihoods.DESIDR1(),
     ]
     fixed = {
         "Omega_k": 0.0,
@@ -77,8 +75,8 @@ def test_de_fit():
 
 if __name__ == "__main__":
     des = likelihoods.DES5yr()
-    pl = likelihoods.Planck2018Prior()
-    desiu = likelihoods.DESIDR1Prior(True)
+    pl = likelihoods.Planck2018()
+    desiu = likelihoods.DESIDR1(True)
     point = {
         "Omega_bc": 0.3,
         "M": 0.0,

@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
-from cosmologix import mu, Planck18
 import pyccl as ccl
 from cosmologix import neutrinos, densities
+from cosmologix.distances import mu
+from cosmologix.parameters import Planck18
 import jax.numpy as jnp
 import numpy as np
 import jax

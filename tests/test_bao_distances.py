@@ -1,5 +1,5 @@
 from cosmologix.acoustic_scale import rs, z_star, z_drag, theta_MC, dM, dsound_da_approx
-from cosmologix import Planck18
+from cosmologix.parameters import Planck18
 from test_distances import params_to_CAMB, lcdm_deviation
 import pyccl as ccl
 import jax

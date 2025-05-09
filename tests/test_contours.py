@@ -1,4 +1,6 @@
-from cosmologix import mu, Planck18, likelihoods, contours, tools, display
+from cosmologix import likelihoods, contours, tools, display
+from cosmologix.parameters import Planck18
+from cosmologix.distances import mu
 import jax.numpy as jnp
 import numpy as np
 from numpy.testing import assert_allclose
@@ -26,7 +28,7 @@ def compare_dicts(dict1, dict2):
 # parts of the codebase are useless
 def test_contours(tmp_path):
     fixed = {"Omega_k": 0.0, "m_nu": 0.06, "Neff": 3.046, "Tcmb": 2.7255, "wa": 0.0}
-    priors = [likelihoods.Planck2018Prior(), likelihoods.JLA()]
+    priors = [likelihoods.Planck2018(), likelihoods.JLA()]
     grid = contours.frequentist_contour_2d_sparse(
         priors, grid={"Omega_bc": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]}, fixed=fixed
     )

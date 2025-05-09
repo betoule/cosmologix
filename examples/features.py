@@ -1,4 +1,4 @@
-from cosmologix import Planck18, distances, contours, display
+from cosmologix import distances, contours, display, parameters, likelihoods, fitter
 import matplotlib.pyplot as plt
 import jax
 import jax.numpy as jnp
@@ -17,9 +17,9 @@ axes[1, 1].set_title("Frequentist contour exploration")
 # DISTANCES
 #
 z_values = jnp.logspace(-2, 3.0, 1000)
-axes[0, 0].loglog(z_values, distances.dL(Planck18, z_values), label="luminosity")
-axes[0, 0].loglog(z_values, distances.dM(Planck18, z_values), label="comoving")
-axes[0, 0].loglog(z_values, distances.dA(Planck18, z_values), label="angular")
+axes[0, 0].loglog(z_values, distances.dL(parameters.Planck18, z_values), label="luminosity")
+axes[0, 0].loglog(z_values, distances.dM(parameters.Planck18, z_values), label="comoving")
+axes[0, 0].loglog(z_values, distances.dA(parameters.Planck18, z_values), label="angular")
 axes[0, 0].set_xlabel(r"$z$")
 axes[0, 0].set_ylabel(r"$D$ [Mpc]")
 axes[0, 0].legend(frameon=False)
@@ -28,10 +28,7 @@ axes[0, 0].legend(frameon=False)
 # DERIVATIVES
 #
 dmu = jax.jacfwd(distances.mu)
-J = dmu(Planck18.copy(), z_values)
-# Find bestfit flat w-CDM cosmology
-from cosmologix import likelihoods, fit
-
+J = dmu(parameters.Planck18.copy(), z_values)
 for var in J:
     if var == "Omega_b_h2":
         continue
@@ -45,10 +42,10 @@ axes[0, 1].legend(frameon=False, ncols=2)
 #
 # Bestfit and FIM
 #
-priors = [likelihoods.Planck2018Prior(), likelihoods.DES5yr()]
+priors = [likelihoods.Planck2018(), likelihoods.DES5yr()]
 fixed = {"Omega_k": 0.0, "m_nu": 0.06, "Neff": 3.046, "Tcmb": 2.7255, "wa": 0.0}
 
-result = fit(priors, fixed=fixed)
+result = fitter.fit(priors, fixed=fixed)
 display.pretty_print(result)
 display.plot_2d(result, "Omega_bc", "w", ax=axes[1, 0])
 axes[1, 0].set_ylim(-1.5, -0.6)
@@ -66,23 +63,23 @@ grid0 = contours.frequentist_contour_2d_sparse(
 grid1 = contours.frequentist_contour_2d_sparse(
     [priors[1]],
     grid={"Omega_bc": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]},
-    fixed=dict(fixed, H0=Planck18["H0"], Omega_b_h2=Planck18["Omega_b_h2"]),
+    fixed=dict(fixed, H0=parameters.Planck18["H0"], Omega_b_h2=parameters.Planck18["Omega_b_h2"]),
 )
 grid = contours.frequentist_contour_2d_sparse(
     priors, grid={"Omega_bc": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]}, fixed=fixed
 )
 
-contours.plot_contours(
+display.plot_contours(
     grid0, filled=True, ax=axes[1, 1], label="CMB", color=display.color_theme[1]
 )
-contours.plot_contours(
+display.plot_contours(
     grid1,
     filled=True,
     ax=axes[1, 1],
     label="DES-5yr",
     color=display.color_theme[2],
 )
-contours.plot_contours(
+display.plot_contours(
     grid,
     filled=False,
     label="CMB+DES-5yr",

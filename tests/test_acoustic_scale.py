@@ -8,8 +8,8 @@ from cosmologix.acoustic_scale import (
     dsound_da_approx,
     rd_approx,
 )
-from cosmologix import Planck18, densities
-from cosmologix.parameters import DESI2024YR1_Fiducial
+from cosmologix import densities
+from cosmologix.parameters import DESI2024YR1_Fiducial, Planck18
 from cosmologix.tools import Constants
 from test_distances import params_to_CAMB, lcdm_deviation
 import pyccl as ccl

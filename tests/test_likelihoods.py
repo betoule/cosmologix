@@ -1,5 +1,6 @@
-from cosmologix import Planck18, likelihoods, tools
+from cosmologix import likelihoods, tools
 from cosmologix.fitter import unflatten_vector, flatten_vector, LikelihoodSum
+from cosmologix.parameters import Planck18
 import jax
 import jax.numpy as jnp
 from numpy.testing import assert_allclose
@@ -43,19 +44,19 @@ def get_like_func(likelihood, fix=["Omega_k"]):
 def test_likelihoods(fix=["Omega_k"]):
     tools.clear_cache()
     priors = {
-        "desiu": lambda: likelihoods.DESIDR1Prior(True),
-        "desi": likelihoods.DESIDR1Prior,
+        "desiu": lambda: likelihoods.DESIDR1(True),
+        "desi": likelihoods.DESIDR1,
         "des": likelihoods.DES5yr,
         "union3": likelihoods.Union3,
         "pantheon+": likelihoods.Pantheonplus,
-        "planck": likelihoods.Planck2018Prior,
+        "planck": likelihoods.Planck2018,
         "jla": likelihoods.JLA,
-        "BBN": likelihoods.BBNSchoneberg2024Prior,
-        "BBNNeff": likelihoods.BBNNeffSchoneberg2024Prior,
+        "BBN": likelihoods.BBNSchoneberg2024,
+        "BBNNeff": likelihoods.BBNNeffSchoneberg2024,
         "SH0ES": likelihoods.SH0ES,
     }
     priors["sum"] = lambda: LikelihoodSum(
-        [likelihoods.Planck2018Prior(), likelihoods.Union3()]
+        [likelihoods.Planck2018(), likelihoods.Union3()]
     )
     for name, likelihood in priors.items():
         x, l, R = get_like_func(likelihood(), fix=fix)
