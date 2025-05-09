@@ -345,6 +345,7 @@ def corner(
     """Produce a corner plot for a set of results."""
     from cosmologix import display, tools
     import matplotlib.pyplot as plt
+    import jax.numpy as jnp
     axes = None
     param_names = None
     confidence_contours = []
