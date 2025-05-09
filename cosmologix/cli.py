@@ -233,7 +233,6 @@ def explore(
                     priors,
                     grid=grid_params,
                     fixed=fixed,
-                    # confidence_threshold=args.confidence_threshold,
                 )
             )
             for param2 in params[i + 1 :]:
@@ -283,25 +282,44 @@ def contour(
     show: bool = Option(False, "--show", "-s", help="Display the contour plot"),
     latex: bool = Option(False, "--latex", "-l", help="Plot in paper format using LaTeX"),
 ):
-    """Plot a contour from explore output."""
-    from cosmologix import hli
+    """Display (or save) a contour plot from explore output."""
+    from cosmologix import tools, display
+    import matplotlib.pyplot as plt
     if len(color) % 2 != 0 or len(label) % 2 != 0:
         raise typer.BadParameter("--color and --label require pairs of INDEX and VALUE")
     color_pairs = {int(color[i]): color[i+1] for i in range(0, len(color), 2)}
     label_pairs = {int(label[i]): label[i+1] for i in range(0, len(label), 2)}
-    args = {
-        "command": "contour",
-        "input_files": input_files,
-        "output": output,
-        "not_filled": not_filled,
-        "color": color_pairs,
-        "label": label_pairs,
-        "levels": levels,
-        "legend_loc": legend_loc,
-        "show": show,
-        "latex": latex,
-    }
-    hli.run_contour(args)
+    if latex:
+        plt.rc("text", usetex=True)
+        plt.rc("axes.spines", top=False, right=False)  # , bottom=False, left=False)
+    plt.figure()
+    for i, input_file in enumerate(input_files):
+        grid = tools.load(input_file)
+        color = color_pairs.get(i, display.color_theme[i])
+        label = label_pairs.get(i, None)
+        if len(grid["params"]) == 2:
+            display.plot_contours(
+                grid,
+                filled=i not in not_filled,
+                color=color,
+                label=label,
+                levels=levels,
+            )
+        else:
+            display.plot_profile(
+                grid,
+                color=color,
+            )
+    plt.legend(loc=legend_loc, frameon=False)
+    plt.tight_layout()
+    if output:
+        plt.savefig(output, dpi=300)
+        print(f"Contour plot saved to {output}")
+        if show:
+            plt.show()
+    else:
+        plt.show()
+    plt.close()
 
 @app.command()
 def clear_cache():
