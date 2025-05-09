@@ -10,9 +10,6 @@ import matplotlib.pyplot as plt
 
 from cosmologix import contours, likelihoods, fitter, display, tools, parameters
 
-def run_fit(args):
-    """Fit the cosmological model and save the best-fit parameters."""
-
 
 def run_explore(args):
     """Explore a 2D parameter space and save the contour data."""

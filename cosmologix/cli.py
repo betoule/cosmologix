@@ -10,6 +10,7 @@ from cosmologix import parameters
 app = Typer(
     name="cosmologix",
     help="Cosmological fitting tool",
+    no_args_is_help=True,
     add_completion=True,  # Enable default typer completion
 )
 
@@ -27,7 +28,7 @@ AVAILABLE_PRIORS = [
     "BBNSchoneberg2024",
 ]
 
-PARAM_CHOICE = list(parameters.Planck18.keys()) + ['M', 'rd']
+PARAM_CHOICES = list(parameters.Planck18.keys()) + ['M', 'rd']
 
 # Shared option definitions
 COSMOLOGY_OPTION = Option(
@@ -59,10 +60,19 @@ FREE_OPTION = Option(
     show_choices=True,
     autocompletion=lambda: PARAM_CHOICES,
 )
+MU_OPTION = Option(
+    None,
+    "--mu",
+    help="Distance modulus data file in npy format",
+)
+MU_COV_OPTION = Option(
+    None,
+    '--mu-cov',
+    help='Optional covariance matrix in npy format',
+)
 
 def validate_fix(value: str) -> Any:
     """Validate --fix parameter: string if in PARAM_CHOICES or 'M'/'rd', else float."""
-    from cosmologix import parameters  # Defer import
     valid_params = PARAM_CHOICE
     if value in valid_params:
         return value
@@ -119,16 +129,8 @@ def fit(
     ),
     fix: List[str] = FIX_OPTION,
     free: List[str] = FREE_OPTION,
-    mu: Optional[str] = Option(
-        None,
-        "--mu",
-        help="Distance modulus data file in npy format",
-    ),
-    mucov: Optional[str] = Option(
-        None,
-        '--mu-cov',
-        help='Optional covariance matrix in npy format',
-        ),
+    mu: Optional[str] = MU_OPTION,
+    mucov: Optional[str] = MU_COV_OPTION,
     auto_constrain: bool = Option(
         False,
         "--auto-constrain",
@@ -142,7 +144,7 @@ def fit(
         None, "--output", "-o", help="Output file for best-fit parameters (e.g., planck_desi.pkl)"
     ),
 ):
-    """Fit a cosmological model to data."""
+    """Find bestfit cosmological model."""
     from . import fitter, display, tools
     if len(fix) % 2 != 0:
         raise typer.BadParameter("--fix requires pairs of PARAM and VALUE")
@@ -170,10 +172,10 @@ def fit(
 
 @app.command()
 def explore(
-    params: List[str] = Argument(..., help="Parameters to explore (e.g., Omega_bc w)"),
+    params: List[str] = Argument(..., help="Parameters to explore (e.g., Omega_bc w)", autocompletion=lambda: PARAM_CHOICES),
     resolution: int = Option(50, "--resolution", help="Number of grid points per dimension"),
     cosmology: str = COSMOLOGY_OPTION,
-    priors: List[str] = PRIORS_OPTION,
+    prior_names: List[str] = PRIORS_OPTION,
     label: str = Option("", "--label", "-l", help="Label for the resulting contour"),
     fix: List[str] = FIX_OPTION,
     free: List[str] = FREE_OPTION,
@@ -186,36 +188,74 @@ def explore(
     confidence_threshold: float = Option(
         95.0, "--confidence-threshold", "-T", help="Maximal level of confidence in percent"
     ),
-    mu: Optional[List[str]] = Option(
-        None,
-        "--mu",
-        help="Distance modulus data file and optional covariance matrix in npy format",
-    ),
+    mu: Optional[str] = MU_OPTION,
+    mucov: Optional[str] = MU_COV_OPTION,
     output: str = Option(
         ..., "--output", "-o", help="Output file for contour data (e.g., contour_planck.pkl)"
     ),
 ):
-    """Explore a 2D parameter space."""
-    from cosmologix import hli
+    """Explore a 2D parameter space and save the contour data."""
+
+    from cosmologix import contours, tools
     if len(fix) % 2 != 0:
         raise typer.BadParameter("--fix requires pairs of PARAM and VALUE")
     fix_pairs = [(validate_fix(fix[i]), validate_fix(fix[i+1])) for i in range(0, len(fix), 2)]
-    args = {
-        "command": "explore",
-        "params": params,
-        "resolution": resolution,
-        "cosmology": cosmology,
-        "priors": priors,
-        "label": label,
-        "fix": fix_pairs,
-        "free": free,
-        "range_x": range_x,
-        "range_y": range_y,
-        "confidence_threshold": confidence_threshold,
-        "mu": mu,
-        "output": output,
-    }
-    hli.run_explore(args)
+    priors = [get_prior(p) for p in prior_names] + load_mu(mu, mucov)
+    fixed = parameters.Planck18.copy()
+    to_free = parameters.DEFAULT_FREE[cosmology].copy()
+    for par in to_free + free:
+        fixed.pop(par)
+    for par, value in fix:
+        fixed[par] = value
+    range_x = range_x or parameters.DEFAULT_RANGE[params[0]]
+    grid_params = {params[0]: range_x + [resolution]}
+    if len(params) == 2:
+        range_y = range_y or parameters.DEFAULT_RANGE[params[1]]
+        grid_params[params[1]] = range_y + [resolution]
+        grid = contours.frequentist_contour_2d_sparse(
+            priors,
+            grid=grid_params,
+            fixed=fixed,
+            confidence_threshold=confidence_threshold,
+        )
+    elif len(params) == 1:
+        grid = contours.frequentist_1d_profile(
+            priors,
+            grid=grid_params,
+            fixed=fixed,
+        )
+    else:
+        grid = {"list": []}
+        for i, param1 in enumerate(params):
+            grid_params = {param1: parameters.DEFAULT_RANGE[param1] + [resolution]}
+            grid["list"].append(
+                contours.frequentist_1d_profile(
+                    priors,
+                    grid=grid_params,
+                    fixed=fixed,
+                    # confidence_threshold=args.confidence_threshold,
+                )
+            )
+            for param2 in params[i + 1 :]:
+                grid_params = {
+                    param1: parameters.DEFAULT_RANGE[param1] + [resolution],
+                    param2: parameters.DEFAULT_RANGE[param2] + [resolution],
+                }
+                grid["list"].append(
+                    contours.frequentist_contour_2d_sparse(
+                        priors,
+                        grid=grid_params,
+                        fixed=fixed,
+                        confidence_threshold=confidence_threshold,
+                    )
+                )
+    if label:
+        grid["label"] = label
+    else:
+        # Default label according to prior selection
+        grid["label"] = "+".join(prior_names)
+    tools.save(grid, output)
+    print(f"Contour data saved to {output}")
 
 @app.command()
 def contour(
