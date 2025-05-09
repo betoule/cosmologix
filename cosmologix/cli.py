@@ -10,6 +10,7 @@ from typing import List, Optional, Tuple, Dict, Any
 import typer
 from typer import Typer, Option, Argument
 from cosmologix import parameters
+
 # We defer other imports to improve responsiveness on the command line
 # pylint: disable=import-outside-toplevel
 
@@ -35,7 +36,7 @@ AVAILABLE_PRIORS = [
     "BBNSchoneberg2024",
 ]
 
-PARAM_CHOICES = list(parameters.Planck18.keys()) + ['M', 'rd']
+PARAM_CHOICES = list(parameters.Planck18.keys()) + ["M", "rd"]
 
 # Shared option definitions
 COSMOLOGY_OPTION = Option(
@@ -74,9 +75,10 @@ MU_OPTION = Option(
 )
 MU_COV_OPTION = Option(
     None,
-    '--mu-cov',
-    help='Optional covariance matrix in npy format',
+    "--mu-cov",
+    help="Optional covariance matrix in npy format",
 )
+
 
 def validate_fix(value: str) -> Any:
     """Validate --fix parameter: string if in PARAM_CHOICES or 'M'/'rd', else float."""
@@ -88,9 +90,11 @@ def validate_fix(value: str) -> Any:
     except ValueError:
         raise typer.BadParameter(f"Value must be a float or one of {valid_params}")
 
+
 def get_prior(p):
     """Retrieve a prior by name"""
     import cosmologix.likelihoods
+
     return getattr(cosmologix.likelihoods, p)()
 
 
@@ -100,20 +104,20 @@ def load_mu(mu_file: str, cov_file: str = ""):
         return []
     import numpy as np
     from cosmologix import likelihoods
+
     muobs = np.load(mu_file)
     if cov_file:
         cov = np.load(cov_file)
         like = likelihoods.MuMeasurements(muobs["z"], muobs["mu"], cov)
     else:
-        like = likelihoods.DiagMuMeasurements(
-            muobs["z"], muobs["mu"], muobs["muerr"]
-        )
+        like = likelihoods.DiagMuMeasurements(muobs["z"], muobs["mu"], muobs["muerr"])
     return [like]
 
 
 def auto_restricted_fit(priors, fixed, verbose):
     """Test if there is unconstrained parameters"""
     from . import fitter
+
     for _ in range(3):
         try:
             result = fitter.fit(priors, fixed=fixed, verbose=verbose)
@@ -126,6 +130,7 @@ def auto_restricted_fit(priors, fixed, verbose):
             print("Try again fixing H0")
             fixed["H0"] = parameters.Planck18["H0"]
     return result
+
 
 @app.command()
 def fit(
@@ -148,14 +153,20 @@ def fit(
         False, "--show", "-s", help="Display best-fit results as a corner plot"
     ),
     output: Optional[str] = Option(
-        None, "--output", "-o", help="Output file for best-fit parameters (e.g., planck_desi.pkl)"
+        None,
+        "--output",
+        "-o",
+        help="Output file for best-fit parameters (e.g., planck_desi.pkl)",
     ),
 ):
     """Find bestfit cosmological model."""
     from . import fitter, display, tools
+
     if len(fix) % 2 != 0:
         raise typer.BadParameter("--fix requires pairs of PARAM and VALUE")
-    fix_pairs = [(validate_fix(fix[i]), validate_fix(fix[i+1])) for i in range(0, len(fix), 2)]
+    fix_pairs = [
+        (validate_fix(fix[i]), validate_fix(fix[i + 1])) for i in range(0, len(fix), 2)
+    ]
     priors = [get_prior(p) for p in priors] + load_mu(mu, mucov)
     fixed = parameters.Planck18.copy()
     to_free = parameters.DEFAULT_FREE[cosmology].copy()
@@ -173,6 +184,7 @@ def fit(
         print(f"Best-fit parameters saved to {output}")
     if show:
         import matplotlib.pyplot as plt
+
         display.corner_plot_fisher(result)
         plt.tight_layout()
         plt.show()
@@ -180,8 +192,14 @@ def fit(
 
 @app.command()
 def explore(
-    params: List[str] = Argument(..., help="Parameters to explore (e.g., Omega_bc w)", autocompletion=lambda: PARAM_CHOICES),
-    resolution: int = Option(50, "--resolution", help="Number of grid points per dimension"),
+    params: List[str] = Argument(
+        ...,
+        help="Parameters to explore (e.g., Omega_bc w)",
+        autocompletion=lambda: PARAM_CHOICES,
+    ),
+    resolution: int = Option(
+        50, "--resolution", help="Number of grid points per dimension"
+    ),
     cosmology: str = COSMOLOGY_OPTION,
     prior_names: List[str] = PRIORS_OPTION,
     label: str = Option("", "--label", "-l", help="Label for the resulting contour"),
@@ -194,20 +212,29 @@ def explore(
         None, "--range-y", "-R", help="Override exploration range for second parameter"
     ),
     confidence_threshold: float = Option(
-        95.2, "--confidence-threshold", "-T", help="Maximal level of confidence in percent"
+        95.2,
+        "--confidence-threshold",
+        "-T",
+        help="Maximal level of confidence in percent",
     ),
     mu: Optional[str] = MU_OPTION,
     mucov: Optional[str] = MU_COV_OPTION,
     output: str = Option(
-        ..., "--output", "-o", help="Output file for contour data (e.g., contour_planck.pkl)"
+        ...,
+        "--output",
+        "-o",
+        help="Output file for contour data (e.g., contour_planck.pkl)",
     ),
 ):
     """Explore a 2D parameter space and save the contour data."""
 
     from cosmologix import contours, tools
+
     if len(fix) % 2 != 0:
         raise typer.BadParameter("--fix requires pairs of PARAM and VALUE")
-    fix_pairs = [(validate_fix(fix[i]), validate_fix(fix[i+1])) for i in range(0, len(fix), 2)]
+    fix_pairs = [
+        (validate_fix(fix[i]), validate_fix(fix[i + 1])) for i in range(0, len(fix), 2)
+    ]
     priors = [get_prior(p) for p in prior_names] + load_mu(mu, mucov)
     fixed = parameters.Planck18.copy()
     to_free = parameters.DEFAULT_FREE[cosmology].copy()
@@ -264,10 +291,15 @@ def explore(
     tools.save(grid, output)
     print(f"Contour data saved to {output}")
 
+
 @app.command()
 def contour(
-    input_files: List[str] = Argument(..., help="Input file from explore (e.g., contour_planck.pkl)"),
-    output: Optional[str] = Option(None, "--output", "-o", help="Output file for contour plot"),
+    input_files: List[str] = Argument(
+        ..., help="Input file from explore (e.g., contour_planck.pkl)"
+    ),
+    output: Optional[str] = Option(
+        None, "--output", "-o", help="Output file for contour plot"
+    ),
     not_filled: List[int] = Option(
         [], "--not-filled", help="Use line contours at INDEX (e.g., --not-filled 0)"
     ),
@@ -285,18 +317,29 @@ def contour(
         "--legend-loc",
         help="Legend location",
         show_choices=True,
-        autocompletion=lambda: ["best", "upper left", "upper right", "lower left", "lower right", "center", "outside"],
+        autocompletion=lambda: [
+            "best",
+            "upper left",
+            "upper right",
+            "lower left",
+            "lower right",
+            "center",
+            "outside",
+        ],
     ),
     show: bool = Option(False, "--show", "-s", help="Display the contour plot"),
-    latex: bool = Option(False, "--latex", "-l", help="Plot in paper format using LaTeX"),
+    latex: bool = Option(
+        False, "--latex", "-l", help="Plot in paper format using LaTeX"
+    ),
 ):
     """Display (or save) a contour plot from explore output."""
     from cosmologix import tools, display
     import matplotlib.pyplot as plt
+
     if len(color) % 2 != 0 or len(label) % 2 != 0:
         raise typer.BadParameter("--color and --label require pairs of INDEX and VALUE")
-    color_pairs = {int(color[i]): color[i+1] for i in range(0, len(color), 2)}
-    label_pairs = {int(label[i]): label[i+1] for i in range(0, len(label), 2)}
+    color_pairs = {int(color[i]): color[i + 1] for i in range(0, len(color), 2)}
+    label_pairs = {int(label[i]): label[i + 1] for i in range(0, len(label), 2)}
     if latex:
         plt.rc("text", usetex=True)
         plt.rc("axes.spines", top=False, right=False)  # , bottom=False, left=False)
@@ -329,23 +372,33 @@ def contour(
         plt.show()
     plt.close()
 
+
 @app.command()
 def clear_cache():
     """Clear precompiled likelihoods."""
     from cosmologix import tools
+
     tools.clear_cache()
+
 
 @app.command()
 def corner(
-    input_files: List[str] = Argument(..., help="Input file from explore (e.g., contour_planck.pkl)"),
-    labels: List[str] = Option([], "--labels", help="Labels for contours (e.g., DR1 DR2)"),
-    output: Optional[str] = Option(None, "--output", "-o", help="Output file for corner plot"),
+    input_files: List[str] = Argument(
+        ..., help="Input file from explore (e.g., contour_planck.pkl)"
+    ),
+    labels: List[str] = Option(
+        [], "--labels", help="Labels for contours (e.g., DR1 DR2)"
+    ),
+    output: Optional[str] = Option(
+        None, "--output", "-o", help="Output file for corner plot"
+    ),
     show: bool = Option(False, "--show", "-s", help="Display the corner plot"),
 ):
     """Produce a corner plot for a set of results."""
     from cosmologix import display, tools
     import matplotlib.pyplot as plt
     import jax.numpy as jnp
+
     axes = None
     param_names = None
     confidence_contours = []
@@ -386,9 +439,11 @@ def corner(
     else:
         plt.show()
 
+
 def main():
     """Cosmologix Command Line Interface."""
     app()
-    
+
+
 if __name__ == "__main__":
     app()

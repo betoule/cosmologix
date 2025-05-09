@@ -1,4 +1,12 @@
-__all__ = ["distances", "likelihoods", "fitter", "contours", "display", "tools", "parameters"]
+__all__ = [
+    "distances",
+    "likelihoods",
+    "fitter",
+    "contours",
+    "display",
+    "tools",
+    "parameters",
+]
 
 # from .distances import mu
 # from .parameters import Planck18
