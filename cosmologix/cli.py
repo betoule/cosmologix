@@ -172,6 +172,7 @@ def fit(
         tools.save(result, output)
         print(f"Best-fit parameters saved to {output}")
     if show:
+        import matplotlib.pyplot as plt
         display.corner_plot_fisher(result)
         plt.tight_layout()
         plt.show()

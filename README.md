@@ -35,25 +35,25 @@ Here's a quick example to get you started (look at
 for a more complete tour of the available features):
 
 ```python
-from cosmologix import mu, Planck18
+from cosmologix import distances, parameters
 import jax.numpy as jnp
 
 # Best-fit parameters to Planck 2018 are:
-print(Planck18)
+print(parameters.Planck18)
 
 # Redshift values for supernovae
 z_values = jnp.linspace(0.1, 1.0, 10)
 
 # Compute distance modulus 
-distance_modulus = mu(Planck18, z_values)
+distance_modulus = distances.mu(parameters.Planck18, z_values)
 print(distance_modulus)
 
 # Find bestfit flat w-CDM cosmology
-from cosmologix import likelihoods, fit
-priors = [likelihoods.Planck2018Prior(), likelihoods.DES5yr()]
+from cosmologix import likelihoods, fitter
+priors = [likelihoods.Planck2018(), likelihoods.DES5yr()]
 fixed = {'Omega_k':0., 'm_nu':0.06, 'Neff':3.046, 'Tcmb': 2.7255, 'wa':0.0}
 
-result = fit(priors, fixed=fixed, verbose=True)
+result = fitter.fit(priors, fixed=fixed, verbose=True)
 print(result['bestfit'])
 
 # Compute frequentist confidence contours
@@ -81,8 +81,8 @@ plt.show()
 For most common use cases, there is also a simple command line interface to the library. You can perform fit, contour exploration and contour plotting as follows:
 
 ```bash
-cosmologix fit --priors PR4 DESIDR2 --cosmology FwCDM -s
-cosmologix explore Omega_bc w --priors PR4 DESIDR2 --cosmology FwCDM -o contours.pkl
+cosmologix fit --priors PR4 --priors DESIDR2 --cosmology FwCDM -s
+cosmologix explore Omega_bc w --priors PR4 --priors DESIDR2 --cosmology FwCDM -o contours.pkl
 cosmologix contour contours.pkl -s -o contour.png
 ```
 
