@@ -6,7 +6,7 @@ command line thanks to typer
 
 """
 
-from typing import List, Optional, Tuple, Dict, Any
+from typing import List, Optional, Tuple, Any
 import typer
 from typer import Typer, Option, Argument
 from cosmologix import parameters
@@ -82,7 +82,7 @@ MU_COV_OPTION = Option(
 
 def validate_fix(value: str) -> Any:
     """Validate --fix parameter: string if in PARAM_CHOICES or 'M'/'rd', else float."""
-    valid_params = PARAM_CHOICE
+    valid_params = PARAM_CHOICES
     if value in valid_params:
         return value
     try:
@@ -172,7 +172,7 @@ def fit(
     to_free = parameters.DEFAULT_FREE[cosmology].copy()
     for par in to_free + free:
         fixed.pop(par)
-    for par, value in fix:
+    for par, value in fix_pairs:
         fixed[par] = value
     if auto_constrain:
         result = auto_restricted_fit(priors, fixed, verbose)
@@ -240,7 +240,7 @@ def explore(
     to_free = parameters.DEFAULT_FREE[cosmology].copy()
     for par in to_free + free:
         fixed.pop(par)
-    for par, value in fix:
+    for par, value in fix_pairs:
         fixed[par] = value
     range_x = range_x or parameters.DEFAULT_RANGE[params[0]]
     grid_params = {params[0]: range_x + [resolution]}

@@ -44,6 +44,19 @@ def test_contours(tmp_path):
     assert jnp.isfinite(grid_coarse["chi2"].any())
     display.plot_contours(temp_file, bestfit=True, filled=True)
 
+def test_profile(tmp_path):
+    fixed = {"Omega_k": 0.0, "m_nu": 0.06, "Neff": 3.046, "Tcmb": 2.7255, "wa": 0.0}
+    priors = [likelihoods.Planck2018(), likelihoods.JLA()]
+    grid = contours.frequentist_1d_profile(
+        priors, grid={"Omega_bc": [0.18, 0.48, 30]}, fixed=fixed
+    )
+    assert jnp.isfinite(grid["chi2"].any())
+    temp_file = tmp_path / "test_file.txt"
+    tools.save(grid, temp_file)
+    grid2 = tools.load(temp_file)
+    assert compare_dicts(grid, grid2)
+    display.plot_profile(grid)
+
 
 if __name__ == "__main__":
     test_contours()
