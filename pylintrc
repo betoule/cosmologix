@@ -1,0 +1,3 @@
+[BASIC]
+# Good variable names which should always be accepted, separated by a comma.
+good-names=Omega_b_h2,Omega_m,Omega_b,Omega_c,Omega_nu,Omega_nu_massless,Omega_k,Omega_de,Omega_gamma,Omega,Tcmb,T_nu,Neff,h2,H0,z,H,dL,dC,dM,dA,dH,dV
