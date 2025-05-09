@@ -32,6 +32,7 @@ dependencies = [
     "requests",
     "tqdm",
     "astropy", # for pyfits and tests
+    "typer",
 ]
 
 [project.scripts]
