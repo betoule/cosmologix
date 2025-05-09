@@ -4,15 +4,17 @@ A collection of high level functions for common tasks, also accessible
 from the command line
 
 """
+
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 
 from cosmologix import contours, likelihoods, fitter, display, tools, parameters
 
+
 def get_prior(p):
-    """Retrieve a prior by name
-    """
-    return getattr(likelihoods,p)()
+    """Retrieve a prior by name"""
+    return getattr(likelihoods, p)()
+
 
 def load_mu(args):
     """Load distance measurement."""
@@ -81,12 +83,16 @@ def run_explore(args):
     for par, value in args.fix:
         fixed[par] = value
     range_x = (
-        args.range_x if args.range_x is not None else parameters.DEFAULT_RANGE[args.params[0]]
+        args.range_x
+        if args.range_x is not None
+        else parameters.DEFAULT_RANGE[args.params[0]]
     )
     grid_params = {args.params[0]: range_x + [args.resolution]}
     if len(args.params) == 2:
         range_y = (
-            args.range_y if args.range_y is not None else parameters.DEFAULT_RANGE[args.params[1]]
+            args.range_y
+            if args.range_y is not None
+            else parameters.DEFAULT_RANGE[args.params[1]]
         )
         grid_params[args.params[1]] = range_y + [args.resolution]
 

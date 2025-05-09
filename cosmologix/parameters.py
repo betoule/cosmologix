@@ -50,9 +50,9 @@ DEFAULT_RANGE = {
     "Omega_b_h2": [0.01, 0.04],
 }
 
+
 def lcdm_deviation(**keys):
-    """ Convenience function to easily manipulate parameters
-    """
+    """Convenience function to easily manipulate parameters"""
     params = Planck18.copy()
     params.update(keys)
     return params

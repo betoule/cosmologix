@@ -8,7 +8,7 @@ import argparse
 from cosmologix import parameters
 
 # Define available priors (extend this as needed)
-#AVAILABLE_PRIORS = {
+# AVAILABLE_PRIORS = {
 #    "Planck18": likelihoods.Planck2018Prior,
 #    "PR4": likelihoods.PR4,
 #    "DESIDR1": likelihoods.DESIDR1Prior,
@@ -17,7 +17,7 @@ from cosmologix import parameters
 #    "Pantheon+": likelihoods.Pantheonplus,
 #    "Union3": likelihoods.Union3,
 #    "SH0ES": likelihoods.SH0ES,
-#}
+# }
 # Define available priors (extend this as needed)
 AVAILABLE_PRIORS = [
     "Planck2018",
@@ -31,6 +31,7 @@ AVAILABLE_PRIORS = [
     "BBNNeffSchoneberg2024",
     "BBNSchoneberg2024",
 ]
+
 
 def validate_fix(*args):
     """string or float"""
@@ -312,6 +313,7 @@ def main():
     args = parser.parse_args()
 
     from cosmologix import hli, tools
+
     if args.command == "fit":
         hli.run_fit(args)
     elif args.command == "explore":
@@ -326,6 +328,7 @@ def main():
         hli.run_corner(args)
     else:
         parser.print_help()
+
 
 if __name__ == "__main__":
     main()
