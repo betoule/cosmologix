@@ -312,7 +312,8 @@ def main():
 
     args = parser.parse_args()
 
-    from cosmologix import hli, tools
+    # We want to avoid overhead from imports for better responsiveness on the CLI
+    from cosmologix import hli, tools # pylint: disable=import-outside-toplevel
 
     if args.command == "fit":
         hli.run_fit(args)
