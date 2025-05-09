@@ -1,4 +1,11 @@
 #!/usr/bin/env python
+"""Cosmologix high level interface
+
+A collection of script for common tasks also made available from the
+command line thanks to typer
+
+"""
+
 from typing import List, Optional, Tuple, Dict, Any
 import typer
 from typer import Typer, Option, Argument
