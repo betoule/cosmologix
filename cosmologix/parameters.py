@@ -29,3 +29,30 @@ DESI2024YR1_Fiducial = {
     "m_nu": 0.06,  # jnp.array([0.06, 0.0, 0.0]),  # 0.00064420   2.0328
     "Neff": 3.04,
 }
+
+# Default fixed parameters for flat w-CDM
+CMB_FREE = ["Omega_b_h2", "H0"]
+DEFAULT_FREE = {
+    "FLCDM": ["Omega_bc"] + CMB_FREE,
+    "LCDM": ["Omega_bc", "Omega_k"] + CMB_FREE,
+    "FwCDM": ["Omega_bc", "w"] + CMB_FREE,
+    "wCDM": ["Omega_bc", "Omega_k", "w"] + CMB_FREE,
+    "FwwaCDM": ["Omega_bc", "w", "wa"] + CMB_FREE,
+    "wwaCDM": ["Omega_bc", "Omega_k", "w", "wa"] + CMB_FREE,
+}
+
+# Default ranges for the exploration of parameters
+DEFAULT_RANGE = {
+    "Omega_bc": [0.18, 0.48],
+    "Omega_k": [-0.3, 0.4],
+    "w": [-0.6, -1.5],
+    "wa": [-1, 1],
+    "Omega_b_h2": [0.01, 0.04],
+}
+
+def lcdm_deviation(**keys):
+    """ Convenience function to easily manipulate parameters
+    """
+    params = Planck18.copy()
+    params.update(keys)
+    return params

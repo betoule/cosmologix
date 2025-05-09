@@ -390,7 +390,7 @@ def JLA():
     )
 
 
-def Planck2018Prior():
+def Planck2018():
     """Geometric prior for Planck 2018 release
 
     The values have been extracted from the cosmomc archive. Relevant
@@ -429,7 +429,7 @@ def PR4():
     )
 
 
-def DESIDR2Prior(uncalibrated=False):
+def DESIDR2(uncalibrated=False):
     """
     From DESI DR2 results https://arxiv.org/pdf/2503.14738 Table IV
     :return:
@@ -500,7 +500,7 @@ def DESIDR2Prior(uncalibrated=False):
     return desi2025_prior
 
 
-def DESIDR1Prior(uncalibrated=False):
+def DESIDR1(uncalibrated=False):
     """
     From DESI YR1 results https://arxiv.org/pdf/2404.03002 Table 1
     :return:
@@ -577,7 +577,7 @@ class BBNNeffLikelihood(GeometricCMBLikelihood):
         return jnp.array([params["Omega_b_h2"], params["Neff"]])
 
 
-def BBNNeffSchoneberg2024Prior():
+def BBNNeffSchoneberg2024():
     """
     BBN measurement from https://arxiv.org/abs/2401.15054
     """
@@ -589,7 +589,7 @@ def BBNNeffSchoneberg2024Prior():
     return bbn_prior
 
 
-def BBNSchoneberg2024Prior():
+def BBNSchoneberg2024():
     """
     BBN measurement from https://arxiv.org/abs/2401.15054
     """

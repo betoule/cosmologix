@@ -7,7 +7,7 @@ import numpy as np
 import jax.numpy as jnp
 from tqdm import tqdm
 
-from cosmologix.fitter import (
+from .fitter import (
     restrict_to,
     restrict,
     flatten_vector,
@@ -16,8 +16,8 @@ from cosmologix.fitter import (
     unflatten_vector,
     LikelihoodSum,
 )
-from cosmologix.tools import conflevel_to_delta_chi2
-from cosmologix import Planck18
+from .tools import conflevel_to_delta_chi2
+from .parameters import Planck18
 
 
 def frequentist_contour_2d(
