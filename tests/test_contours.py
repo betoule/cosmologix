@@ -44,6 +44,7 @@ def test_contours(tmp_path):
     assert jnp.isfinite(grid_coarse["chi2"].any())
     display.plot_contours(temp_file, bestfit=True, filled=True)
 
+
 def test_profile(tmp_path):
     fixed = {"Omega_k": 0.0, "m_nu": 0.06, "Neff": 3.046, "Tcmb": 2.7255, "wa": 0.0}
     priors = [likelihoods.Planck2018(), likelihoods.JLA()]
