@@ -186,7 +186,7 @@ def explore(
         None, "--range-y", "-R", help="Override exploration range for second parameter"
     ),
     confidence_threshold: float = Option(
-        95.0, "--confidence-threshold", "-T", help="Maximal level of confidence in percent"
+        95.2, "--confidence-threshold", "-T", help="Maximal level of confidence in percent"
     ),
     mu: Optional[str] = MU_OPTION,
     mucov: Optional[str] = MU_COV_OPTION,
@@ -335,17 +335,48 @@ def corner(
     show: bool = Option(False, "--show", "-s", help="Display the corner plot"),
 ):
     """Produce a corner plot for a set of results."""
-    from cosmologix import hli
-    args = {
-        "command": "corner",
-        "input_files": input_files,
-        "labels": labels,
-        "output": output,
-        "show": show,
-    }
-    hli.run_corner(args)
+    from cosmologix import display, tools
+    import matplotlib.pyplot as plt
+    axes = None
+    param_names = None
+    confidence_contours = []
+    for i, input_file in enumerate(input_files):
+        result = tools.load(input_file)
+        # distinguish between fit results and chi2 maps
+        if "list" in result:
+            axes, param_names = display.corner_plot_contours(
+                result["list"],
+                axes=axes,
+                param_names=param_names,
+                color=display.color_theme[i],
+            )
+        elif "params" not in result:
+            axes, param_names = display.corner_plot_fisher(
+                result, axes=axes, param_names=param_names, color=display.color_theme[i]
+            )
+        else:
+            confidence_contours.append(result)
+    if confidence_contours:
+        axes, param_names = display.corner_plot_contours(
+            confidence_contours,
+            axes=axes,
+            param_names=param_names,
+            color=display.color_theme[i],
+        )
+    for i, label in enumerate(labels):
+        axes[0, -1].plot(jnp.nan, jnp.nan, color=display.color_theme[i], label=label)
+    axes[0, -1].legend(frameon=True)
+    axes[0, -1].set_visible(True)
+    axes[0, -1].axis("off")
+    plt.tight_layout()
+    if output:
+        plt.savefig(output, dpi=300)
+        print(f"Corner plot saved to {output}")
+        if show:
+            plt.show()
+    else:
+        plt.show()
 
-#@app.callback()
 def main():
     """Cosmologix Command Line Interface."""
     app()
