@@ -226,7 +226,7 @@ def explore(
         help="Output file for contour data (e.g., contour_planck.pkl)",
     ),
 ):
-    """Explore a 2D parameter space and save the contour data."""
+    """Explore 1D or 2D parameter spaces and save contours data."""
 
     from cosmologix import contours, tools
 
@@ -327,6 +327,9 @@ def contour(
             "outside",
         ],
     ),
+    contour_index: int = Option(
+        0, help="Index of the contour for files with multiple contours"
+    ),
     show: bool = Option(False, "--show", "-s", help="Display the contour plot"),
     latex: bool = Option(
         False, "--latex", "-l", help="Plot in paper format using LaTeX"
@@ -346,6 +349,8 @@ def contour(
     plt.figure()
     for i, input_file in enumerate(input_files):
         grid = tools.load(input_file)
+        if "list" in grid:
+            grid = grid["list"][contour_index]
         color = color_pairs.get(i, display.color_theme[i])
         label = label_pairs.get(i, None)
         if len(grid["params"]) == 2:
