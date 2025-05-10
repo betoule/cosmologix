@@ -94,7 +94,7 @@ pages:
   artifacts:
     paths:
       - public
-      - "*.svg"
+      - documentation.svg
 
 
 # pages:
