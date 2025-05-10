@@ -85,7 +85,7 @@ pages:
   stage: deploy
   script:
   - pip install .
-  - pip install --no-cache-dir sphinx
+  - pip install --no-cache-dir sphinx sphinx-rtd-theme
   - cd doc
   - sphinx-apidoc -s rst -e -o ./ ../cosmologix
   - sphinx-build -b html . ../public
