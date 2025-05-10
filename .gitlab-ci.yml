@@ -90,6 +90,7 @@ pages:
     - jupyter-book clean book
     - jupyter-book build book
     - mv book/_build/html ../public
+    - cd ../
     - anybadge -l documentation -v available -f documentation.svg -c green
   artifacts:
     paths:
