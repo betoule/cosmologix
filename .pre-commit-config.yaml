@@ -1,0 +1,18 @@
+default_install_hook_types:
+  - pre-commit
+  - post-checkout
+  - post-merge
+
+repos:
+  - repo: https://github.com/srstevenson/nb-clean
+    rev: 3.2.0
+    hooks:
+      - id: nb-clean
+        name: clean notebooks
+        args:
+          - --preserve-cell-metadata
+          - --
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-added-large-files

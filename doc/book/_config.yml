@@ -1,0 +1,65 @@
+# Book settings
+# Learn more at https://jupyterbook.org/customize/config.html
+
+title: cosmologix
+author: Marc Betoule, Jérémy Neveu, Dylan Kuhn
+logo: _static/cosmologix_logo.png
+copyright: "2025"
+
+parse:
+  myst_url_schemes          : [mailto, http, https]  # URI schemes that will be recognised as external URLs in Markdown links
+  myst_enable_extensions    :
+    - amsmath
+    - colon_fence
+    - deflist
+    - dollarmath
+    - html_admonition
+    - html_image
+    - linkify
+    - replacements
+    - smartquotes
+    - substitution
+
+# Force re-execution of notebooks on each build.
+# See https://jupyterbook.org/content/execute.html
+execute:
+  execute_notebooks: force
+  timeout: 300
+  
+# Define the name of the latex output file for PDF builds
+latex:
+  latex_documents:
+    targetname: book.tex
+
+# Add a bibtex file so that we can create citations
+bibtex_bibfiles:
+  - references.bib
+
+# Information about where the book exists on the web
+repository:
+  url: https://gitlab.in2p3.fr/lemaitre/cosmologix # Online location of your book
+  path_to_book: doc/book  # Optional path to your book, relative to the repository root
+  branch: master  # Which branch of the repository should be used when creating links (optional)
+
+# Add GitHub buttons to your book
+# See https://jupyterbook.org/customize/config.html#add-a-link-to-your-repository
+html:
+  use_issues_button: true
+  use_repository_button: true
+
+sphinx:
+  extra_extensions:
+   - 'autoapi.extension'
+   - 'sphinx.ext.autodoc'
+   - 'sphinx.ext.napoleon'
+   - 'sphinx.ext.viewcode'
+  config:
+    nb_custom_formats:
+        .ipynb:
+            - nbformat.reads
+            - as_version: 4
+    nb_merge_streams: True
+    add_module_names: False
+    autoapi_dirs:
+      - '../../cosmologix'
+    autoapi_add_toctree_entry: True

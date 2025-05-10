@@ -33,6 +33,7 @@ dependencies = [
     "tqdm",
     "astropy", # for pyfits and tests
     "typer",
+    "importlib_resources", 
 ]
 
 [project.scripts]
