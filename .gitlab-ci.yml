@@ -84,14 +84,30 @@ pypi:
 pages:
   stage: deploy
   script:
-  - pip install .
-  - pip install --no-cache-dir sphinx sphinx-rtd-theme
-  - cd doc
-  - sphinx-apidoc -s rst -e -o ./ ../cosmologix
-  - sphinx-build -b html . ../public
+    - pip install .
+    - pip install -U jupyter-book sphinx-autoapi anybadge
+    - cd doc
+    - jupyter-book clean book
+    - jupyter-book build book
+    - mv book/_build/html ../public
+    - anybadge -l documentation -v available -f documentation.svg -c green
   artifacts:
     paths:
-    - public
+      - public
+      - "*.svg"
+
+
+# pages:
+#   stage: deploy
+#   script:
+#   - pip install .
+#   - pip install --no-cache-dir sphinx sphinx-rtd-theme
+#   - cd doc
+#   - sphinx-apidoc -s rst -e -o ./ ../cosmologix
+#   - sphinx-build -b html . ../public
+#   artifacts:
+#     paths:
+#     - public
 
 
 # Optional: Publish to PyPI (This step is commented out and should only be enabled for your main branch or when you're ready to publish)
