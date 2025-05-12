@@ -41,17 +41,27 @@ PARAM_CHOICES = list(parameters.Planck18.keys()) + ["M", "rd"]
 
 
 def tuple_list_to_dict(tuple_list):
-    """ Parse parameters such as --range Omega_bc 0 1 into a dict
-    """
+    """Parse parameters such as --range Omega_bc 0 1 into a dict"""
     result_dict = {}
     for item in tuple_list:
         result_dict[item[0]] = list(item[1:])
     return result_dict
 
+
 def dict_to_list(dictionnary):
+    """ Convert default dictionnaries to string usable in command line completion
+    """
+    def to_str(v):
+        try:
+            return " ".join(str(_v) for _v in v)
+        except TypeError:
+            return str(v)
     def f():
-        return [f'{k} {" ".join(str(_v) for _v in v)}' for k, v in dictionnary.items()]
+    
+        return [f'{k} {to_str(v)}' for k, v in dictionnary.items()]
+
     return f
+
 
 # Shared option definitions
 COSMOLOGY_OPTION = Option(
@@ -75,6 +85,8 @@ FIX_OPTION = Option(
     "--fix",
     "-F",
     help="Fix PARAM at VALUE (e.g., -F H0 70)",
+    autocompletion=dict_to_list(parameters.Planck18),
+    click_type=click.Tuple([str, float]),
 )
 FREE_OPTION = Option(
     [],
@@ -88,7 +100,6 @@ RANGE_OPTION = Option(
     "--range",
     help="Override exploration range for a parameter (e.g., --range Omega_bc 0.1 0.5)",
     show_choices=True,
-    #autocompletion=lambda: list(parameters.DEFAULT_RANGE.keys()),
     autocompletion=dict_to_list(parameters.DEFAULT_RANGE),
     click_type=click.Tuple([str, float, float]),
 )
@@ -163,7 +174,7 @@ def fit(
     verbose: bool = Option(
         False, "--verbose", "-v", help="Display the successive steps of the fit"
     ),
-    fix: List[str] = FIX_OPTION,
+    fix: List[click.Tuple] = FIX_OPTION,
     free: List[str] = FREE_OPTION,
     mu: Optional[str] = MU_OPTION,
     mucov: Optional[str] = MU_COV_OPTION,
@@ -185,12 +196,7 @@ def fit(
 ):
     """Find bestfit cosmological model."""
     from . import fitter, display, tools
-
-    if len(fix) % 2 != 0:
-        raise typer.BadParameter("--fix requires pairs of PARAM and VALUE")
-    fix_pairs = [
-        (validate_fix(fix[i]), validate_fix(fix[i + 1])) for i in range(0, len(fix), 2)
-    ]
+    fix_pairs=fix
     priors = [get_prior(p) for p in priors] + load_mu(mu, mucov)
     fixed = parameters.Planck18.copy()
     to_free = parameters.DEFAULT_FREE[cosmology].copy()
@@ -213,7 +219,7 @@ def fit(
         plt.tight_layout()
         plt.show()
 
-        
+
 @app.command()
 def explore(
     params: List[str] = Argument(
@@ -227,7 +233,7 @@ def explore(
     cosmology: str = COSMOLOGY_OPTION,
     prior_names: List[str] = PRIORS_OPTION,
     label: str = Option("", "--label", "-l", help="Label for the resulting contour"),
-    fix: List[str] = FIX_OPTION,
+    fix: List[click.Tuple] = FIX_OPTION,
     var_range: List[click.Tuple] = RANGE_OPTION,
     free: List[str] = FREE_OPTION,
     confidence_threshold: float = Option(
@@ -245,15 +251,9 @@ def explore(
         help="Output file for contour data (e.g., contour_planck.pkl)",
     ),
 ):
-
-
+    """ Build 1D or 2D frequentists confidence maps""" 
     from cosmologix import contours, tools
-
-    if len(fix) % 2 != 0:
-        raise typer.BadParameter("--fix requires pairs of PARAM and VALUE")
-    fix_pairs = [
-        (validate_fix(fix[i]), validate_fix(fix[i + 1])) for i in range(0, len(fix), 2)
-    ]
+    fix_pairs = fix
     priors = [get_prior(p) for p in prior_names] + load_mu(mu, mucov)
     fixed = parameters.Planck18.copy()
     to_free = parameters.DEFAULT_FREE[cosmology].copy()
@@ -292,8 +292,10 @@ def explore(
             )
             for param2 in params[i + 1 :]:
                 grid_params = {
-                    param1: range_dict.get(param1, parameters.DEFAULT_RANGE[param1]) + [resolution],
-                    param2: range_dict.get(param2, parameters.DEFAULT_RANGE[param2]) + [resolution],
+                    param1: range_dict.get(param1, parameters.DEFAULT_RANGE[param1])
+                    + [resolution],
+                    param2: range_dict.get(param2, parameters.DEFAULT_RANGE[param2])
+                    + [resolution],
                 }
                 grid["list"].append(
                     contours.frequentist_contour_2d_sparse(
@@ -365,7 +367,7 @@ def contour(
     label_pairs = {int(label[i]): label[i + 1] for i in range(0, len(label), 2)}
     if latex:
         plt.rc("text", usetex=True)
-        plt.rc("axes.spines", top=False, right=False)  # , bottom=False, left=False)
+        plt.rc("axes.spines", top=False, right=False)
     plt.figure()
     for i, input_file in enumerate(input_files):
         grid = tools.load(input_file)
@@ -397,10 +399,7 @@ def contour(
         plt.show()
     plt.close()
 
-@app.command()
-def test(triplet: list[click.Tuple] = typer.Option([], click_type=click.Tuple([str, float, float]))):
-    print(triplet)
-    
+
 @app.command()
 def clear_cache():
     """Clear precompiled likelihoods."""
@@ -467,8 +466,9 @@ def corner(
     else:
         plt.show()
 
+
 def main():
-    """Cosmologix Command Line Interface."""    
+    """Cosmologix Command Line Interface."""
     app()
 
 
