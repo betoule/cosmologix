@@ -8,6 +8,7 @@ command line thanks to typer
 
 from typing import List, Optional, Tuple, Any
 import typer
+import click
 from typer import Typer, Option, Argument
 from cosmologix import parameters
 
@@ -38,25 +39,19 @@ AVAILABLE_PRIORS = [
 
 PARAM_CHOICES = list(parameters.Planck18.keys()) + ["M", "rd"]
 
-range_dict = {}
-def parse_range(var_range):
-    """Parse --range parameter: string in DEFAULT_RANGE then min max"""
-    print(var_range)
-    # We detect the compulsory default typer value
-    if var_range[0] is None:
-        return {}
-    for triplet in var_range:
-        if len(triplet) != 3:
-            raise typer.BadParameter("--range requires triplets of PARAM MIN MAX")
-        param = triplet[0]
-        if param not in parameters.DEFAULT_RANGE:
-            raise typer.BadParameter(f"Parameter {param} not in {list(DEFAULT_RANGE.keys())}")
-        try:
-            min_val, max_val = float(triplet[1]), float(triplet[2])
-        except ValueError:
-            raise typer.BadParameter(f"Range values for {param} must be floats")
-        range_dict[param] = [min_val, max_val]
-    return range_dict
+
+def tuple_list_to_dict(tuple_list):
+    """ Parse parameters such as --range Omega_bc 0 1 into a dict
+    """
+    result_dict = {}
+    for item in tuple_list:
+        result_dict[item[0]] = list(item[1:])
+    return result_dict
+
+def dict_to_list(dictionnary):
+    def f():
+        return [f'{k} {" ".join(str(_v) for _v in v)}' for k, v in dictionnary.items()]
+    return f
 
 # Shared option definitions
 COSMOLOGY_OPTION = Option(
@@ -89,13 +84,13 @@ FREE_OPTION = Option(
     autocompletion=lambda: PARAM_CHOICES,
 )
 RANGE_OPTION = Option(
-    (None, None, None),
-    #[],
+    [],
     "--range",
     help="Override exploration range for a parameter (e.g., --range Omega_bc 0.1 0.5)",
     show_choices=True,
-    autocompletion=lambda: list(parameters.DEFAULT_RANGE.keys()),
-    callback=parse_range,
+    #autocompletion=lambda: list(parameters.DEFAULT_RANGE.keys()),
+    autocompletion=dict_to_list(parameters.DEFAULT_RANGE),
+    click_type=click.Tuple([str, float, float]),
 )
 MU_OPTION = Option(
     None,
@@ -233,7 +228,7 @@ def explore(
     prior_names: List[str] = PRIORS_OPTION,
     label: str = Option("", "--label", "-l", help="Label for the resulting contour"),
     fix: List[str] = FIX_OPTION,
-    var_range: Optional[Tuple[str, float, float]] = RANGE_OPTION,
+    var_range: List[click.Tuple] = RANGE_OPTION,
     free: List[str] = FREE_OPTION,
     confidence_threshold: float = Option(
         95.2,
@@ -250,7 +245,7 @@ def explore(
         help="Output file for contour data (e.g., contour_planck.pkl)",
     ),
 ):
-    """Explore 1D or 2D parameter spaces and save contours data."""
+
 
     from cosmologix import contours, tools
 
@@ -266,7 +261,7 @@ def explore(
         fixed.pop(par)
     for par, value in fix_pairs:
         fixed[par] = value
-    #range_dict = parse_range(var_range)
+    range_dict = tuple_list_to_dict(var_range)
     range_x = range_dict.get(params[0], parameters.DEFAULT_RANGE[params[0]])
     grid_params = {params[0]: range_x + [resolution]}
     if len(params) == 2:
@@ -402,7 +397,10 @@ def contour(
         plt.show()
     plt.close()
 
-
+@app.command()
+def test(triplet: list[click.Tuple] = typer.Option([], click_type=click.Tuple([str, float, float]))):
+    print(triplet)
+    
 @app.command()
 def clear_cache():
     """Clear precompiled likelihoods."""
@@ -470,18 +468,8 @@ def corner(
         plt.show()
 
 def main():
-    """Cosmologix Command Line Interface."""
-    # For some reason typer does not allow list of complex types,
-    # although the underlying click as no issue with that. Therefore
-    # we bypass typer for the range parameter of command explore to
-    # allow for that    
-    typer_click_object = typer.main.get_command(app)
-    c2 = typer_click_object.commands['explore']
-    c2.params[6].multiple = True
-
-    typer_click_object()
-    
-    #app()
+    """Cosmologix Command Line Interface."""    
+    app()
 
 
 if __name__ == "__main__":
