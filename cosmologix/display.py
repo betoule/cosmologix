@@ -341,7 +341,7 @@ def plot_contours(
         ax.plot(grid["bestfit"][x], grid["bestfit"][y], "k+")
 
 
-def corner_plot(param_names, axes=None, figsize=(12, 12)):
+def corner_plot(param_names, axes=None, figsize=(10, 10)):
     """Create a corner plot grid for visualizing parameter distributions.
 
     This function sets up a triangular grid of subplots for a corner plot, where the

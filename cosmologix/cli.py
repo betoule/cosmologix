@@ -49,16 +49,17 @@ def tuple_list_to_dict(tuple_list):
 
 
 def dict_to_list(dictionnary):
-    """ Convert default dictionnaries to string usable in command line completion
-    """
+    """Convert default dictionnaries to string usable in command line completion"""
+
     def to_str(v):
         try:
             return " ".join(str(_v) for _v in v)
         except TypeError:
             return str(v)
+
     def f():
-    
-        return [f'{k} {to_str(v)}' for k, v in dictionnary.items()]
+
+        return [f"{k} {to_str(v)}" for k, v in dictionnary.items()]
 
     return f
 
@@ -196,13 +197,13 @@ def fit(
 ):
     """Find bestfit cosmological model."""
     from . import fitter, display, tools
-    fix_pairs=fix
+
     priors = [get_prior(p) for p in priors] + load_mu(mu, mucov)
     fixed = parameters.Planck18.copy()
     to_free = parameters.DEFAULT_FREE[cosmology].copy()
     for par in to_free + free:
         fixed.pop(par)
-    for par, value in fix_pairs:
+    for par, value in fix:
         fixed[par] = value
     if auto_constrain:
         result = auto_restricted_fit(priors, fixed, verbose)
@@ -251,15 +252,15 @@ def explore(
         help="Output file for contour data (e.g., contour_planck.pkl)",
     ),
 ):
-    """ Build 1D or 2D frequentists confidence maps""" 
+    """Build 1D or 2D frequentists confidence maps"""
     from cosmologix import contours, tools
-    fix_pairs = fix
+
     priors = [get_prior(p) for p in prior_names] + load_mu(mu, mucov)
     fixed = parameters.Planck18.copy()
     to_free = parameters.DEFAULT_FREE[cosmology].copy()
     for par in to_free + free:
         fixed.pop(par)
-    for par, value in fix_pairs:
+    for par, value in fix:
         fixed[par] = value
     range_dict = tuple_list_to_dict(var_range)
     range_x = range_dict.get(params[0], parameters.DEFAULT_RANGE[params[0]])
@@ -439,6 +440,7 @@ def corner(
                 param_names=param_names,
                 color=display.color_theme[i],
             )
+            labels.append(result["label"])
         elif "params" not in result:
             axes, param_names = display.corner_plot_fisher(
                 result, axes=axes, param_names=param_names, color=display.color_theme[i]
