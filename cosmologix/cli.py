@@ -38,6 +38,26 @@ AVAILABLE_PRIORS = [
 
 PARAM_CHOICES = list(parameters.Planck18.keys()) + ["M", "rd"]
 
+range_dict = {}
+def parse_range(var_range):
+    """Parse --range parameter: string in DEFAULT_RANGE then min max"""
+    print(var_range)
+    # We detect the compulsory default typer value
+    if var_range[0] is None:
+        return {}
+    for triplet in var_range:
+        if len(triplet) != 3:
+            raise typer.BadParameter("--range requires triplets of PARAM MIN MAX")
+        param = triplet[0]
+        if param not in parameters.DEFAULT_RANGE:
+            raise typer.BadParameter(f"Parameter {param} not in {list(DEFAULT_RANGE.keys())}")
+        try:
+            min_val, max_val = float(triplet[1]), float(triplet[2])
+        except ValueError:
+            raise typer.BadParameter(f"Range values for {param} must be floats")
+        range_dict[param] = [min_val, max_val]
+    return range_dict
+
 # Shared option definitions
 COSMOLOGY_OPTION = Option(
     "FwCDM",
@@ -67,6 +87,15 @@ FREE_OPTION = Option(
     help="Force release of parameter (e.g., --free Neff)",
     show_choices=True,
     autocompletion=lambda: PARAM_CHOICES,
+)
+RANGE_OPTION = Option(
+    (None, None, None),
+    #[],
+    "--range",
+    help="Override exploration range for a parameter (e.g., --range Omega_bc 0.1 0.5)",
+    show_choices=True,
+    autocompletion=lambda: list(parameters.DEFAULT_RANGE.keys()),
+    callback=parse_range,
 )
 MU_OPTION = Option(
     None,
@@ -189,7 +218,7 @@ def fit(
         plt.tight_layout()
         plt.show()
 
-
+        
 @app.command()
 def explore(
     params: List[str] = Argument(
@@ -204,13 +233,8 @@ def explore(
     prior_names: List[str] = PRIORS_OPTION,
     label: str = Option("", "--label", "-l", help="Label for the resulting contour"),
     fix: List[str] = FIX_OPTION,
+    var_range: Optional[Tuple[str, float, float]] = RANGE_OPTION,
     free: List[str] = FREE_OPTION,
-    range_x: Optional[Tuple[float, float]] = Option(
-        None, "--range-x", "-r", help="Override exploration range for first parameter"
-    ),
-    range_y: Optional[Tuple[float, float]] = Option(
-        None, "--range-y", "-R", help="Override exploration range for second parameter"
-    ),
     confidence_threshold: float = Option(
         95.2,
         "--confidence-threshold",
@@ -242,10 +266,11 @@ def explore(
         fixed.pop(par)
     for par, value in fix_pairs:
         fixed[par] = value
-    range_x = range_x or parameters.DEFAULT_RANGE[params[0]]
+    #range_dict = parse_range(var_range)
+    range_x = range_dict.get(params[0], parameters.DEFAULT_RANGE[params[0]])
     grid_params = {params[0]: range_x + [resolution]}
     if len(params) == 2:
-        range_y = range_y or parameters.DEFAULT_RANGE[params[1]]
+        range_y = range_dict.get(params[1], parameters.DEFAULT_RANGE[params[1]])
         grid_params[params[1]] = range_y + [resolution]
         grid = contours.frequentist_contour_2d_sparse(
             priors,
@@ -272,8 +297,8 @@ def explore(
             )
             for param2 in params[i + 1 :]:
                 grid_params = {
-                    param1: parameters.DEFAULT_RANGE[param1] + [resolution],
-                    param2: parameters.DEFAULT_RANGE[param2] + [resolution],
+                    param1: range_dict.get(param1, parameters.DEFAULT_RANGE[param1]) + [resolution],
+                    param2: range_dict.get(param2, parameters.DEFAULT_RANGE[param2]) + [resolution],
                 }
                 grid["list"].append(
                     contours.frequentist_contour_2d_sparse(
@@ -444,11 +469,20 @@ def corner(
     else:
         plt.show()
 
-
 def main():
     """Cosmologix Command Line Interface."""
-    app()
+    # For some reason typer does not allow list of complex types,
+    # although the underlying click as no issue with that. Therefore
+    # we bypass typer for the range parameter of command explore to
+    # allow for that    
+    typer_click_object = typer.main.get_command(app)
+    c2 = typer_click_object.commands['explore']
+    c2.params[6].multiple = True
+
+    typer_click_object()
+    
+    #app()
 
 
 if __name__ == "__main__":
-    app()
+    main()
