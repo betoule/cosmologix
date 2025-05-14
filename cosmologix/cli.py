@@ -68,7 +68,6 @@ def dict_to_list(dictionnary):
 
 # Shared option definitions
 COSMOLOGY_OPTION = Option(
-    "FwCDM",
     "--cosmology",
     "-c",
     help="Cosmological model",
@@ -76,7 +75,6 @@ COSMOLOGY_OPTION = Option(
     autocompletion=lambda: list(parameters.DEFAULT_FREE.keys()),
 )
 PRIORS_OPTION = Option(
-    [],
     "--priors",
     "-p",
     help="Priors to use (e.g., Planck18 DESI2024)",
@@ -84,7 +82,6 @@ PRIORS_OPTION = Option(
     autocompletion=lambda: AVAILABLE_PRIORS,
 )
 FIX_OPTION = Option(
-    [],
     "--fix",
     "-F",
     help="Fix PARAM at VALUE (e.g., -F H0 70)",
@@ -103,14 +100,12 @@ COLORS_OPTION = Option(
     click_type=click.Tuple([int, str]),
 )
 FREE_OPTION = Option(
-    [],
     "--free",
     help="Force release of parameter (e.g., --free Neff)",
     show_choices=True,
     autocompletion=lambda: PARAM_CHOICES,
 )
 RANGE_OPTION = Option(
-    [],
     "--range",
     help="Override exploration range for a parameter (e.g., --range Omega_bc 0.1 0.5)",
     show_choices=True,
@@ -118,12 +113,10 @@ RANGE_OPTION = Option(
     click_type=click.Tuple([str, float, float]),
 )
 MU_OPTION = Option(
-    None,
     "--mu",
     help="Distance modulus data file in npy format",
 )
 MU_COV_OPTION = Option(
-    None,
     "--mu-cov",
     help="Optional covariance matrix in npy format",
 )
@@ -172,30 +165,28 @@ def auto_restricted_fit(priors, fixed, verbose):
 
 @app.command()
 def fit(
-    prior_names: List[str] = PRIORS_OPTION,
-    cosmology: str = COSMOLOGY_OPTION,
-    verbose: bool = Option(
-        False, "--verbose", "-v", help="Display the successive steps of the fit"
-    ),
-    fix: List[click.Tuple] = FIX_OPTION,
-    free: List[str] = FREE_OPTION,
-    mu: Optional[str] = MU_OPTION,
-    mucov: Optional[str] = MU_COV_OPTION,
-    auto_constrain: bool = Option(
-        False,
+    prior_names: Annotated[List[str], PRIORS_OPTION] = [],
+    cosmology: Annotated[str, COSMOLOGY_OPTION] = "FwCDM",
+    verbose: Annotated[bool, Option(
+        "--verbose", "-v", help="Display the successive steps of the fit"
+    )] = False,
+    fix: Annotated[List[click.Tuple], FIX_OPTION] = [],
+    free: Annotated[List[str], FREE_OPTION] = [],
+    mu: Annotated[Optional[str], MU_OPTION] = None,
+    mucov: Annotated[Optional[str], MU_COV_OPTION] = None,
+    auto_constrain: Annotated[bool, Option(
         "--auto-constrain",
         "-A",
         help="Impose hard priors on unconstrained parameters (use with caution)",
-    ),
-    show: bool = Option(
-        False, "--show", "-s", help="Display best-fit results as a corner plot"
-    ),
-    output: Optional[str] = Option(
-        None,
+    )] = False,
+    show: Annotated[bool, Option(
+        "--show", "-s", help="Display best-fit results as a corner plot"
+    )] = False,
+    output: Annotated[Optional[str], Option(
         "--output",
         "-o",
         help="Output file for best-fit parameters (e.g., planck_desi.pkl)",
-    ),
+    )] = None,
 ):
     """Find bestfit cosmological model."""
     from . import fitter, display, tools
@@ -226,34 +217,31 @@ def fit(
 
 @app.command()
 def explore(
-    params: List[str] = Argument(
-        ...,
+    params: Annotated[List[str], Argument(
         help="Parameters to explore (e.g., Omega_bc w)",
         autocompletion=lambda: PARAM_CHOICES,
-    ),
-    resolution: int = Option(
-        50, "--resolution", help="Number of grid points per dimension"
-    ),
-    cosmology: str = COSMOLOGY_OPTION,
-    prior_names: List[str] = PRIORS_OPTION,
-    label: str = Option("", "--label", "-l", help="Label for the resulting contour"),
-    fix: List[click.Tuple] = FIX_OPTION,
-    var_range: List[click.Tuple] = RANGE_OPTION,
-    free: List[str] = FREE_OPTION,
-    confidence_threshold: float = Option(
-        95.2,
+    )],
+    resolution: Annotated[int, Option(
+        "--resolution", help="Number of grid points per dimension"
+    )] = 50,
+    cosmology: Annotated[str, COSMOLOGY_OPTION] = "FwCDM",
+    prior_names: Annotated[List[str], PRIORS_OPTION] = [],
+    label: Annotated[str, Option("--label", "-l", help="Label for the resulting contour")] = "",
+    fix: Annotated[List[click.Tuple], FIX_OPTION] = [],
+    var_range: Annotated[List[click.Tuple], RANGE_OPTION] = [],
+    free: Annotated[List[str], FREE_OPTION] = [],
+    confidence_threshold: Annotated[float, Option(
         "--confidence-threshold",
         "-T",
-        help="Maximal level of confidence in percent",
-    ),
-    mu: Optional[str] = MU_OPTION,
-    mucov: Optional[str] = MU_COV_OPTION,
-    output: str = Option(
-        ...,
+        help="Maximal explored level of confidence in percent",
+    )] = 95.3,
+    mu: Annotated[Optional[str], MU_OPTION] = None,
+    mucov: Annotated[Optional[str], MU_COV_OPTION] = None,
+    output: Annotated[str,  Option(
         "--output",
         "-o",
         help="Output file for contour data (e.g., contour_planck.pkl)",
-    ),
+    )] = "",
 ):
     """Build 1D or 2D frequentists confidence maps"""
     from cosmologix import contours, tools
