@@ -412,6 +412,7 @@ def contour(
             display.plot_profile(
                 grid,
                 color=color,
+                label=label,
             )
     plt.legend(loc=legend_loc, frameon=False)
     plt.tight_layout()
