@@ -27,13 +27,13 @@ def test_main_cli(tmp_path, capsys):
 
     test_cases = [
         f"fit -p DES5yr -A -o {best_fit_path.as_posix()}",
-        f"fit -p DES5yr -F H0 -F 70. -F Omega_b_h2 -F 0.02222 -o {best_fit_path.as_posix()}",
-        f"fit --mu {mu_path.as_posix()} --mu-cov {cov_path.as_posix()} -F H0 -F 70. -F Omega_b_h2 -F 0.02222 -o {best_fit_path.as_posix()}",
+        f"fit -p DES5yr -F H0 70. -F Omega_b_h2 0.02222 -o {best_fit_path.as_posix()}",
+        f"fit --mu {mu_path.as_posix()} --mu-cov {cov_path.as_posix()} -F H0 70. -F Omega_b_h2 0.02222 -o {best_fit_path.as_posix()}",
         f"fit -p DES5yr -p PR4 -o {best_fit_path.as_posix()}",
         f"explore Omega_bc w -p Planck2018 -p DES5yr -o {contour_path.as_posix()}",
         f"explore Omega_bc w H0 -p Planck2018 -p DES5yr -o {contour_path.as_posix()}",
         f"contour {contour_path.as_posix()} -o {plot_path.as_posix()}",
-        f"corner {contour_path.as_posix()} {best_fit_path.as_posix()} --labels 'Planck+DES' -o {plot_path.as_posix()}",
+        f"corner {contour_path.as_posix()} {best_fit_path.as_posix()} --label 1 'Planck+DES' -o {plot_path.as_posix()}",
     ]
     for test_case in test_cases:
         with patch("sys.argv", ["cosmologix"] + test_case.split()):

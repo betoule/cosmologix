@@ -170,7 +170,7 @@ def auto_restricted_fit(priors, fixed, verbose):
 
 @app.command()
 def fit(
-    priors: List[str] = PRIORS_OPTION,
+    prior_names: List[str] = PRIORS_OPTION,
     cosmology: str = COSMOLOGY_OPTION,
     verbose: bool = Option(
         False, "--verbose", "-v", help="Display the successive steps of the fit"
@@ -197,8 +197,7 @@ def fit(
 ):
     """Find bestfit cosmological model."""
     from . import fitter, display, tools
-
-    priors = [get_prior(p) for p in priors] + load_mu(mu, mucov)
+    priors = [get_prior(p) for p in prior_names] + load_mu(mu, mucov)
     fixed = parameters.Planck18.copy()
     to_free = parameters.DEFAULT_FREE[cosmology].copy()
     for par in to_free + free:
@@ -211,6 +210,7 @@ def fit(
         result = fitter.fit(priors, fixed=fixed, verbose=verbose)
     display.pretty_print(result)
     if output:
+        result["label"] = "+".join(prior_names) + ("+SN" if mu is not None else "")
         tools.save(result, output)
         print(f"Best-fit parameters saved to {output}")
     if show:
@@ -310,7 +310,7 @@ def explore(
         grid["label"] = label
     else:
         # Default label according to prior selection
-        grid["label"] = "+".join(prior_names)
+        grid["label"] = "+".join(prior_names) + ("+SN" if mu is not None else "")
     tools.save(grid, output)
     print(f"Contour data saved to {output}")
 
@@ -373,9 +373,10 @@ def contour(
     for i, input_file in enumerate(input_files):
         grid = tools.load(input_file)
         if "list" in grid:
+            grid["list"][contour_index]["label"] = grid["label"]
             grid = grid["list"][contour_index]
         color = color_pairs.get(i, display.color_theme[i])
-        label = label_pairs.get(i, None)
+        label = label_pairs.get(i, grid["label"])
         if len(grid["params"]) == 2:
             display.plot_contours(
                 grid,
@@ -414,8 +415,8 @@ def corner(
     input_files: List[str] = Argument(
         ..., help="Input file from explore (e.g., contour_planck.pkl)"
     ),
-    labels: List[str] = Option(
-        [], "--labels", help="Labels for contours (e.g., DR1 DR2)"
+    label: List[str] = Option(
+        [], "--label", help="Override labels for contours (e.g., --labels 1 DR2)"
     ),
     output: Optional[str] = Option(
         None, "--output", "-o", help="Output file for corner plot"
@@ -429,7 +430,9 @@ def corner(
 
     axes = None
     param_names = None
-    confidence_contours = []
+    label_pairs = {int(label[i]): label[i + 1] for i in range(0, len(label), 2)}
+    
+    #confidence_contours = []
     for i, input_file in enumerate(input_files):
         result = tools.load(input_file)
         # distinguish between fit results and chi2 maps
@@ -440,21 +443,26 @@ def corner(
                 param_names=param_names,
                 color=display.color_theme[i],
             )
-            labels.append(result["label"])
+            if i not in label_pairs:
+                label_pairs[i] = result["label"]
         elif "params" not in result:
             axes, param_names = display.corner_plot_fisher(
                 result, axes=axes, param_names=param_names, color=display.color_theme[i]
             )
-        else:
-            confidence_contours.append(result)
-    if confidence_contours:
-        axes, param_names = display.corner_plot_contours(
-            confidence_contours,
-            axes=axes,
-            param_names=param_names,
-            color=display.color_theme[i],
-        )
-    for i, label in enumerate(labels):
+            if i not in label_pairs:
+                label_pairs[i] = result["label"] + " (Fisher)"
+
+    # Disabling for now the possibility to add individual contours
+    #    else:
+    #        confidence_contours.append(result)
+    #if confidence_contours:
+    #    axes, param_names = display.corner_plot_contours(
+    #        confidence_contours,
+    #        axes=axes,
+    #        param_names=param_names,
+    #        color=display.color_theme[i],
+    #    )
+    for i, label in label_pairs.items():
         axes[0, -1].plot(jnp.nan, jnp.nan, color=display.color_theme[i], label=label)
     axes[0, -1].legend(frameon=True)
     axes[0, -1].set_visible(True)
