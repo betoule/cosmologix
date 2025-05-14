@@ -82,6 +82,8 @@ def clear_cache(cache_dir=None):
 
     if os.path.exists(cache_dir):
         shutil.rmtree(cache_dir)  # Remove the entire directory
+        from jax.experimental.compilation_cache import compilation_cache
+        compilation_cache.reset_cache()
         print(f"Cache directory {cache_dir} has been cleared.")
     else:
         print(f"Cache directory {cache_dir} does not exist.")
