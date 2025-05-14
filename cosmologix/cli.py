@@ -6,7 +6,7 @@ command line thanks to typer
 
 """
 
-from typing import List, Optional
+from typing import List, Optional, Annotated
 import click
 from typer import Typer, Option, Argument
 from cosmologix import parameters
@@ -92,14 +92,12 @@ FIX_OPTION = Option(
     click_type=click.Tuple([str, float]),
 )
 LABELS_OPTION = Option(
-    [],
     "--label",
     "-l",
     help="Override labels for contours (e.g., -l 0 DR2)",
     click_type=click.Tuple([int, str]),
 )
 COLORS_OPTION = Option(
-    [],
     "--color",
     help="Override color for contours (e.g., --colors 0 red)",
     click_type=click.Tuple([int, str]),
@@ -322,22 +320,21 @@ def explore(
 
 @app.command()
 def contour(
-    input_files: List[str] = Argument(
-        ..., help="Input file from explore (e.g., contour_planck.pkl)"
-    ),
-    output: Optional[str] = Option(
-        None, "--output", "-o", help="Output file for contour plot"
-    ),
-    not_filled: List[int] = Option(
-        [], "--not-filled", help="Use line contours at INDEX (e.g., --not-filled 0)"
-    ),
-    colors: List[click.Tuple] = COLORS_OPTION,
-    labels: List[click.Tuple] = LABELS_OPTION,
-    levels: List[float] = Option(
-        [68.0, 95.0], "--levels", help="Contour levels (e.g., --levels 68 95)"
-    ),
-    legend_loc: str = Option(
-        "best",
+    input_files: Annotated[List[str], Argument(
+        help="Input file from explore (e.g., contour_planck.pkl)"
+    )],
+    output: Annotated[Optional[str], Option(
+        "--output", "-o", help="Output file for contour plot"
+    )] = None,
+    not_filled: Annotated[List[int], Option(
+        "--not-filled", help="Use line contours at INDEX (e.g., --not-filled 0)"
+    )] = [],
+    colors: Annotated[List[click.Tuple], COLORS_OPTION] = [],
+    labels: Annotated[List[click.Tuple], LABELS_OPTION] = [],
+    levels: Annotated[List[float], Option(
+        "--levels", help="Contour levels (e.g., --levels 68 95)"
+    )] = [68.0, 95.0],
+    legend_loc: Annotated[str, Option(
         "--legend-loc",
         help="Legend location",
         show_choices=True,
@@ -350,14 +347,14 @@ def contour(
             "center",
             "outside",
         ],
-    ),
-    contour_index: int = Option(
-        0, help="Index of the contour for files with multiple contours"
-    ),
-    show: bool = Option(False, "--show", "-s", help="Display the contour plot"),
-    latex: bool = Option(
-        False, "--latex", "-l", help="Plot in paper format using LaTeX"
-    ),
+    )] = "best",
+    contour_index: Annotated[int, Option(
+        help="Index of the contour for files with multiple contours"
+    )] = 0,
+    show: Annotated[bool, Option("--show", "-s", help="Display the contour plot")] = False,
+    latex: Annotated[bool, Option(
+        "--latex", "-l", help="Plot in paper format using LaTeX"
+    )]=False,
 ):
     """Display (or save) a contour plot from explore output."""
     from cosmologix import tools, display
@@ -406,8 +403,8 @@ def corner(
     input_files: List[str] = Argument(
         ..., help="Input file from explore (e.g., contour_planck.pkl)"
     ),
-    labels: List[click.Tuple] = LABELS_OPTION,
-    colors: List[click.Tuple] = COLORS_OPTION,
+    labels: Annotated[List[click.Tuple], LABELS_OPTION] =[],
+    colors: Annotated[List[click.Tuple], COLORS_OPTION] = [],
     not_filled: List[int] = Option(
         [], "--not-filled", help="Use line contours at INDEX (e.g., --not-filled 0)"
     ),
