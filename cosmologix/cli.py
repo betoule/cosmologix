@@ -203,8 +203,8 @@ def fit(
     else:
         result = fitter.fit(priors, fixed=fixed, verbose=verbose)
     display.pretty_print(result)
+    result["label"] = "+".join(prior_names) + ("+SN" if mu is not None else "")
     if output:
-        result["label"] = "+".join(prior_names) + ("+SN" if mu is not None else "")
         tools.save(result, output)
         print(f"Best-fit parameters saved to {output}")
     if show:
@@ -213,7 +213,7 @@ def fit(
         display.corner_plot_fisher(result)
         plt.tight_layout()
         plt.show()
-
+    return result
 
 @app.command()
 def explore(
@@ -245,7 +245,7 @@ def explore(
 ):
     """Build 1D or 2D frequentists confidence maps"""
     from cosmologix import contours, tools
-
+    
     priors = [get_prior(p) for p in prior_names] + load_mu(mu, mucov)
     fixed = parameters.Planck18.copy()
     to_free = parameters.DEFAULT_FREE[cosmology].copy()
@@ -302,9 +302,10 @@ def explore(
     else:
         # Default label according to prior selection
         grid["label"] = "+".join(prior_names) + ("+SN" if mu is not None else "")
-    tools.save(grid, output)
-    print(f"Contour data saved to {output}")
-
+    if output:
+        tools.save(grid, output)
+        print(f"Contour data saved to {output}")
+    return grid
 
 @app.command()
 def contour(

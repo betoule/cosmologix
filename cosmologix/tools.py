@@ -405,6 +405,10 @@ def save(grid, filename):
 
 
 def load(filename):
-    """Load data dictionary from a pickle file."""
-    with open(filename, "rb") as fid:
-        return pickle.load(fid)
+    """Load data dictionary from a pickle file if needed.
+    """
+    if isinstance(filename, (str, Path)):
+        with open(filename, "rb") as fid:
+            return pickle.load(fid)
+    else:
+        return filename

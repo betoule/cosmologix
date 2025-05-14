@@ -221,8 +221,7 @@ def plot_profile(
         Axes object to plot on. If None, uses the current axes (`plt.gca()`).
     color : str, default is a light red hue.
     """
-    if isinstance(grid, (str, Path)):
-        grid = load(grid)
+    grid = load(grid)
 
     param = grid["params"][0]
     chi2_min = grid["extra"]["loss"][-1]
@@ -301,8 +300,7 @@ def plot_contours(
     if levels is None:
         levels = [68.3, 95.5]
 
-    if isinstance(grid, (str, Path)):
-        grid = load(grid)
+    grid = load(grid)
 
     x, y = grid["params"]
     if transpose:
