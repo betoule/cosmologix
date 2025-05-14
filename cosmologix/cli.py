@@ -13,6 +13,7 @@ from cosmologix import parameters
 
 # We defer other imports to improve responsiveness on the command line
 # pylint: disable=import-outside-toplevel
+# pylint: disable=too-many-arguments,too-many-positional-arguments),too-many-locals
 
 # Main Typer app
 app = Typer(
@@ -165,32 +166,41 @@ def auto_restricted_fit(priors, fixed, verbose):
 
 @app.command()
 def fit(
-    prior_names: Annotated[List[str], PRIORS_OPTION] = [],
+    prior_names: Annotated[Optional[List[str]], PRIORS_OPTION] = None,
     cosmology: Annotated[str, COSMOLOGY_OPTION] = "FwCDM",
-    verbose: Annotated[bool, Option(
-        "--verbose", "-v", help="Display the successive steps of the fit"
-    )] = False,
-    fix: Annotated[List[click.Tuple], FIX_OPTION] = [],
-    free: Annotated[List[str], FREE_OPTION] = [],
+    verbose: Annotated[
+        bool, Option("--verbose", "-v", help="Display the successive steps of the fit")
+    ] = False,
+    fix: Annotated[Optional[List[click.Tuple]], FIX_OPTION] = None,
+    free: Annotated[Optional[List[str]], FREE_OPTION] = None,
     mu: Annotated[Optional[str], MU_OPTION] = None,
     mucov: Annotated[Optional[str], MU_COV_OPTION] = None,
-    auto_constrain: Annotated[bool, Option(
-        "--auto-constrain",
-        "-A",
-        help="Impose hard priors on unconstrained parameters (use with caution)",
-    )] = False,
-    show: Annotated[bool, Option(
-        "--show", "-s", help="Display best-fit results as a corner plot"
-    )] = False,
-    output: Annotated[Optional[str], Option(
-        "--output",
-        "-o",
-        help="Output file for best-fit parameters (e.g., planck_desi.pkl)",
-    )] = None,
+    auto_constrain: Annotated[
+        bool,
+        Option(
+            "--auto-constrain",
+            "-A",
+            help="Impose hard priors on unconstrained parameters (use with caution)",
+        ),
+    ] = False,
+    show: Annotated[
+        bool, Option("--show", "-s", help="Display best-fit results as a corner plot")
+    ] = False,
+    output: Annotated[
+        Optional[str],
+        Option(
+            "--output",
+            "-o",
+            help="Output file for best-fit parameters (e.g., planck_desi.pkl)",
+        ),
+    ] = None,
 ):
     """Find bestfit cosmological model."""
     from . import fitter, display, tools
 
+    fix = fix or []
+    free = free or []
+    prior_names = prior_names or []
     priors = [get_prior(p) for p in prior_names] + load_mu(mu, mucov)
     fixed = parameters.Planck18.copy()
     to_free = parameters.DEFAULT_FREE[cosmology].copy()
@@ -215,37 +225,53 @@ def fit(
         plt.show()
     return result
 
+
 @app.command()
 def explore(
-    params: Annotated[List[str], Argument(
-        help="Parameters to explore (e.g., Omega_bc w)",
-        autocompletion=lambda: PARAM_CHOICES,
-    )],
-    resolution: Annotated[int, Option(
-        "--resolution", help="Number of grid points per dimension"
-    )] = 50,
+    params: Annotated[
+        List[str],
+        Argument(
+            help="Parameters to explore (e.g., Omega_bc w)",
+            autocompletion=lambda: PARAM_CHOICES,
+        ),
+    ],
+    prior_names: Annotated[Optional[List[str]], PRIORS_OPTION] = None,
+    resolution: Annotated[
+        int, Option("--resolution", help="Number of grid points per dimension")
+    ] = 50,
     cosmology: Annotated[str, COSMOLOGY_OPTION] = "FwCDM",
-    prior_names: Annotated[List[str], PRIORS_OPTION] = [],
-    label: Annotated[str, Option("--label", "-l", help="Label for the resulting contour")] = "",
-    fix: Annotated[List[click.Tuple], FIX_OPTION] = [],
-    var_range: Annotated[List[click.Tuple], RANGE_OPTION] = [],
-    free: Annotated[List[str], FREE_OPTION] = [],
-    confidence_threshold: Annotated[float, Option(
-        "--confidence-threshold",
-        "-T",
-        help="Maximal explored level of confidence in percent",
-    )] = 95.3,
+    label: Annotated[
+        str, Option("--label", "-l", help="Label for the resulting contour")
+    ] = "",
+    fix: Annotated[Optional[List[click.Tuple]], FIX_OPTION] = None,
+    free: Annotated[Optional[List[str]], FREE_OPTION] = None,
+    var_range: Annotated[Optional[List[click.Tuple]], RANGE_OPTION] = None,
+    confidence_threshold: Annotated[
+        float,
+        Option(
+            "--confidence-threshold",
+            "-T",
+            help="Maximal explored level of confidence in percent",
+        ),
+    ] = 95.3,
     mu: Annotated[Optional[str], MU_OPTION] = None,
     mucov: Annotated[Optional[str], MU_COV_OPTION] = None,
-    output: Annotated[str,  Option(
-        "--output",
-        "-o",
-        help="Output file for contour data (e.g., contour_planck.pkl)",
-    )] = "",
+    output: Annotated[
+        str,
+        Option(
+            "--output",
+            "-o",
+            help="Output file for contour data (e.g., contour_planck.pkl)",
+        ),
+    ] = "",
 ):
     """Build 1D or 2D frequentists confidence maps"""
     from cosmologix import contours, tools
-    
+
+    fix = fix or []
+    free = free or []
+    prior_names = prior_names or []
+    var_range = var_range or []
     priors = [get_prior(p) for p in prior_names] + load_mu(mu, mucov)
     fixed = parameters.Planck18.copy()
     to_free = parameters.DEFAULT_FREE[cosmology].copy()
@@ -307,50 +333,62 @@ def explore(
         print(f"Contour data saved to {output}")
     return grid
 
+
 @app.command()
 def contour(
-    input_files: Annotated[List[str], Argument(
-        help="Input file from explore (e.g., contour_planck.pkl)"
-    )],
-    output: Annotated[Optional[str], Option(
-        "--output", "-o", help="Output file for contour plot"
-    )] = None,
-    not_filled: Annotated[List[int], Option(
-        "--not-filled", help="Use line contours at INDEX (e.g., --not-filled 0)"
-    )] = [],
-    colors: Annotated[List[click.Tuple], COLORS_OPTION] = [],
-    labels: Annotated[List[click.Tuple], LABELS_OPTION] = [],
-    levels: Annotated[List[float], Option(
-        "--levels", help="Contour levels (e.g., --levels 68 95)"
-    )] = [68.0, 95.0],
-    legend_loc: Annotated[str, Option(
-        "--legend-loc",
-        help="Legend location",
-        show_choices=True,
-        autocompletion=lambda: [
-            "best",
-            "upper left",
-            "upper right",
-            "lower left",
-            "lower right",
-            "center",
-            "outside",
-        ],
-    )] = "best",
-    contour_index: Annotated[int, Option(
-        help="Index of the contour for files with multiple contours"
-    )] = 0,
-    show: Annotated[bool, Option("--show", "-s", help="Display the contour plot")] = False,
-    latex: Annotated[bool, Option(
-        "--latex", "-l", help="Plot in paper format using LaTeX"
-    )]=False,
+    input_files: Annotated[
+        List[str], Argument(help="Input file from explore (e.g., contour_planck.pkl)")
+    ],
+    output: Annotated[
+        Optional[str], Option("--output", "-o", help="Output file for contour plot")
+    ] = None,
+    not_filled: Annotated[
+        Optional[List[int]],
+        Option(
+            "--not-filled", help="Use line contours at INDEX (e.g., --not-filled 0)"
+        ),
+    ] = None,
+    colors: Annotated[Optional[List[click.Tuple]], COLORS_OPTION] = None,
+    labels: Annotated[Optional[List[click.Tuple]], LABELS_OPTION] = None,
+    levels: Annotated[
+        Optional[List[float]],
+        Option("--levels", help="Contour levels (e.g., --levels 68 95)"),
+    ] = None,
+    legend_loc: Annotated[
+        str,
+        Option(
+            "--legend-loc",
+            help="Legend location",
+            show_choices=True,
+            autocompletion=lambda: [
+                "best",
+                "upper left",
+                "upper right",
+                "lower left",
+                "lower right",
+                "center",
+                "outside",
+            ],
+        ),
+    ] = "best",
+    contour_index: Annotated[
+        int, Option(help="Index of the contour for files with multiple contours")
+    ] = 0,
+    show: Annotated[
+        bool, Option("--show", "-s", help="Display the contour plot")
+    ] = False,
+    latex: Annotated[
+        bool, Option("--latex", "-l", help="Plot in paper format using LaTeX")
+    ] = False,
 ):
     """Display (or save) a contour plot from explore output."""
     from cosmologix import tools, display
     import matplotlib.pyplot as plt
 
-    color_pairs = tuple_list_to_dict(colors)
-    label_pairs = tuple_list_to_dict(labels)
+    levels = levels or [68.0, 95.0]
+    not_filled = not_filled or []
+    color_pairs = tuple_list_to_dict(colors or [])
+    label_pairs = tuple_list_to_dict(labels or [])
     if latex:
         plt.rc("text", usetex=True)
         plt.rc("axes.spines", top=False, right=False)
@@ -389,21 +427,26 @@ def contour(
 
 @app.command()
 def corner(
-    input_files: Annotated[List[str], Argument(
-        help="Input file from explore (e.g., contour_planck.pkl)"
-    )],
-    labels: Annotated[List[click.Tuple], LABELS_OPTION] =[],
-    colors: Annotated[List[click.Tuple], COLORS_OPTION] = [],
-    not_filled: Annotated[List[int], Option(
-        "--not-filled", help="Use line contours at INDEX (e.g., --not-filled 0)"
-    )] = [],
-    output: Annotated[Optional[str], Option(
-        "--output", "-o", help="Output file for corner plot"
-    )] = None,
-    show: Annotated[bool, Option("--show", "-s", help="Display the corner plot")] = False,
-    latex: Annotated[bool, Option(
-        "--latex", "-l", help="Plot in paper format using LaTeX"
-    )] = False,
+    input_files: Annotated[
+        List[str], Argument(help="Input file from explore (e.g., contour_planck.pkl)")
+    ],
+    labels: Annotated[Optional[List[click.Tuple]], LABELS_OPTION] = None,
+    colors: Annotated[Optional[List[click.Tuple]], COLORS_OPTION] = None,
+    not_filled: Annotated[
+        Optional[List[int]],
+        Option(
+            "--not-filled", help="Use line contours at INDEX (e.g., --not-filled 0)"
+        ),
+    ] = None,
+    output: Annotated[
+        Optional[str], Option("--output", "-o", help="Output file for corner plot")
+    ] = None,
+    show: Annotated[
+        bool, Option("--show", "-s", help="Display the corner plot")
+    ] = False,
+    latex: Annotated[
+        bool, Option("--latex", "-l", help="Plot in paper format using LaTeX")
+    ] = False,
 ):
     """Produce a corner plot for a set of results."""
     from cosmologix import display, tools
@@ -412,8 +455,9 @@ def corner(
 
     axes = None
     param_names = None
-    label_pairs = tuple_list_to_dict(labels)
-    color_pairs = tuple_list_to_dict(colors)
+    not_filled = not_filled or []
+    label_pairs = tuple_list_to_dict(labels or [])
+    color_pairs = tuple_list_to_dict(colors or [])
     if latex:
         plt.rc("text", usetex=True)
         plt.rc("axes.spines", top=False, right=False)
