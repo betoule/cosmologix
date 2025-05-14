@@ -44,7 +44,10 @@ def tuple_list_to_dict(tuple_list):
     """Parse parameters such as --range Omega_bc 0 1 into a dict"""
     result_dict = {}
     for item in tuple_list:
-        result_dict[item[0]] = list(item[1:])
+        if len(item)==2:
+            result_dict[item[0]] = item[1]
+        else:
+            result_dict[item[0]] = list(item[1:])
     return result_dict
 
 
@@ -88,6 +91,13 @@ FIX_OPTION = Option(
     help="Fix PARAM at VALUE (e.g., -F H0 70)",
     autocompletion=dict_to_list(parameters.Planck18),
     click_type=click.Tuple([str, float]),
+)
+LABELS_OPTION = Option(
+    [],
+    "--labels",
+    "-l",
+    help="Override labels for contours (e.g., -l 0 DR2)",
+    click_type=click.Tuple([int, str]),
 )
 FREE_OPTION = Option(
     [],
@@ -329,9 +339,7 @@ def contour(
     color: List[str] = Option(
         [], "--color", help="Color for contour at INDEX (e.g., --color 0 red)"
     ),
-    label: List[str] = Option(
-        [], "--label", help="Override label for contour at INDEX (e.g., --label 0 CMB)"
-    ),
+    labels: List[click.Tuple] = LABELS_OPTION,
     levels: List[float] = Option(
         [68.0, 95.0], "--levels", help="Contour levels (e.g., --levels 68 95)"
     ),
@@ -362,10 +370,8 @@ def contour(
     from cosmologix import tools, display
     import matplotlib.pyplot as plt
 
-    if len(color) % 2 != 0 or len(label) % 2 != 0:
-        raise typer.BadParameter("--color and --label require pairs of INDEX and VALUE")
     color_pairs = {int(color[i]): color[i + 1] for i in range(0, len(color), 2)}
-    label_pairs = {int(label[i]): label[i + 1] for i in range(0, len(label), 2)}
+    label_pairs = tuple_list_to_dict(labels)
     if latex:
         plt.rc("text", usetex=True)
         plt.rc("axes.spines", top=False, right=False)
@@ -415,9 +421,7 @@ def corner(
     input_files: List[str] = Argument(
         ..., help="Input file from explore (e.g., contour_planck.pkl)"
     ),
-    label: List[str] = Option(
-        [], "--label", help="Override labels for contours (e.g., --labels 1 DR2)"
-    ),
+    labels: List[click.Tuple] = LABELS_OPTION,
     output: Optional[str] = Option(
         None, "--output", "-o", help="Output file for corner plot"
     ),
@@ -430,8 +434,7 @@ def corner(
 
     axes = None
     param_names = None
-    label_pairs = {int(label[i]): label[i + 1] for i in range(0, len(label), 2)}
-    
+    label_pairs = tuple_list_to_dict(labels)
     #confidence_contours = []
     for i, input_file in enumerate(input_files):
         result = tools.load(input_file)
