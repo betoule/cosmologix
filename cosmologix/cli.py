@@ -400,21 +400,21 @@ def contour(
 
 @app.command()
 def corner(
-    input_files: List[str] = Argument(
-        ..., help="Input file from explore (e.g., contour_planck.pkl)"
-    ),
+    input_files: Annotated[List[str], Argument(
+        help="Input file from explore (e.g., contour_planck.pkl)"
+    )],
     labels: Annotated[List[click.Tuple], LABELS_OPTION] =[],
     colors: Annotated[List[click.Tuple], COLORS_OPTION] = [],
-    not_filled: List[int] = Option(
-        [], "--not-filled", help="Use line contours at INDEX (e.g., --not-filled 0)"
-    ),
-    output: Optional[str] = Option(
-        None, "--output", "-o", help="Output file for corner plot"
-    ),
-    show: bool = Option(False, "--show", "-s", help="Display the corner plot"),
-    latex: bool = Option(
-        False, "--latex", "-l", help="Plot in paper format using LaTeX"
-    ),
+    not_filled: Annotated[List[int], Option(
+        "--not-filled", help="Use line contours at INDEX (e.g., --not-filled 0)"
+    )] = [],
+    output: Annotated[Optional[str], Option(
+        "--output", "-o", help="Output file for corner plot"
+    )] = None,
+    show: Annotated[bool, Option("--show", "-s", help="Display the corner plot")] = False,
+    latex: Annotated[bool, Option(
+        "--latex", "-l", help="Plot in paper format using LaTeX"
+    )] = False,
 ):
     """Produce a corner plot for a set of results."""
     from cosmologix import display, tools
