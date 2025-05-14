@@ -230,7 +230,13 @@ def plot_profile(
         ax = plt.gca()
         ax.set_xlabel(latex_translation[param])
     if filled:
-        ax.fill_between(grid["x"], jnp.exp(-0.5 * (grid["chi2"] - chi2_min)), y2=0, color=color, alpha=0.5)
+        ax.fill_between(
+            grid["x"],
+            jnp.exp(-0.5 * (grid["chi2"] - chi2_min)),
+            y2=0,
+            color=color,
+            alpha=0.5,
+        )
     ax.plot(
         grid["x"], jnp.exp(-0.5 * (grid["chi2"] - chi2_min)), color=color, label=label
     )

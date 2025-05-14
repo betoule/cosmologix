@@ -93,14 +93,14 @@ FIX_OPTION = Option(
 )
 LABELS_OPTION = Option(
     [],
-    "--labels",
+    "--label",
     "-l",
     help="Override labels for contours (e.g., -l 0 DR2)",
     click_type=click.Tuple([int, str]),
 )
 COLORS_OPTION = Option(
     [],
-    "--colors",
+    "--color",
     help="Override color for contours (e.g., --colors 0 red)",
     click_type=click.Tuple([int, str]),
 )
@@ -402,14 +402,6 @@ def contour(
 
 
 @app.command()
-def clear_cache():
-    """Clear precompiled likelihoods."""
-    from cosmologix import tools
-
-    tools.clear_cache()
-
-
-@app.command()
 def corner(
     input_files: List[str] = Argument(
         ..., help="Input file from explore (e.g., contour_planck.pkl)"
@@ -455,7 +447,10 @@ def corner(
                 label_pairs[i] = result["label"]
         elif "params" not in result:
             axes, param_names = display.corner_plot_fisher(
-                result, axes=axes, param_names=param_names, color=color_pairs.get(i, display.color_theme[i])
+                result,
+                axes=axes,
+                param_names=param_names,
+                color=color_pairs.get(i, display.color_theme[i]),
             )
             if i not in label_pairs:
                 label_pairs[i] = result["label"] + " (Fisher)"
@@ -483,6 +478,14 @@ def corner(
             plt.show()
     else:
         plt.show()
+
+
+@app.command()
+def clear_cache():
+    """Clear precompiled likelihoods."""
+    from cosmologix import tools
+
+    tools.clear_cache()
 
 
 def main():
