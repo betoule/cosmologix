@@ -98,6 +98,12 @@ LABELS_OPTION = Option(
     help="Override labels for contours (e.g., -l 0 DR2)",
     click_type=click.Tuple([int, str]),
 )
+COLORS_OPTION = Option(
+    [],
+    "--colors",
+    help="Override color for contours (e.g., --colors 0 red)",
+    click_type=click.Tuple([int, str]),
+)
 FREE_OPTION = Option(
     [],
     "--free",
@@ -325,9 +331,7 @@ def contour(
     not_filled: List[int] = Option(
         [], "--not-filled", help="Use line contours at INDEX (e.g., --not-filled 0)"
     ),
-    color: List[str] = Option(
-        [], "--color", help="Color for contour at INDEX (e.g., --color 0 red)"
-    ),
+    colors: List[click.Tuple] = COLORS_OPTION,
     labels: List[click.Tuple] = LABELS_OPTION,
     levels: List[float] = Option(
         [68.0, 95.0], "--levels", help="Contour levels (e.g., --levels 68 95)"
@@ -359,7 +363,7 @@ def contour(
     from cosmologix import tools, display
     import matplotlib.pyplot as plt
 
-    color_pairs = {int(color[i]): color[i + 1] for i in range(0, len(color), 2)}
+    color_pairs = tuple_list_to_dict(colors)
     label_pairs = tuple_list_to_dict(labels)
     if latex:
         plt.rc("text", usetex=True)
@@ -411,10 +415,17 @@ def corner(
         ..., help="Input file from explore (e.g., contour_planck.pkl)"
     ),
     labels: List[click.Tuple] = LABELS_OPTION,
+    colors: List[click.Tuple] = COLORS_OPTION,
+    not_filled: List[int] = Option(
+        [], "--not-filled", help="Use line contours at INDEX (e.g., --not-filled 0)"
+    ),
     output: Optional[str] = Option(
         None, "--output", "-o", help="Output file for corner plot"
     ),
     show: bool = Option(False, "--show", "-s", help="Display the corner plot"),
+    latex: bool = Option(
+        False, "--latex", "-l", help="Plot in paper format using LaTeX"
+    ),
 ):
     """Produce a corner plot for a set of results."""
     from cosmologix import display, tools
@@ -424,6 +435,10 @@ def corner(
     axes = None
     param_names = None
     label_pairs = tuple_list_to_dict(labels)
+    color_pairs = tuple_list_to_dict(colors)
+    if latex:
+        plt.rc("text", usetex=True)
+        plt.rc("axes.spines", top=False, right=False)
     # confidence_contours = []
     for i, input_file in enumerate(input_files):
         result = tools.load(input_file)
@@ -433,13 +448,14 @@ def corner(
                 result["list"],
                 axes=axes,
                 param_names=param_names,
-                color=display.color_theme[i],
+                color=color_pairs.get(i, display.color_theme[i]),
+                filled=i not in not_filled,
             )
             if i not in label_pairs:
                 label_pairs[i] = result["label"]
         elif "params" not in result:
             axes, param_names = display.corner_plot_fisher(
-                result, axes=axes, param_names=param_names, color=display.color_theme[i]
+                result, axes=axes, param_names=param_names, color=color_pairs.get(i, display.color_theme[i])
             )
             if i not in label_pairs:
                 label_pairs[i] = result["label"] + " (Fisher)"

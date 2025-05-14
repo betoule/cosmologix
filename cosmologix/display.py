@@ -198,6 +198,7 @@ def plot_2d(
 def plot_profile(
     grid,
     label=None,
+    filled=False,
     ax=None,
     color=color_theme[0],
 ):
@@ -228,6 +229,8 @@ def plot_profile(
     if ax is None:
         ax = plt.gca()
         ax.set_xlabel(latex_translation[param])
+    if filled:
+        ax.fill_between(grid["x"], jnp.exp(-0.5 * (grid["chi2"] - chi2_min)), y2=0, color=color, alpha=0.5)
     ax.plot(
         grid["x"], jnp.exp(-0.5 * (grid["chi2"] - chi2_min)), color=color, label=label
     )
