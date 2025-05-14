@@ -6,8 +6,7 @@ command line thanks to typer
 
 """
 
-from typing import List, Optional, Tuple, Any
-import typer
+from typing import List, Optional
 import click
 from typer import Typer, Option, Argument
 from cosmologix import parameters
@@ -44,7 +43,7 @@ def tuple_list_to_dict(tuple_list):
     """Parse parameters such as --range Omega_bc 0 1 into a dict"""
     result_dict = {}
     for item in tuple_list:
-        if len(item)==2:
+        if len(item) == 2:
             result_dict[item[0]] = item[1]
         else:
             result_dict[item[0]] = list(item[1:])
@@ -126,17 +125,6 @@ MU_COV_OPTION = Option(
 )
 
 
-def validate_fix(value: str) -> Any:
-    """Validate --fix parameter: string if in PARAM_CHOICES or 'M'/'rd', else float."""
-    valid_params = PARAM_CHOICES
-    if value in valid_params:
-        return value
-    try:
-        return float(value)
-    except ValueError:
-        raise typer.BadParameter(f"Value must be a float or one of {valid_params}")
-
-
 def get_prior(p):
     """Retrieve a prior by name"""
     import cosmologix.likelihoods
@@ -207,6 +195,7 @@ def fit(
 ):
     """Find bestfit cosmological model."""
     from . import fitter, display, tools
+
     priors = [get_prior(p) for p in prior_names] + load_mu(mu, mucov)
     fixed = parameters.Planck18.copy()
     to_free = parameters.DEFAULT_FREE[cosmology].copy()
@@ -435,7 +424,7 @@ def corner(
     axes = None
     param_names = None
     label_pairs = tuple_list_to_dict(labels)
-    #confidence_contours = []
+    # confidence_contours = []
     for i, input_file in enumerate(input_files):
         result = tools.load(input_file)
         # distinguish between fit results and chi2 maps
@@ -458,7 +447,7 @@ def corner(
     # Disabling for now the possibility to add individual contours
     #    else:
     #        confidence_contours.append(result)
-    #if confidence_contours:
+    # if confidence_contours:
     #    axes, param_names = display.corner_plot_contours(
     #        confidence_contours,
     #        axes=axes,
