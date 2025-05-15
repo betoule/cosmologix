@@ -512,11 +512,12 @@ def corner(
 
 
 @app.command()
-def clear_cache():
-    """Clear precompiled likelihoods."""
+def clear_cache(jit: Annotated[bool, Option('--jit', '-j',
+                                            help='Clear only the persistent jit cache')]):
+    """Clear cached data."""
     from cosmologix import tools
 
-    tools.clear_cache()
+    tools.clear_cache(jit)
 
 
 def main():

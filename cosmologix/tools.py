@@ -44,18 +44,29 @@ class Constants:
     zeta5 = 1.0369277551433699263313
 
 
-def get_cache_dir():
-    """Determine the appropriate cache directory based on the OS."""
+def get_cache_dir(jit=False):
+    """Determine the appropriate cache directory based on the OS.
+    
+    parameters:
+    jit: bool, if True return the path to the jit cache subdirectory.
+
+    return: None
+    """
+    
     if os.name == "nt":  # Windows
-        return str(Path(os.getenv("LOCALAPPDATA")) / "Cache" / "cosmologix")
-    if os.name == "posix":  # Unix-like systems
+        cache_dir = Path(os.getenv("LOCALAPPDATA")) / "Cache" / "cosmologix"
+    elif os.name == "posix":  # Unix-like systems
         if "XDG_CACHE_HOME" in os.environ:
-            return str(Path(os.environ["XDG_CACHE_HOME"]) / "cosmologix")
-        return str(Path.home() / ".cache" / "cosmologix")
-    raise OSError("Unsupported operating system")
+            cache_dir = Path(os.environ["XDG_CACHE_HOME"]) / "cosmologix"
+        else:
+            cache_dir = Path.home() / ".cache" / "cosmologix"
+    else:
+        raise OSError("Unsupported operating system")
+    if jit:
+        cache_dir = cache_dir / 'jit'
+    return str(cache_dir)
 
-
-jax.config.update("jax_compilation_cache_dir", get_cache_dir())
+jax.config.update("jax_compilation_cache_dir", get_cache_dir(True))
 jax.config.update("jax_persistent_cache_min_entry_size_bytes", -1)
 jax.config.update("jax_persistent_cache_min_compile_time_secs", 0.1)
 # This is not available in all jax version
@@ -68,38 +79,32 @@ except AttributeError:
     pass
 
 
-def clear_cache(cache_dir=None):
+def clear_cache(jit=False):
     """
     Clear the cache directory used by cached_download.
 
-    :param cache_dir: Optional directory path for cache. If None, it uses an OS-specific default.
+    :param jit: Optional clear only the jit subdirectoryfor cache.
     :return: None
     """
-    if cache_dir is None:
-        cache_dir = (
-            get_cache_dir()
-        )  # Assuming get_cache_dir() is defined as in the previous example
-
+    cache_dir = get_cache_dir(jit)
+    
     if os.path.exists(cache_dir):
         shutil.rmtree(cache_dir)  # Remove the entire directory
         from jax.experimental.compilation_cache import compilation_cache
-
         compilation_cache.reset_cache()
         print(f"Cache directory {cache_dir} has been cleared.")
     else:
         print(f"Cache directory {cache_dir} does not exist.")
 
 
-def cached_download(url, cache_dir=None):
+def cached_download(url):
     """
     Download a file from the web with caching.
 
     :param url: The URL to download from.
-    :param cache_dir: Optional directory path for cache. If None, it uses an OS-specific default.
     :return: Path to the cached file.
     """
-    if cache_dir is None:
-        cache_dir = get_cache_dir()
+    cache_dir = get_cache_dir()
 
     # Create cache directory if it doesn't exist
     os.makedirs(cache_dir, exist_ok=True)
