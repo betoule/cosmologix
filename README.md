@@ -115,7 +115,7 @@ The complete documentation is available [here](https://lemaitre.pages.in2p3.fr/c
 
 ## Release history
 
-### v0.9.6
+### v0.9.6 (current)
 - 1D profile likelihoods
 - Group exploration results in a single file
 - Improve handling of labels in corner plots
@@ -123,7 +123,7 @@ The complete documentation is available [here](https://lemaitre.pages.in2p3.fr/c
 - Provide high level interface compatible with the command line interface
 - Limit cache size inflation
 
-### v0.9.5 (current)
+### v0.9.5
 - Add DESI DR2 BAO measurements (rename DESI2024 to DESIDR1 for consistency)
 - Add a Planck prior consistent with what is used in DESI DR2 (named PR4)
 - Various bug fixes related to jax version

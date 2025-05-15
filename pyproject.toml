@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cosmologix"
-version = "0.9.5"
+version = "0.9.6"
 description = "Cosmological distance computations in FLRW universe using JAX"
 readme = "README.md"
 requires-python = ">=3.10"
