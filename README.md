@@ -81,125 +81,12 @@ plt.show()
 For most common use cases, there is also a simple command line interface to the library. You can perform fit, contour exploration and contour plotting as follows:
 
 ```bash
+# First line is optional. It activates command line completion for most common shells
+cosmologix --install-completion
 cosmologix fit --priors PR4 --priors DESIDR2 --cosmology FwCDM -s
 cosmologix explore Omega_bc w --priors PR4 --priors DESIDR2 --cosmology FwCDM -o contours.pkl
 cosmologix contour contours.pkl -s -o contour.png
 ```
-
-## More advanced topics
-
-### Fixing Unconstrained Parameters
-
-Cosmologix uses a default set of cosmological parameters in its
-computations: `{'Tcmb', 'Omega_bc', 'H0', 'Omega_b_h2', 'Omega_k', 'w',
-'wa', 'm_nu', 'Neff'}`. However, certain combinations of cosmological
-probes may be entirely insensitive to some of these parameters,
-requiring their values to be fixed for the fitting process to
-converge. For instance, the cosmic microwave background temperature
-(`Tcmb`) is usually assumed constant in many analyses. Late-time
-probes of the expansion history—like supernovae or uncalibrated baryon
-acoustic oscillations (BAOs)—do not distinguish between baryon and
-dark matter contributions (`Omega_b_h2`) or constrain the absolute
-distance scale (`H0`), leaving these parameters effectively
-unconstrained without additional data.
-
-#### Setting Fixed Parameters
-In Cosmologix, you can fix parameters by passing the optional `fixed`
-argument to the `fit` and `contours.frequentist_contour_2d_sparse`
-functions. This mechanism also enables exploration of simplified
-cosmological models, such as enforcing flatness (`Omega_k = 0`) or a
-cosmological constant dark energy behavior (`w = -1`, `wa = 0`):
-
-```python
-fixed = {'Omega_k': 0.0, 'm_nu': 0.06, 'Neff': 3.046, 'Tcmb': 2.7255, 'wa': 0.0}
-result = fit(priors, fixed=fixed)
-grid = contours.frequentist_contour_2d_sparse(
-    priors,
-    grid={'Omega_bc': [0.18, 0.48, 30], 'w': [-0.6, -1.5, 30]},
-    fixed=fixed
-)
-```
-
-#### Degeneracy Checks
-Recent versions of Cosmologix include a safeguard in the `fit`
-function: it checks for perfect degeneracies among the provided priors
-and fixed parameters before proceeding, raising an explicit error
-message if any remain. The `contours.frequentist_contour_2d_sparse`
-function, however, skips this check to allow exploration of partially
-degenerate parameter combinations, offering flexibility for diagnostic
-purposes.
-
-#### Command-Line Interface
-From the command line, you can specify fixed parameters using the `-F`
-or `--fixed` option, available for both `fit` and `explore`
-commands. Additionally, the `-c` or `--cosmo` shortcut simplifies
-restricting the model to predefined configurations (e.g., flat \( w
-\)CDM):
-
-```bash
-cosmologix fit -p DESI2024 -F H0 -c FwCDM
-cosmologix explore Omega_bc w -p DESI2024 -c FwCDM -F H0 -o desi_fwcdm.pkl
-```
-
-#### Automatic Parameter Fixing
-For convenience, the `fit` command offers the `-A` or
-`--auto-constrain` option, which automatically identifies and fixes
-poorly constrained parameters. Use this with caution, as it may alter
-the model by trimming parameters that lack sufficient constraints,
-potentially affecting your results:
-
-```bash
-cosmologix fit -p DES-5yr -A -c FwCDM
-```
-
-Example output:
-```
-Unconstrained Parameters:
-  Omega_b_h2: FIM = 0.00 (effectively unconstrained)
-Fixing unconstrained parameter Omega_b_h2
-Try again fixing H0
-Omega_bc = 0.272 ± 0.089
-w = -0.82 ± 0.17
-M = -0.053 ± 0.013
-```
-
-### Cache Mechanism
-
-Cosmologix includes a caching system to optimize performance by storing results from time-consuming operations. This mechanism applies to:
-- Downloading external files, such as datasets.
-- Expensive computations, like matrix inversions or factorizations used in \( \chi^2 \) calculations.
-- Lengthy `jax.jit` compilations, which can have noticeable pre-run delays.
-
-Caching helps reduce the initial overhead (sometimes called "preburn time") introduced by JAX’s just-in-time compilation and other resource-intensive tasks, making subsequent runs significantly faster.
-
-#### Accessing the Cache Directory
-You can retrieve the location of the cache directory using the `tools` module:
-
-```python
-from cosmologix import tools
-print(tools.get_cache_dir())
-```
-
-This returns the path where cached files are stored, typically a platform-specific directory (e.g., `~/.cache/cosmologix` on Unix-like systems).
-
-#### Managing the Cache
-If the cache grows too large or if you suspect outdated results are being loaded due to code changes, you can clear it entirely:
-
-```python
-tools.clear_cache()
-```
-
-This removes all cached files, forcing Cosmologix to recompute or redownload as needed on the next run.
-
-You can also perform the operation from the command line:
-```bash
-cosmologix clear_cache
-```
-
-#### Notes
-- The caching system is particularly useful for mitigating JAX’s compilation delays, but its effectiveness depends on consistent inputs and code stability.
-- Use `clear_cache()` judiciously, as it deletes all cached data, including potentially large datasets, and will require internet connexion to download.
-
 
 ## Dependencies
 
@@ -208,45 +95,11 @@ cosmologix clear_cache
 - Matplotlib for plotting.
 - Requests to retrieve external data files.
 - tqdm to display progression of contour computation
+- typer for the cli.
 
 ## Roadmap
 
-- [ ] Add 1d profile likelihoods for corner plots
-- [ ] Ease the handling of exploration results
-
-## Accuracy of the distance modulus computation
-
-The plot below compares the distance modulus computation for the
-baseline Planck 2018 flat Λ-CDM cosmological model across several
-codes, using the fine quadrature of Cosmologix as the reference. It
-demonstrates agreement within a few 10⁻⁵ magnitudes over a broad
-redshift range. Residual discrepancies between libraries stem from
-differences in handling the effective number of neutrino species. We
-adopt the convention used in CAMB (assuming all species share the same
-temperature), which explains the closer alignment. A comparison with
-the coarse quadrature (Cosmologix 1000) highlights the magnitude of
-numerical errors. `jax_cosmo` is not presented in this comparison
-because at the time of writing it does not compute the contribution of
-neutrinos to the density which prevents a relevant comparison.
-
-![Distance modulus accuracy](https://gitlab.in2p3.fr/lemaitre/cosmologix/-/raw/master/doc/mu_accuracy.svg)
-
-## Speed test
-
-The plot below illustrates the computation time for a vector of
-distance moduli across various redshifts, plotted against the number
-of redshifts. Generally, the computation time is dominated by
-precomputation steps and remains largely independent of vector size,
-except in the case of `astropy` and `jax_cosmo`. We differentiate
-between the first call and subsequent calls, as the initial call may
-involve specific overheads. For Cosmologix, this includes
-JIT-compilation times, which introduce a significant delay. Efforts
-are underway to optimize this aspect. Note that we did not yet manage
-jit-compile the luminosity distance computation in `cosmoprimo`, due
-to a compilation error. The speed measurement may change significantly
-when this issue is solved.
-
-![Distance modulus speed](https://gitlab.in2p3.fr/lemaitre/cosmologix/-/raw/master/doc/mu_speed.svg)
+- [ ] Conversion of contours to different parameterisation (e.g. `Omega_bc` to `Omega_m`)
 
 ## Contributing
 
@@ -262,11 +115,13 @@ Detailed documentation for each function and module can be found in the source c
 
 ## Release history
 
-### v0.9.6 (in prep.)
+### v0.9.6
 - 1D profile likelihoods
 - Group exploration results in a single file
 - Improve handling of labels in corner plots
 - Change name of `Omega_m` to `Omega_bc` to lift possible confusion on neutrinos contribution accounting
+- Provide high level interface compatible with the command line interface
+- Limit cache size inflation
 
 ### v0.9.5 (current)
 - Add DESI DR2 BAO measurements (rename DESI2024 to DESIDR1 for consistency)
