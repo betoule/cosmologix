@@ -8,8 +8,10 @@ parts:
   chapters:
   - file: basic.ipynb
   - file: advanced
-  - file: about
+  - file: numerical_results
   - file: release
+  - file: contributing
+  - file: about
 - caption: API
   chapters:
   - file: api.rst

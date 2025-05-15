@@ -49,8 +49,8 @@ restricting the model to predefined configurations (e.g., flat \( w
 \)CDM):
 
 ```bash
-cosmologix fit -p DESI2024 -F H0 -c FwCDM
-cosmologix explore Omega_bc w -p DESI2024 -c FwCDM -F H0 -o desi_fwcdm.pkl
+cosmologix fit -p DESIDR2 -F H0 70 -c FwCDM
+cosmologix explore Omega_bc w -p DESIDR2 -c FwCDM -F H0 70 -o desi_fwcdm.pkl
 ```
 
 ### Automatic Parameter Fixing
@@ -61,7 +61,7 @@ the model by trimming parameters that lack sufficient constraints,
 potentially affecting your results:
 
 ```bash
-cosmologix fit -p DES-5yr -A -c FwCDM
+cosmologix fit -p DES5yr -A -c FwCDM
 ```
 
 Example output:
@@ -101,14 +101,19 @@ If the cache grows too large or if you suspect outdated results are being loaded
 tools.clear_cache()
 ```
 
-This removes all cached files, forcing Cosmologix to recompute or redownload as needed on the next run.
+This removes all cached files, forcing Cosmologix to recompute or redownload as needed on the next run. You can delete only the jit-compilation cache, avoiding the need to redownload all data with:
+```python
+tools.clear_cache(jit=True)
+```
 
-You can also perform the operation from the command line:
+You can also perform the same operations from the command line:
 ```bash
-cosmologix clear_cache
+cosmologix clear-cache
+cosmologix clear-cache -j
 ```
 
 ### Notes
 
 - The caching system is particularly useful for mitigating JAX’s compilation delays, but its effectiveness depends on consistent inputs and code stability.
 - Use `clear_cache()` judiciously, as it deletes all cached data, including potentially large datasets, and will require internet connexion to download.
+- Cache inflation is generally caused by the accumulation of compiled jit code for different combination of likelihoods and cosmologies. To avoid disk space issues the use of the persistent cache for jit code is deactivated when the cache size exceeds 1GB. 

@@ -1,5 +1,8 @@
 # Release history
 
+## Roadmap
+
+- [ ] Conversion of contours to different parameterisation (e.g. `Omega_bc` to `Omega_m`)
 
 ## v0.9.6 (in prep.)
 - 1D profile likelihoods
