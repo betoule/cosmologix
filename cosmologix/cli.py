@@ -512,8 +512,11 @@ def corner(
 
 
 @app.command()
-def clear_cache(jit: Annotated[bool, Option('--jit', '-j',
-                                            help='Clear only the persistent jit cache')]):
+def clear_cache(
+    jit: Annotated[
+        bool, Option("--jit", "-j", help="Clear only the persistent jit cache")
+    ],
+):
     """Clear cached data."""
     from cosmologix import tools
 

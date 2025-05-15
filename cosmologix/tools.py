@@ -46,13 +46,13 @@ class Constants:
 
 def get_cache_dir(jit=False):
     """Determine the appropriate cache directory based on the OS.
-    
+
     parameters:
     jit: bool, if True return the path to the jit cache subdirectory.
 
     return: None
     """
-    
+
     if os.name == "nt":  # Windows
         cache_dir = Path(os.getenv("LOCALAPPDATA")) / "Cache" / "cosmologix"
     elif os.name == "posix":  # Unix-like systems
@@ -63,20 +63,62 @@ def get_cache_dir(jit=False):
     else:
         raise OSError("Unsupported operating system")
     if jit:
-        cache_dir = cache_dir / 'jit'
+        cache_dir = cache_dir / "jit"
     return str(cache_dir)
 
-jax.config.update("jax_compilation_cache_dir", get_cache_dir(True))
-jax.config.update("jax_persistent_cache_min_entry_size_bytes", -1)
-jax.config.update("jax_persistent_cache_min_compile_time_secs", 0.1)
-# This is not available in all jax version
-try:
-    jax.config.update(
-        "jax_persistent_cache_enable_xla_caches",
-        "xla_gpu_per_fusion_autotune_cache_dir",
-    )
-except AttributeError:
-    pass
+
+def persistent_compilation_cache_setup() -> str:
+    """
+    Setup the JAX cache directory checking for its size
+
+    Returns:
+        str: Human-readable size of the cache directory (e.g., '123.45 MB') or error message.
+    """
+    try:
+        # Get the cache directory path
+        cache_dir = get_cache_dir(jit=True)
+
+        # Ensure path is a Path object
+        cache_path = Path(cache_dir)
+        if not cache_path.exists():
+            return f"Cache directory does not exist: {cache_dir}"
+        if not cache_path.is_dir():
+            return f"Path is not a directory: {cache_dir}"
+
+        # Sum the size of all files in the directory and subdirectories
+        total_size = sum(
+            file.stat().st_size for file in cache_path.rglob("*") if file.is_file()
+        )
+
+        if total_size > 2**30:
+            # Convert to human-readable format
+            for unit in ["B", "KB", "MB", "GB", "TB"]:
+                if total_size < 1024:
+                    break
+                total_size /= 1024
+            print(
+                f"The compilation cache as grown to {total_size:.2f} {unit}. Caching is disabled for now. Clear the cache using `cosmologix clear-cache -j` to re-enable"
+            )
+        else:
+            jax.config.update("jax_compilation_cache_dir", get_cache_dir(True))
+            jax.config.update("jax_persistent_cache_min_entry_size_bytes", -1)
+            jax.config.update("jax_persistent_cache_min_compile_time_secs", 0.1)
+            # This is not available in all jax version
+            try:
+                jax.config.update(
+                    "jax_persistent_cache_enable_xla_caches",
+                    "xla_gpu_per_fusion_autotune_cache_dir",
+                )
+            except AttributeError:
+                pass
+
+    except PermissionError:
+        return f"Permission denied accessing cache directory: {cache_dir}"
+    except Exception as e:
+        return f"Error checking cache size: {str(e)}"
+
+
+persistent_compilation_cache_setup()
 
 
 def clear_cache(jit=False):
@@ -87,10 +129,11 @@ def clear_cache(jit=False):
     :return: None
     """
     cache_dir = get_cache_dir(jit)
-    
+
     if os.path.exists(cache_dir):
         shutil.rmtree(cache_dir)  # Remove the entire directory
         from jax.experimental.compilation_cache import compilation_cache
+
         compilation_cache.reset_cache()
         print(f"Cache directory {cache_dir} has been cleared.")
     else:
