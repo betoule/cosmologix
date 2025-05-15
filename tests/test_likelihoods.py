@@ -68,6 +68,7 @@ def test_likelihoods(fix=["Omega_k"]):
 
 if __name__ == "__main__":
     # test_likelihoods()
+    tools.clear_cache()
     priors = {
         "desiu": likelihoods.DESIDR1Prior(True),
         "desi": likelihoods.DESIDR1Prior(),
