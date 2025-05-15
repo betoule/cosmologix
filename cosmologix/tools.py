@@ -44,41 +44,91 @@ class Constants:
     zeta5 = 1.0369277551433699263313
 
 
-def get_cache_dir():
-    """Determine the appropriate cache directory based on the OS."""
+def get_cache_dir(jit=False):
+    """Determine the appropriate cache directory based on the OS.
+
+    parameters:
+    jit: bool, if True return the path to the jit cache subdirectory.
+
+    return: None
+    """
+
     if os.name == "nt":  # Windows
-        return str(Path(os.getenv("LOCALAPPDATA")) / "Cache" / "cosmologix")
-    if os.name == "posix":  # Unix-like systems
+        cache_dir = Path(os.getenv("LOCALAPPDATA")) / "Cache" / "cosmologix"
+    elif os.name == "posix":  # Unix-like systems
         if "XDG_CACHE_HOME" in os.environ:
-            return str(Path(os.environ["XDG_CACHE_HOME"]) / "cosmologix")
-        return str(Path.home() / ".cache" / "cosmologix")
-    raise OSError("Unsupported operating system")
+            cache_dir = Path(os.environ["XDG_CACHE_HOME"]) / "cosmologix"
+        else:
+            cache_dir = Path.home() / ".cache" / "cosmologix"
+    else:
+        raise OSError("Unsupported operating system")
+    if jit:
+        cache_dir = cache_dir / "jit"
+    return str(cache_dir)
 
 
-jax.config.update("jax_compilation_cache_dir", get_cache_dir())
-jax.config.update("jax_persistent_cache_min_entry_size_bytes", -1)
-jax.config.update("jax_persistent_cache_min_compile_time_secs", 0.1)
-# This is not available in all jax version
-try:
-    jax.config.update(
-        "jax_persistent_cache_enable_xla_caches",
-        "xla_gpu_per_fusion_autotune_cache_dir",
-    )
-except AttributeError:
-    pass
+def persistent_compilation_cache_setup() -> str:
+    """
+    Setup the JAX cache directory checking for its size
+
+    Returns:
+        str: Human-readable size of the cache directory (e.g., '123.45 MB') or error message.
+    """
+    try:
+        # Get the cache directory path
+        cache_dir = get_cache_dir(jit=True)
+
+        # Ensure path is a Path object
+        cache_path = Path(cache_dir)
+        if not cache_path.exists():
+            return f"Cache directory does not exist: {cache_dir}"
+        if not cache_path.is_dir():
+            return f"Path is not a directory: {cache_dir}"
+
+        # Sum the size of all files in the directory and subdirectories
+        total_size = sum(
+            file.stat().st_size for file in cache_path.rglob("*") if file.is_file()
+        )
+
+        if total_size > 2**30:
+            # Convert to human-readable format
+            for unit in ["B", "KB", "MB", "GB", "TB"]:
+                if total_size < 1024:
+                    break
+                total_size /= 1024
+            print(
+                f"The compilation cache as grown to {total_size:.2f} {unit}. Caching is disabled for now. Clear the cache using `cosmologix clear-cache -j` to re-enable"
+            )
+        else:
+            jax.config.update("jax_compilation_cache_dir", get_cache_dir(True))
+            jax.config.update("jax_persistent_cache_min_entry_size_bytes", -1)
+            jax.config.update("jax_persistent_cache_min_compile_time_secs", 0.1)
+            # This is not available in all jax version
+            try:
+                jax.config.update(
+                    "jax_persistent_cache_enable_xla_caches",
+                    "xla_gpu_per_fusion_autotune_cache_dir",
+                )
+            except AttributeError:
+                pass
+
+    except PermissionError:
+        return f"Permission denied accessing cache directory: {cache_dir}"
+    except Exception as e:
+        return f"Error checking cache size: {str(e)}"
 
 
-def clear_cache(cache_dir=None):
+persistent_compilation_cache_setup()
+
+
+def clear_cache(jit=False):
     """
     Clear the cache directory used by cached_download.
 
-    :param cache_dir: Optional directory path for cache. If None, it uses an OS-specific default.
+    :param jit: Optional clear only the jit subdirectoryfor cache.
     :return: None
     """
-    if cache_dir is None:
-        cache_dir = (
-            get_cache_dir()
-        )  # Assuming get_cache_dir() is defined as in the previous example
+    cache_dir = get_cache_dir(jit)
 
     if os.path.exists(cache_dir):
         shutil.rmtree(cache_dir)  # Remove the entire directory
@@ -90,16 +140,14 @@ def clear_cache(cache_dir=None):
         print(f"Cache directory {cache_dir} does not exist.")
 
 
-def cached_download(url, cache_dir=None):
+def cached_download(url):
     """
     Download a file from the web with caching.
 
     :param url: The URL to download from.
-    :param cache_dir: Optional directory path for cache. If None, it uses an OS-specific default.
     :return: Path to the cached file.
     """
-    if cache_dir is None:
-        cache_dir = get_cache_dir()
+    cache_dir = get_cache_dir()
 
     # Create cache directory if it doesn't exist
     os.makedirs(cache_dir, exist_ok=True)

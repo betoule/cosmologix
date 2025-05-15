@@ -42,7 +42,7 @@ def get_like_func(likelihood, fix=["Omega_k"]):
 
 
 def test_likelihoods(fix=["Omega_k"]):
-    tools.clear_cache()
+    tools.clear_cache(jit=True)
     priors = {
         "desiu": lambda: likelihoods.DESIDR1(True),
         "desi": likelihoods.DESIDR1,
@@ -68,6 +68,7 @@ def test_likelihoods(fix=["Omega_k"]):
 
 if __name__ == "__main__":
     # test_likelihoods()
+    tools.clear_cache()
     priors = {
         "desiu": likelihoods.DESIDR1Prior(True),
         "desi": likelihoods.DESIDR1Prior(),
