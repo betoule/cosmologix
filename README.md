@@ -30,9 +30,9 @@ pip install cosmologix
 Note: Make sure you have JAX installed, along with its dependencies. If you're using GPU acceleration, ensure CUDA and cuDNN are properly set up.
 
 ## Usage
-Here's a quick example to get you started (look at
-[example/features.py](https://gitlab.in2p3.fr/lemaitre/cosmologix/example/features.py)
-for a more complete tour of the available features):
+Here's a quick example to get you started (look at the
+[tutorial](https://lemaitre.pages.in2p3.fr/cosmologix/basic.html) for
+a more complete tour of the available features):
 
 ```python
 from cosmologix import distances, parameters
@@ -111,7 +111,7 @@ Contributions are welcome! Please fork the repository, make changes, and submit 
 
 ## Documentation
 
-Detailed documentation for each function and module can be found in the source code. Autodocs is in preparation [here](https://cosmologix-7920a8.pages.in2p3.fr/).
+The complete documentation is available [here](https://lemaitre.pages.in2p3.fr/cosmologix/home.html).
 
 ## Release history
 
