@@ -9,7 +9,7 @@ command line thanks to typer
 from typing import List, Optional, Annotated
 import click
 from typer import Typer, Option, Argument
-from cosmologix import parameters
+from cosmologix import parameters, cli_tools
 
 # We defer other imports to improve responsiveness on the command line
 # pylint: disable=import-outside-toplevel
@@ -22,128 +22,6 @@ app = Typer(
     no_args_is_help=True,
     add_completion=True,  # Enable default typer completion
 )
-
-# Available priors
-AVAILABLE_PRIORS = [
-    "Planck2018",
-    "PR4",
-    "DESIDR1",
-    "DESIDR2",
-    "DES5yr",
-    "Pantheonplus",
-    "Union3",
-    "SH0ES",
-    "BBNNeffSchoneberg2024",
-    "BBNSchoneberg2024",
-]
-
-PARAM_CHOICES = list(parameters.Planck18.keys()) + ["M", "rd"]
-
-
-def tuple_list_to_dict(tuple_list):
-    """Parse parameters such as --range Omega_bc 0 1 into a dict"""
-    result_dict = {}
-    for item in tuple_list:
-        if len(item) == 2:
-            result_dict[item[0]] = item[1]
-        else:
-            result_dict[item[0]] = list(item[1:])
-    return result_dict
-
-
-def dict_to_list(dictionnary):
-    """Convert default dictionnaries to string usable in command line completion"""
-
-    def to_str(v):
-        try:
-            return " ".join(str(_v) for _v in v)
-        except TypeError:
-            return str(v)
-
-    def f():
-
-        return [f"{k} {to_str(v)}" for k, v in dictionnary.items()]
-
-    return f
-
-
-# Shared option definitions
-COSMOLOGY_OPTION = Option(
-    "--cosmology",
-    "-c",
-    help="Cosmological model",
-    show_choices=True,
-    autocompletion=lambda: list(parameters.DEFAULT_FREE.keys()),
-)
-PRIORS_OPTION = Option(
-    "--priors",
-    "-p",
-    help="Priors to use (e.g., Planck18 DESI2024)",
-    show_choices=True,
-    autocompletion=lambda: AVAILABLE_PRIORS,
-)
-FIX_OPTION = Option(
-    "--fix",
-    "-F",
-    help="Fix PARAM at VALUE (e.g., -F H0 70)",
-    autocompletion=dict_to_list(parameters.Planck18),
-    click_type=click.Tuple([str, float]),
-)
-LABELS_OPTION = Option(
-    "--label",
-    "-l",
-    help="Override labels for contours (e.g., -l 0 DR2)",
-    click_type=click.Tuple([int, str]),
-)
-COLORS_OPTION = Option(
-    "--color",
-    help="Override color for contours (e.g., --colors 0 red)",
-    click_type=click.Tuple([int, str]),
-)
-FREE_OPTION = Option(
-    "--free",
-    help="Force release of parameter (e.g., --free Neff)",
-    show_choices=True,
-    autocompletion=lambda: PARAM_CHOICES,
-)
-RANGE_OPTION = Option(
-    "--range",
-    help="Override exploration range for a parameter (e.g., --range Omega_bc 0.1 0.5)",
-    show_choices=True,
-    autocompletion=dict_to_list(parameters.DEFAULT_RANGE),
-    click_type=click.Tuple([str, float, float]),
-)
-MU_OPTION = Option(
-    "--mu",
-    help="Distance modulus data file in npy format",
-)
-MU_COV_OPTION = Option(
-    "--mu-cov",
-    help="Optional covariance matrix in npy format",
-)
-
-
-def get_prior(p):
-    """Retrieve a prior by name"""
-    import cosmologix.likelihoods
-
-    return getattr(cosmologix.likelihoods, p)()
-
-
-def load_mu(mu_file: str, cov_file: str = ""):
-    """Load distance measurement."""
-    if mu_file is None:
-        return []
-    import numpy as np
-    from cosmologix import likelihoods
-
-    muobs = np.load(mu_file)
-    if cov_file:
-        cov = np.load(cov_file)
-        like = likelihoods.MuMeasurements(muobs["z"], muobs["mu"], cov)
-    else:
-        like = likelihoods.DiagMuMeasurements(muobs["z"], muobs["mu"], muobs["muerr"])
-    return [like]
 
 
 def auto_restricted_fit(priors, fixed, verbose):
@@ -166,15 +44,15 @@ def auto_restricted_fit(priors, fixed, verbose):
 
 @app.command()
 def fit(
-    prior_names: Annotated[Optional[List[str]], PRIORS_OPTION] = None,
-    cosmology: Annotated[str, COSMOLOGY_OPTION] = "FwCDM",
+    prior_names: Annotated[Optional[List[str]], cli_tools.PRIORS_OPTION] = None,
+    cosmology: Annotated[str, cli_tools.COSMOLOGY_OPTION] = "FwCDM",
     verbose: Annotated[
         bool, Option("--verbose", "-v", help="Display the successive steps of the fit")
     ] = False,
-    fix: Annotated[Optional[List[click.Tuple]], FIX_OPTION] = None,
-    free: Annotated[Optional[List[str]], FREE_OPTION] = None,
-    mu: Annotated[Optional[str], MU_OPTION] = None,
-    mucov: Annotated[Optional[str], MU_COV_OPTION] = None,
+    fix: Annotated[Optional[List[click.Tuple]], cli_tools.FIX_OPTION] = None,
+    free: Annotated[Optional[List[str]], cli_tools.FREE_OPTION] = None,
+    mu: Annotated[Optional[str], cli_tools.MU_OPTION] = None,
+    mucov: Annotated[Optional[str], cli_tools.MU_COV_OPTION] = None,
     auto_constrain: Annotated[
         bool,
         Option(
@@ -201,7 +79,9 @@ def fit(
     fix = fix or []
     free = free or []
     prior_names = prior_names or []
-    priors = [get_prior(p) for p in prior_names] + load_mu(mu, mucov)
+    priors = [cli_tools.get_prior(p) for p in prior_names] + cli_tools.load_mu(
+        mu, mucov
+    )
     fixed = parameters.Planck18.copy()
     to_free = parameters.DEFAULT_FREE[cosmology].copy()
     for par in to_free + free:
@@ -232,20 +112,20 @@ def explore(
         List[str],
         Argument(
             help="Parameters to explore (e.g., Omega_bc w)",
-            autocompletion=lambda: PARAM_CHOICES,
+            autocompletion=lambda: cli_tools.PARAM_CHOICES,
         ),
     ],
-    prior_names: Annotated[Optional[List[str]], PRIORS_OPTION] = None,
+    prior_names: Annotated[Optional[List[str]], cli_tools.PRIORS_OPTION] = None,
     resolution: Annotated[
         int, Option("--resolution", help="Number of grid points per dimension")
     ] = 50,
-    cosmology: Annotated[str, COSMOLOGY_OPTION] = "FwCDM",
+    cosmology: Annotated[str, cli_tools.COSMOLOGY_OPTION] = "FwCDM",
     label: Annotated[
         str, Option("--label", "-l", help="Label for the resulting contour")
     ] = "",
-    fix: Annotated[Optional[List[click.Tuple]], FIX_OPTION] = None,
-    free: Annotated[Optional[List[str]], FREE_OPTION] = None,
-    var_range: Annotated[Optional[List[click.Tuple]], RANGE_OPTION] = None,
+    fix: Annotated[Optional[List[click.Tuple]], cli_tools.FIX_OPTION] = None,
+    free: Annotated[Optional[List[str]], cli_tools.FREE_OPTION] = None,
+    var_range: Annotated[Optional[List[click.Tuple]], cli_tools.RANGE_OPTION] = None,
     confidence_threshold: Annotated[
         float,
         Option(
@@ -254,8 +134,8 @@ def explore(
             help="Maximal explored level of confidence in percent",
         ),
     ] = 95.3,
-    mu: Annotated[Optional[str], MU_OPTION] = None,
-    mucov: Annotated[Optional[str], MU_COV_OPTION] = None,
+    mu: Annotated[Optional[str], cli_tools.MU_OPTION] = None,
+    mucov: Annotated[Optional[str], cli_tools.MU_COV_OPTION] = None,
     output: Annotated[
         str,
         Option(
@@ -272,14 +152,16 @@ def explore(
     free = free or []
     prior_names = prior_names or []
     var_range = var_range or []
-    priors = [get_prior(p) for p in prior_names] + load_mu(mu, mucov)
+    priors = [cli_tools.get_prior(p) for p in prior_names] + cli_tools.load_mu(
+        mu, mucov
+    )
     fixed = parameters.Planck18.copy()
     to_free = parameters.DEFAULT_FREE[cosmology].copy()
     for par in to_free + free:
         fixed.pop(par)
     for par, value in fix:
         fixed[par] = value
-    range_dict = tuple_list_to_dict(var_range)
+    range_dict = cli_tools.tuple_list_to_dict(var_range)
     range_x = range_dict.get(params[0], parameters.DEFAULT_RANGE[params[0]])
     grid_params = {params[0]: range_x + [resolution]}
     if len(params) == 2:
@@ -348,8 +230,8 @@ def contour(
             "--not-filled", help="Use line contours at INDEX (e.g., --not-filled 0)"
         ),
     ] = None,
-    colors: Annotated[Optional[List[click.Tuple]], COLORS_OPTION] = None,
-    labels: Annotated[Optional[List[click.Tuple]], LABELS_OPTION] = None,
+    colors: Annotated[Optional[List[click.Tuple]], cli_tools.COLORS_OPTION] = None,
+    labels: Annotated[Optional[List[click.Tuple]], cli_tools.LABELS_OPTION] = None,
     levels: Annotated[
         Optional[List[float]],
         Option("--levels", help="Contour levels (e.g., --levels 68 95)"),
@@ -387,8 +269,8 @@ def contour(
 
     levels = levels or [68.0, 95.0]
     not_filled = not_filled or []
-    color_pairs = tuple_list_to_dict(colors or [])
-    label_pairs = tuple_list_to_dict(labels or [])
+    color_pairs = cli_tools.tuple_list_to_dict(colors or [])
+    label_pairs = cli_tools.tuple_list_to_dict(labels or [])
     if latex:
         plt.rc("text", usetex=True)
         plt.rc("axes.spines", top=False, right=False)
@@ -431,8 +313,8 @@ def corner(
     input_files: Annotated[
         List[str], Argument(help="Input file from explore (e.g., contour_planck.pkl)")
     ],
-    labels: Annotated[Optional[List[click.Tuple]], LABELS_OPTION] = None,
-    colors: Annotated[Optional[List[click.Tuple]], COLORS_OPTION] = None,
+    labels: Annotated[Optional[List[click.Tuple]], cli_tools.LABELS_OPTION] = None,
+    colors: Annotated[Optional[List[click.Tuple]], cli_tools.COLORS_OPTION] = None,
     not_filled: Annotated[
         Optional[List[int]],
         Option(
@@ -457,8 +339,8 @@ def corner(
     axes = None
     param_names = None
     not_filled = not_filled or []
-    label_pairs = tuple_list_to_dict(labels or [])
-    color_pairs = tuple_list_to_dict(colors or [])
+    label_pairs = cli_tools.tuple_list_to_dict(labels or [])
+    color_pairs = cli_tools.tuple_list_to_dict(colors or [])
     if latex:
         plt.rc("text", usetex=True)
         plt.rc("axes.spines", top=False, right=False)

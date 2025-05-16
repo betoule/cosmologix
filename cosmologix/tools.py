@@ -81,9 +81,11 @@ def persistent_compilation_cache_setup() -> str:
         # Ensure path is a Path object
         cache_path = Path(cache_dir)
         if not cache_path.exists():
-            return f"Cache directory does not exist: {cache_dir}"
+            print(f"Cache directory does not exist: {cache_dir}")
+            return
         if not cache_path.is_dir():
-            return f"Path is not a directory: {cache_dir}"
+            print(f"Path is not a directory: {cache_dir}")
+            return
 
         # Sum the size of all files in the directory and subdirectories
         total_size = sum(
@@ -97,7 +99,9 @@ def persistent_compilation_cache_setup() -> str:
                     break
                 total_size /= 1024
             print(
-                f"The compilation cache as grown to {total_size:.2f} {unit}. Caching is disabled for now. Clear the cache using `cosmologix clear-cache -j` to re-enable"
+                f"The compilation cache as grown to {total_size:.2f} {unit}."
+                "Caching is disabled for now."
+                "Clear the cache using `cosmologix clear-cache -j` to re-enable."
             )
         else:
             jax.config.update("jax_compilation_cache_dir", get_cache_dir(True))
@@ -113,9 +117,7 @@ def persistent_compilation_cache_setup() -> str:
                 pass
 
     except PermissionError:
-        return f"Permission denied accessing cache directory: {cache_dir}"
-    except Exception as e:
-        return f"Error checking cache size: {str(e)}"
+        print(f"Permission denied accessing cache directory: {cache_dir}")
 
 
 persistent_compilation_cache_setup()
@@ -132,9 +134,7 @@ def clear_cache(jit=False):
 
     if os.path.exists(cache_dir):
         shutil.rmtree(cache_dir)  # Remove the entire directory
-        from jax.experimental.compilation_cache import compilation_cache
-
-        compilation_cache.reset_cache()
+        jax.experimental.compilation_cache.compilation_cache.reset_cache()
         print(f"Cache directory {cache_dir} has been cleared.")
     else:
         print(f"Cache directory {cache_dir} does not exist.")

@@ -2,7 +2,6 @@
 Plotting functions
 """
 
-from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 from matplotlib.colors import to_rgba
