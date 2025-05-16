@@ -80,9 +80,7 @@ def persistent_compilation_cache_setup() -> str:
 
         # Ensure path is a Path object
         cache_path = Path(cache_dir)
-        if not cache_path.exists():
-            print(f"Cache directory does not exist: {cache_dir}")
-            return
+        os.makedirs(cache_path, exist_ok=True)
         if not cache_path.is_dir():
             print(f"Path is not a directory: {cache_dir}")
             return
