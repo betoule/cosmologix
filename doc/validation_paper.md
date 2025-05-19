@@ -25,6 +25,9 @@ authors:
   - name: Regnault, Nicolas
     orcid: 0000-0001-7029-7901
 	affiliation: 1
+  - name: Bongard, Sébastien
+    orcid: 0000-0002-3399-4588
+	affiliation: 1
 affiliations:
  - name: LPNHE, CNRS, France
    index: 1
