@@ -13,6 +13,8 @@ authors = [
     {name = "Marc Betoule", email = "marc.betoule@lpnhe.in2p3.fr"},
     {name = "Jérémy Neveu", email = "jeremy.neveu@lpnhe.in2p3.fr"},
     {name = "Dylan Kuhn", email = "dylan.kuhn@lpnhe.in2p3.fr"},
+    {name = "Maude Le Jeune", email = "maude.lejeune@apc.in2p3.fr"},
+    {name = "Mathieu Bernard", email = "mathieu.bernard@lpnhe.in2p3.fr"},
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",

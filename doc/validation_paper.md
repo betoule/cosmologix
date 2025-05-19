@@ -22,6 +22,9 @@ authors:
   - name: Bernard, Mathieu
     orcid: 0000-0000-0000-0000
 	affiliation: 1
+  - name: Regnault, Nicolas
+    orcid: 0000-0001-7029-7901
+	affiliation: 1
 affiliations:
  - name: LPNHE, CNRS, France
    index: 1
@@ -43,18 +46,16 @@ Type-Ia supernovae serve as standardizable candles to measure
 luminosity distances in the universe. Cosmologix accelerates and
 simplifies cosmological parameter inference from large datasets by
 providing fully differentiable calculations of the distance-redshift
-relation as a function of cosmological parameters. It incorporates the
-density evolution of all relevant species, including neutrinos.
-`Cosmologix` makes inference of cosmological parameters from thousands
-of measurements faster and easier by providing fully differentiable
-computation the distance-redshift relation as function of the
-cosmological parameters accounting for the density evolution of all
-common species (including neutrinos). It also provides common fitting
-formulae for the acoustic scale so that the resulting code can be used
-for fast cosmological inference from supernovae in combination with
-BAO or CMB distance measurements. We checked the accuracy of our
+relation as a function of cosmological parameters. This is achieved
+through the use of JAX [@jax2018github], a Python library providing
+automatic differentiation and compilation for CPU and hardware
+accelerators. `Cosmologix` incorporates the density evolution of all
+relevant species, including neutrinos. It also provides common
+fitting formulae for the acoustic scale so that the resulting code can
+be used for fast cosmological inference from supernovae in combination
+with BAO or CMB distance measurements. We checked the accuracy of our
 computation against `CAMB`, `CCL` and `astropy.cosmology`. We
-demonstrate that our implementation is approximately ten times faster
+demonstrated that our implementation is approximately ten times faster
 than existing cosmological distance computation libraries, computing
 distances for 1000 redshifts in approximately 500 microseconds on a
 standard laptop CPU, while maintaining an accuracy of $10^{-4}$
@@ -63,7 +64,7 @@ magnitudes in the distance modulus over the redshift range $0.01 < z <
 
 # Statement of need
 
-Several software are available to compute cosmological distances
+Many software are available to compute cosmological distances
 including `astropy` [@astropy], `camb` [@Challinor:2011bk], `class`
 [@class1], `ccl` [@ccl]. To our knowledge only `jax-cosmo` [@jaxcosmo]
 and `cosmoprimo` [@cosmoprimo] provide automatic differentiation
@@ -74,12 +75,14 @@ density from neutrinos and photons. The accuracy of the resulting
 computation is insufficient for the need of the LEMAITRE analysis, a
 compilation of type-Ia Supernovae joining the very large sample of
 nearby events discovered by ZTF [@rigault:2025] to higher redshift
-events from the SNLS [@astier:2006] and HSC [@yasuda:2019].
-
-The LEMAITRE collaboration is therefore releasing its internal code
-for the computation of cosmological distances. The computation itself
-is very standard, but the implementation in JAX is tailored for speed,
-while preserving reasonable accuracy.
+events from the SNLS [@astier:2006] and HSC [@yasuda:2019]. The
+LEMAITRE collaboration is therefore releasing its internal code for
+computing cosmological distances. While the computation follows
+standard methods, our JAX implementation is optimized for speed while
+maintaining sufficient accuracy. This paper documents the
+implementation. Readers unfamiliar with cosmological computations may
+find helpful guidance in standard cosmology resources, such as
+Baumann's course [@baumann].
 
 # Computations of the homogeneous background evolution
 
@@ -273,7 +276,7 @@ The relative difference between the numerical computation and the fast and compo
 
 ![Comparison between the relatively slow numerical evaluation of integral $I(\bar m)$ and its fast interpolant. The top pannel shows the two evaluation of the function and the relative difference between the two is displayed in the bottom pannel. Vertical dotted lines display the switch between the analytical expansions and the Newton interpolant.\label{fig:densityinterpolation}](density_interpolation.pdf)
 
-Our parametrisation of the density of neutrinos follows the common current practice to provide the value of the effective number $N_\text{eff}$ and the sum of neutrinos masses as $m_\nu$ ($0.06$ eV by default). For the computation, the entire mass is affected to one massive specie and the two others are kept massless. The code itself preforms the actual computation for the three species so that this convention can be easily changed.
+Our parametrisation of the density of neutrinos follows the common current practice to provide the value of the effective number $N_\text{eff}$ and the sum of neutrinos masses as $m_\nu$ ($0.06$ eV by default). For the computation, the entire mass is affected to one massive specie and the two others are kept massless. The code itself performs the actual computation for the three species so that this convention can be easily changed.
 
 ### Parameterization summary
 To summarize, the energy content and age of the Universe are parameterized in the code using the following minimal set of parameters, given along their default value as a python dictionnary:
@@ -291,7 +294,8 @@ params = {
 	'Neff': 3.046 # Effective number of neutrino species
  }
 ```
-We prefered the use of $\Omega_{bc}$ to $\Omega_m$ as a primary variable, because the computation of the density of non-relativistic neutrinos would cause branching in the Jax code detrimental to performances. The value of $\Omega_m$ and the separated density contribution of massive and mass-less neutrinos can be computed from the primary parameters using the function `densities.derived_parameters`.
+
+We prefer the use of $\Omega_{bc}$ to $\Omega_m$ as a primary variable, because $\Omega_m$ usually incorporates the density contribution of non-relativistic neutrinos today. This computation would cause branching in the Jax code between massive and massless cases which would be detrimental to performances. The value of $\Omega_m$ and the separated density contribution of massive and mass-less neutrinos can be computed from the primary parameters using the function `densities.derived_parameters`.
 
 ## Distances
 
@@ -422,7 +426,7 @@ dominated by precomputation steps and remains largely independent of
 vector size, except in the case of `astropy` and `jax_cosmo`. We
 differentiate between the first call and subsequent calls, as the
 initial call may involve specific overheads. For `cosmologix`, this
-includes JIT-compilation times, which introduce a significant
+includes JIT-compilation times, which introduces a significant
 delay. Efforts are underway to optimize this aspect. Note that we did
 not yet manage to jit-compile the luminosity distance computation in
 `cosmoprimo`, due to a compilation error. The speed measurement may
@@ -447,11 +451,13 @@ displays the average time measured over 10 subsequent calls. The
 measurements were obtained on an Intel(R) Core(TM) i7-1165G7 CPU
 clocked at 2.80GHz, without GPU acceleration.](mu_speed.pdf)
 
+The JAX implementation enables seamless utilization of hardware accelerators, such as GPUs. However, the CPU-based computation is already highly efficient. To maintain high accuracy in distance calculations, double-precision floating-point arithmetic is currently required, which may necessitate adjustments to fully leverage GPU performance benefits. Given limited motivation to pursue further optimization, we conducted only minimal GPU testing, which indicated that the code, in its present form, does not gain significant performance advantages from GPU execution.
+
 # Differentiability and likelihood maximization
 
 Last, the code provides a framework to efficiently build frequentist
 confidence contours for cosmological parameters for all measurements
-whose likelihood can be expressed as a chi-square. 
+whose likelihood can be expressed as a chi-square.
 
 To provide the confidence region for a 1 or 2 dimensionnal subset
 $\alpha$ of the parameters, we divide the parameter vector as $\theta
@@ -466,7 +472,7 @@ Jacobian $J$ to perform efficient second-order optimization,
 approximating the chi-square Hessian as $J^T J$. Two details are
 instrumental in speeding up this computation.
 
-Firstly we offset the compilation overhead by forming the restricted
+Firstly we offset the jit-compilation overhead by forming the restricted
 function $R(\beta, \alpha)$ outside the exploration loop, so that the
 jit-compilation of $R$ and its jacobian with respect to $\beta$ is
 performed only once and used for all the subsequent
