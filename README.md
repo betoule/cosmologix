@@ -99,7 +99,7 @@ The complete documentation is available
 [here](https://lemaitre.pages.in2p3.fr/cosmologix/home.html). It
 includes a
 [tutorial](https://lemaitre.pages.in2p3.fr/cosmologix/basic.html),
-[API](https://lemaitre.pages.in2p3.fr/cosmologix/autoapi/cosmologix/index.html).
+and full [API](https://lemaitre.pages.in2p3.fr/cosmologix/autoapi/cosmologix/index.html) documentation.
 
 ## Contributing
 
