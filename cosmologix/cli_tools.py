@@ -1,5 +1,7 @@
 """Collection of constants and tools for the command line interface"""
 
+from typing import Optional
+
 import click
 from typer import Option
 
@@ -115,16 +117,30 @@ def get_prior(p):
     return getattr(cosmologix.likelihoods, p)()
 
 
-def load_mu(mu_file: str, cov_file: str = ""):
+def permissive_load(name):
+    """Load a numpy file if not already loaded
+
+    if name is a string load a numpy array from the corresponding
+    file, else assumed it is already loaded and return directly the
+    array.
+
+    """
+    import numpy as np
+
+    if isinstance(name, str):
+        return np.load(name)
+    return name
+
+
+def load_mu(mu_file: str, cov_file: Optional[str] = None):
     """Load distance measurement."""
     if mu_file is None:
         return []
-    import numpy as np
     from cosmologix import likelihoods
 
-    muobs = np.load(mu_file)
-    if cov_file:
-        cov = np.load(cov_file)
+    muobs = permissive_load(mu_file)
+    if cov_file is not None:
+        cov = permissive_load(cov_file)
         like = likelihoods.MuMeasurements(muobs["z"], muobs["mu"], cov)
     else:
         like = likelihoods.DiagMuMeasurements(muobs["z"], muobs["mu"], muobs["muerr"])

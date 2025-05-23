@@ -50,6 +50,7 @@ print(distance_modulus)
 
 # Find bestfit flat w-CDM cosmology
 from cosmologix import likelihoods, fitter
+# At first call the following will download and cache the relevant data (internet connexion required)
 priors = [likelihoods.Planck2018(), likelihoods.DES5yr()]
 fixed = {'Omega_k':0., 'm_nu':0.06, 'Neff':3.046, 'Tcmb': 2.7255, 'wa':0.0}
 

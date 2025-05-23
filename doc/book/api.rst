@@ -1,3 +1,0 @@
-.. toctree::
-
-    autoapi/cosmologix/index

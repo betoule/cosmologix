@@ -14,4 +14,4 @@ parts:
   - file: about
 - caption: API
   chapters:
-  - file: api.rst
+  - file: autoapi/cosmologix/index
