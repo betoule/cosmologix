@@ -30,9 +30,25 @@ pip install cosmologix
 Note: Make sure you have JAX installed, along with its dependencies. If you're using GPU acceleration, ensure CUDA and cuDNN are properly set up.
 
 ## Usage
-Here's a quick example to get you started (look at the
+
+### Command line interface
+
+For most common use cases, there is a simple command line interface to the library. You can perform fit, contour exploration and contour plotting as follows:
+
+```bash
+# First line is optional. It activates command line completion for most common shells
+cosmologix --install-completion
+cosmologix fit --priors PR4 --priors DESIDR2 --cosmology FwCDM -s
+cosmologix explore Omega_bc w --priors PR4 --priors DESIDR2 --cosmology FwCDM -o contours.pkl
+cosmologix contour contours.pkl -s -o contour.png
+```
+
+### Lower level interface
+
+For other use cases, here's a quick example to get you started with
+the internals of the library. Look at the
 [tutorial](https://lemaitre.pages.in2p3.fr/cosmologix/basic.html) for
-a more complete tour of the available features):
+a more complete tour of the available features.
 
 ```python
 from cosmologix import distances, parameters
@@ -77,17 +93,26 @@ plt.show()
 #Further examples can be found reading files in the examples directory, especially example/features.py.
 ```
 
-## Command line interface
+## Documentation
 
-For most common use cases, there is also a simple command line interface to the library. You can perform fit, contour exploration and contour plotting as follows:
+The complete documentation is available
+[here](https://lemaitre.pages.in2p3.fr/cosmologix/home.html). It
+includes a
+[tutorial](https://lemaitre.pages.in2p3.fr/cosmologix/basic.html),
+[API](https://lemaitre.pages.in2p3.fr/cosmologix/autoapi/cosmologix/index.html).
 
-```bash
-# First line is optional. It activates command line completion for most common shells
-cosmologix --install-completion
-cosmologix fit --priors PR4 --priors DESIDR2 --cosmology FwCDM -s
-cosmologix explore Omega_bc w --priors PR4 --priors DESIDR2 --cosmology FwCDM -o contours.pkl
-cosmologix contour contours.pkl -s -o contour.png
-```
+## Contributing
+
+Contributions are welcome! Please fork the repository, make changes, and submit a pull request. Here are some guidelines:
+
+- Follow PEP 8 style. The commited code has to go through black.
+- Write clear commit messages.
+- Include tests for new features or bug fixes.
+
+Look at the [Road map and release history
+page](https://lemaitre.pages.in2p3.fr/cosmologix/release.html) for
+ongoing and planned implementation of new features.
+
 
 ## Dependencies
 
@@ -98,73 +123,12 @@ cosmologix contour contours.pkl -s -o contour.png
 - tqdm to display progression of contour computation
 - typer for the cli.
 
-## Roadmap
-
-- [ ] Conversion of contours to different parameterisation (e.g. `Omega_bc` to `Omega_m`)
-
-## Contributing
-
-Contributions are welcome! Please fork the repository, make changes, and submit a pull request. Here are some guidelines:
-
-- Follow PEP 8 style. The commited code has to go through black.
-- Write clear commit messages.
-- Include tests for new features or bug fixes.
-
-## Documentation
-
-The complete documentation is available [here](https://lemaitre.pages.in2p3.fr/cosmologix/home.html).
-
-## Release history
-
-### v0.9.6 (current)
-- 1D profile likelihoods
-- Group exploration results in a single file
-- Improve handling of labels in corner plots
-- Change name of `Omega_m` to `Omega_bc` to lift possible confusion on neutrinos contribution accounting
-- Provide high level interface compatible with the command line interface
-- Limit cache size inflation
-
-### v0.9.5
-- Add DESI DR2 BAO measurements (rename DESI2024 to DESIDR1 for consistency)
-- Add a Planck prior consistent with what is used in DESI DR2 (named PR4)
-- Various bug fixes related to jax version
-- Add minimal support for corner plots
-
-### v0.9.4
-- Add SH0ES to the list of available priors
-- Compute the dark energy task force Figure of Merit (FoM) from the Fisher matrix for dark energy models
-- Report χ² and fit probability in addition to best-fit parameters
-- Improve the estimate of contour exploration time
-
-### v0.9.3
-- Implement a cache mechanism to mitigate pre-computation delays
-- Extend the set of cosmological computation available, by adding comoving volume and lookback time
-- Improvements to the command line interfacements (ability to change contour thresholds)
-- Add Union3 to the set of available likelihoods
-
-### v0.9.2
-- Rewrite some of the core function to improve speed of contour exploration by about 10x
-- Enable exploration of curved cosmologies (solving nan issue around Omega_k = 0)
-
-### v0.9.1
-- Add a command line interface. Makes it easy to compute bestfits, and 2D Bayesian contours for a given set of constraints
-- Auto-detect under-constrained parameters
-
-### v0.9.0
-- First release with complete feature set
-- Accuracy tested against CAMB and CCL
-- Build-in fitter and frequentist contour exploration, taking advantage of auto-diff
-
-### v0.1.0
-- Initial release
-- Core distance computation available
-
 ## License
 This project is licensed under the GPLV2 License - see the LICENSE.md file for details.
 
 ## Contact
 
-For any questions or suggestions, please open an issue.
+For any questions or suggestions, please open an [issue](https://gitlab.in2p3.fr/lemaitre/cosmologix/-/issues).
 
 ## Acknowledgments
 
