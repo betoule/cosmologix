@@ -104,5 +104,5 @@ plt.legend(loc="lower right", frameon=False)
 
 plt.tight_layout()
 
-plt.savefig("doc/features.svg")
+plt.savefig("features.svg")
 plt.show()
