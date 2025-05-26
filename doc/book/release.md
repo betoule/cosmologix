@@ -4,7 +4,11 @@
 
 - [ ] Conversion of contours to different parameterisation (e.g. `Omega_bc` to `Omega_m`)
 
-### v0.9.6 (current)
+### v0.9.7 (current)
+- Improved documention
+- Refined API to simplify providing distance measurements
+
+### v0.9.6
 - 1D profile likelihoods
 - Group exploration results in a single file
 - Improve handling of labels in corner plots
