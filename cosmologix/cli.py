@@ -182,7 +182,10 @@ def explore(
     else:
         grid = {"list": []}
         for i, param1 in enumerate(params):
-            grid_params = {param1: range_dict.get(param1,parameters.DEFAULT_RANGE[param1]) + [resolution]}
+            grid_params = {
+                param1: range_dict.get(param1, parameters.DEFAULT_RANGE[param1])
+                + [resolution]
+            }
             grid["list"].append(
                 contours.frequentist_1d_profile(
                     priors,
