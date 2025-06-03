@@ -263,7 +263,7 @@ def contour(
         bool, Option("--show", "-s", help="Display the contour plot")
     ] = False,
     latex: Annotated[
-        bool, Option("--latex", "-l", help="Plot in paper format using LaTeX")
+        bool, Option("--latex", help="Plot in paper format using LaTeX")
     ] = False,
 ):
     """Display (or save) a contour plot from explore output."""
@@ -331,7 +331,7 @@ def corner(
         bool, Option("--show", "-s", help="Display the corner plot")
     ] = False,
     latex: Annotated[
-        bool, Option("--latex", "-l", help="Plot in paper format using LaTeX")
+        bool, Option("--latex", help="Plot in paper format using LaTeX")
     ] = False,
 ):
     """Produce a corner plot for a set of results."""
