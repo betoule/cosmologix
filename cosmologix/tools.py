@@ -452,6 +452,11 @@ def save(grid, filename):
     if filename.endswith('asdf'):
         _save_asdf(grid, filename)
         return
+    if filename.endswith('zst'):
+        import zstandard
+        with zstandard.open(filename, "wb") as fid:
+            pickle.dump(grid, fid)
+        return
     with open(filename, "wb") as fid:
         pickle.dump(grid, fid)
 
@@ -475,6 +480,10 @@ def load(filename):
         if filename.endswith('asdf'):
             import asdf
             return asdf.open(filename)
+        if filename.endswith('zst'):
+            import zstandard
+            with zstandard.open(filename, "rb") as fid:
+                return pickle.load(fid)
         with open(filename, "rb") as fid:
             return pickle.load(fid)
     else:
