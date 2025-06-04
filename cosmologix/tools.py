@@ -448,14 +448,33 @@ def speed_measurement(func, *args, n=10):
 
 
 def save(grid, filename):
-    """Save data dictionary to a pickle file."""
+    """Save data dictionary to a pickle file or asdf file."""
+    if filename.endswith('asdf'):
+        _save_asdf(grid, filename)
+        return
     with open(filename, "wb") as fid:
         pickle.dump(grid, fid)
 
+def jax_to_numpy(x):
+    return np.asarray(x) if isinstance(x, jax.Array) else x
+
+
+def _save_asdf(grid, filename):
+    """
+    """
+    import asdf
+    # Transform the pytree to convert JAX arrays to NumPy arrays
+    numpy_pytree = jax.tree_util.tree_map(jax_to_numpy, grid)
+
+    af = asdf.AsdfFile(numpy_pytree)
+    af.write_to(filename, all_array_compression='lz4')
 
 def load(filename):
     """Load data dictionary from a pickle file if needed."""
     if isinstance(filename, (str, Path)):
+        if filename.endswith('asdf'):
+            import asdf
+            return asdf.open(filename)
         with open(filename, "rb") as fid:
             return pickle.load(fid)
     else:
