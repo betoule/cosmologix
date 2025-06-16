@@ -136,7 +136,7 @@ temperature of the frozen thermal spectrum today denoted $T^0_\gamma =
 T_\text{cmb}$ from which it computes $\Omega_\gamma(T_\text{cmb}, H_0) =
 \rho_\gamma(T_{cmb}) / \rho_c(H_0)$. The density then evolves as
 $T_\gamma^4 \propto (1+z)^4$.  As a default value the code uses
-$T_\gamma^0 = 2.7255 K$ ([fixen, :2009](https://doi.org/10.1088/0004-637X/707/2/916)).
+$T_\gamma^0 = 2.7255 K$ ([Fixsen, 2009](https://doi.org/10.1088/0004-637X/707/2/916)).
 
 ### Neutrinos
 
@@ -212,7 +212,7 @@ We prefer the use of $\Omega_{bc}$ to $\Omega_m$ as a primary variable, because 
 
 ## Distances
 
-\label{sec:distances}
+
 In the code, we denote the Hubble distance:
 \begin{equation}
   \label{eq:28}
@@ -220,7 +220,6 @@ In the code, we denote the Hubble distance:
 \end{equation}
 The comoving distance (coordinate) is:
 \begin{equation}
-  \label{eq:25}
   d_C(z) = \chi(z) = d_{H_0} \int_o^z \frac{dz'}{H(z')/H_0}\,.
 \end{equation}
 The integral is much easier to evaluate numerically with the following change of variable $u = (1+z)^{-1/2}$:
@@ -239,7 +238,7 @@ is then used to reconstruct the distance values at the requested
 redshifts efficiently. The quadrature resolution has been chosen to
 provide interpolation errors below $10^{-4}$ over the entire redshift
 range of interest. The numerical accuracy and speed of this procedure
-is further assessed in \autoref{sec:numerical_results} numerical result.
+is further assessed in section [numerical results](./numerical_results).
 
 The same quadrature is used to compute the look-back time:
 \begin{equation}
@@ -274,7 +273,6 @@ Integration in a flat universe is simpler and gives:
 \end{equation}
 In non-flat universes, a bit of trigonometric manipulation gives:
 \begin{align}
-  \label{eq:26}
   V(z) &= \frac{d\Omega d_{H_0}^2}{\vert \Omega_K\vert}\int_0^{\chi(z)} S^2\left(\sqrt{\vert \Omega_k\vert}\frac{\chi}{d_{H_0}}\right) d\chi\\
   &= \frac{d\Omega d_{H_0}^2}{2 \Omega_k} \left[d_M(z) \sqrt{1 + \Omega_k \left(\frac{d_M(z)}{d_{H_0}}\right)^2} - \chi(z)\right]
 \end{align}
@@ -295,7 +293,7 @@ For some reason, `cosmomc` uses an approximate formulae instead:
 \end{equation}
 
 The redshift of last scattering is approximated using the fit formula
-given in Eq. E-1 in [@hu_sugiyama:1996], and the drag epoch is taken
-from Eq.4 in [@Eisenstein_Hu:1997]. We also implement the direct fit
+given in Eq. E-1 in [Hu and Sugiyama, 1996](https://doi.org/10.1086/177989), and the drag epoch is taken
+from Eq.4 in [Eisenstein and Hu, 1997](https://doi.org/10.1086/305424). We also implement the direct fit
 formula for the comoving sound horizon size at drag epoch used in
-Eq. 2.5 of [@DESIDRI:VI].
+Eq. 2.5 of [DESIDRI:VI](https://doi.org/10.1088/1475-7516/2025/02/021).

@@ -4,7 +4,7 @@
 format: jb-book
 root: home
 parts:
-- caption: README
+- caption: DOCUMENTATION
   chapters:
   - file: basic.ipynb
   - file: advanced
