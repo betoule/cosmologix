@@ -11,23 +11,23 @@ authors:
     orcid: 0000-0003-0804-836X
     affiliation: 1 # (Multiple affiliations must be quoted)
   - name: Neveu, Jérémy
-	orcid: 0000-0002-6966-5946
+    orcid: 0000-0002-6966-5946
     affiliation: 2
   - name: Kuhn, Dylan
-	orcid: 0009-0005-8110-397X
+    orcid: 0009-0005-8110-397X
     affiliation: 1
   - name: Le Jeune, Maude
     orcid: 0000-0002-1008-3394
-	affiliation: 3
+    affiliation: 3
   - name: Bernard, Mathieu
     orcid: 0000-0000-0000-0000
-	affiliation: 1
+    affiliation: 1
   - name: Regnault, Nicolas
     orcid: 0000-0001-7029-7901
-	affiliation: 1
+    affiliation: 1
   - name: Bongard, Sébastien
     orcid: 0000-0002-3399-4588
-	affiliation: 1
+    affiliation: 1
 affiliations:
  - name: LPNHE, CNRS, France
    index: 1
