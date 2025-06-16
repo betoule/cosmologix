@@ -86,14 +86,13 @@ maintaining sufficient accuracy.
 
 # Computations of the homogeneous background evolution
 
-The core of the library provides `jax` functions to compute the
-evolution of energy density in the universe (module
-`cosmologix.densities`) and use them to provide efficient computation
-of derived quantities such as cosmological distances (module
-`cosmologix.distances`). The details of the computation are available
-from the documentation. As an illustration, we discuss the speed and
-accuracy of the computation of the distance modulus (log of the
-luminosity distance) for large number of redshifts in what follows.
+The core library offers `jax` functions to compute the evolution of
+energy density in the universe (via the `cosmologix.densities` module)
+and derived quantities, such as cosmological distances (via the
+`cosmologix.distances` module). Details are provided in the
+documentation. As an example, we highlight the speed and accuracy of
+calculating the distance modulus (the logarithm of luminosity
+distance) for a large number of redshifts in the following discussion.
 
 ## Accuracy
 
