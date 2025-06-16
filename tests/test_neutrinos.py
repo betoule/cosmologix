@@ -24,6 +24,7 @@ def test_composition(plot=False):
             ax.axvline(1000, ls=":", color="k")
         plt.tight_layout()
         plt.savefig("doc/density_interpolation.pdf")
+        plt.savefig("doc/density_interpolation.svg")
         plt.show()
     assert (jnp.abs(I_composite / I_numeric - 1) < 1e-5).all()
 
@@ -37,7 +38,6 @@ def test_composition(plot=False):
 
 
 if __name__ == "__main__":
-    from cosmologix import Planck18
     from cosmologix.tools import speed_measurement
     import matplotlib.pyplot as plt
 
