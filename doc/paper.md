@@ -80,12 +80,9 @@ compilation of type-Ia Supernovae joining the very large sample of
 nearby events discovered by ZTF [@rigault:2025] to higher redshift
 events from the SNLS [@astier:2006] and HSC [@yasuda:2019]. The
 LEMAITRE collaboration is therefore releasing its internal code for
-computing cosmological distances. While the computation follows
-standard methods, our JAX implementation is optimized for speed while
-maintaining sufficient accuracy. This paper documents the
-implementation. Readers unfamiliar with cosmological computations may
-find helpful guidance in standard cosmology resources, such as
-Baumann's course [@baumann].
+computing cosmological distances. The computation follows standard
+methods, but our JAX implementation is optimized for speed while
+maintaining sufficient accuracy.
 
 # Computations of the homogeneous background evolution
 
@@ -94,19 +91,22 @@ evolution of energy density in the universe (module
 `cosmologix.densities`) and use them to provide efficient computation
 of derived quantities such as cosmological distances (module
 `cosmologix.distances`). The details of the computation are available
-from the documentation, here we 
+from the documentation. As an illustration, we discuss the speed and
+accuracy of the computation of the distance modulus (log of the
+luminosity distance) for large number of redshifts in what follows.
 
 ## Accuracy
 
-To assess the numerical accuracy of our baseline distance computation,
-we compared its results with those from the same $\chi(u)$ integral
-evaluated at 10-fold higher resolution, using $10^4$ equally spaced
-points over the interval $0 \leq u \leq 0.02$. The difference is
-displayed in \autoref{fig:accuracy} for the baseline Planck
-$\Lambda$CDM model, reported in Table 1 in [@planck2018VI]. The
-difference in distance modulus between the coarse and fine resolution
-computation is smaller than $10^{-4}$ mag over the redshift range
-$0.01 < z < 1000$, dominated by the interpolation error.
+The distance computation involves the numerical evaluation of an
+integral. The resolution of the quadrature used for this evaluation is
+adjustable in `cosmologix`. To assess the numerical accuracy of our
+baseline computation, we compared it to the same integral evaluated at
+10-fold higher resolution. The difference is displayed in
+\autoref{fig:accuracy} for the baseline Planck $\Lambda$CDM model,
+reported in Table 1 in [@planck2018VI]. The difference in distance
+modulus between the coarse (baseline) and fine resolution computation
+is smaller than $10^{-4}$ mag over the redshift range $0.01 < z <
+1000$, dominated by the interpolation error.
 
 We also compared the results of various external codes to the fine
 quadrature of `cosmologix` as the reference. It demonstrates agreement
@@ -127,20 +127,12 @@ computation in cosmologix.\label{fig:accuracy}](mu_accuracy.pdf)
 
 The computation time for a vector of distance moduli across various
 redshifts is plotted in \autoref{fig:speed} as a function of the
-number of redshifts requested. Generally, the computation time is
-dominated by precomputation steps and remains largely independent of
-vector size, except in the case of `astropy` and `jax_cosmo`. We
-differentiate between the first call and subsequent calls, as the
-initial call may involve specific overheads. For `cosmologix`, this
-includes JIT-compilation times, which introduces a significant
-delay. Efforts are underway to optimize this aspect. Note that we did
-not yet manage to jit-compile the luminosity distance computation in
-`cosmoprimo`, due to a compilation error. The speed measurement may
-change significantly when this issue is solved.
-
-While `cosmologix` overperforms all other tested codes by a significant
-margin in subsequent calls, specific efforts must be taken to avoid
-triggering recompilation in order to benefit from this improvement.
+number of redshifts requested. We differentiate between the first call
+and subsequent calls, as the initial call may involve specific
+overheads. For `cosmologix`, this includes JIT-compilation times,
+which introduces a significant delay. In subsequent calls,
+`cosmologix` overperforms all other tested codes by a significant
+margin.
 
 In addition we also timed the computation of the jacobian matrix of
 the distance modulus with respect to the 9 cosmological parameters. It
@@ -157,47 +149,16 @@ displays the average time measured over 10 subsequent calls. The
 measurements were obtained on an Intel(R) Core(TM) i7-1165G7 CPU
 clocked at 2.80GHz, without GPU acceleration.](mu_speed.pdf)
 
-The JAX implementation enables seamless utilization of hardware
-accelerators, such as GPUs. However, the CPU-based computation is
-already highly efficient. To maintain high accuracy in distance
-calculations, double-precision floating-point arithmetic is currently
-required, which may necessitate adjustments to fully leverage GPU
-performance benefits. Given limited motivation to pursue further
-optimization, we conducted only minimal GPU testing, which indicated
-that the code, in its present form, does not gain significant
-performance advantages from GPU execution.
-
 # Differentiability and likelihood maximization
 
 Last, the code provides a framework to efficiently build frequentist
 confidence contours for cosmological parameters for all measurements
-whose likelihood can be expressed as a chi-square. To provide the
-confidence region for a 1 or 2 dimensionnal subset $\alpha$ of the
-parameters, we divide the parameter vector as $\theta = (\alpha,
-\beta)$ into its fixed ($\alpha$) and varied parts $\beta$. The
-explored parameter space is divided on a regular grid, and for each
-point $\tilde \alpha$ of the grid, the profile likelihood $L_p(\beta)
-= L(\tilde \alpha, \beta)$ needs to be minimized. We take advantage of
-the quadratic nature of the chi-square to perform the minimization
-using the Gauss-Newton algorithm, which requires only the function
-returning the standardized residuals $R(\beta)$ and its Jacobian $J$
-to perform efficient second-order optimization, approximating the
-chi-square Hessian as $J^T J$.
-
-By default, we prune the exploration of the parameter space by
-starting at the grid point closest to the global best-fit. We pursue
-the exploration in every direction stopping at a $\Delta \chi^2$
-threshold. Provided the threshold is sufficiently high that the
-resulting region is connected and encompasses the requested confidence
-level, the resulting confidence region is accurate and obtained at a
-fraction of the cost of an exhaustive exploration.
-
+whose likelihood can be expressed as a chi-square. 
 \autoref{sample_contour} provides an example 2-dimensionnal
 confidence region in the plane $(\Omega_{bc}, w)$ for a flat $w$-CDM
 model as probed by the Union3 supernovae compilation
 [@2023arXiv231112098R]. The full computation took 3.86s on an
 Intel(R) Core(TM) i7-1165G7 at 2.80GHz without GPU acceleration.
-
 
 ![Confidence region at 68 and 95 percent for the $w$ and $\Omega_{bc}$ parameters probed by the Union3 compilation.\label{sample_contour}](sample_contour.pdf)
 

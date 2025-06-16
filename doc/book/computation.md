@@ -259,7 +259,6 @@ d_A(z) = \frac{d_M(z)}{1+z}, \quad d_L(z) = d_M(z)(1+z), \quad \mu(z) = 5 \log_{
 \end{equation}
 
 ## Volume
-\label{sec:volume}
 
 The elementary comoving volume defined in a comoving distance slice $d\chi$ and solid angle $d\Omega$ is given by:
 \begin{equation}
@@ -278,7 +277,6 @@ In non-flat universes, a bit of trigonometric manipulation gives:
 \end{align}
 
 ## Sound horizon and fit formulae
-\label{sec:sound-horizon}
 
 Distance measurement calibrated on the acoustic scale requires computation of the sound horizon at a given redshift:
 \begin{equation}

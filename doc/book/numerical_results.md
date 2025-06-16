@@ -34,3 +34,12 @@ when this issue is solved.
 
 ![Distance modulus speed](https://gitlab.in2p3.fr/lemaitre/cosmologix/-/raw/master/doc/mu_speed.svg)
 
+The JAX implementation also enables seamless utilization of hardware
+accelerators, such as GPUs. However, the CPU-based computation is
+already highly efficient. To maintain high accuracy in distance
+calculations, double-precision floating-point arithmetic is currently
+required, which may necessitate adjustments to fully leverage GPU
+performance benefits. Given limited motivation to pursue further
+optimization, we conducted only minimal GPU testing, which indicated
+that the code, in its present form, does not gain significant
+performance advantages from GPU execution.
