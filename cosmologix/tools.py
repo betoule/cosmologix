@@ -449,10 +449,11 @@ def speed_measurement(func, *args, n=10):
 
 def save(grid, filename):
     """Save data dictionary to a pickle file or asdf file."""
-    if filename.endswith("asdf"):
+    filename = Path(filename)
+    if filename.suffix == ".asdf":
         _save_asdf(grid, filename)
         return
-    if filename.endswith("zst"):
+    if filename.suffix == ".zst":
         import zstandard
 
         with zstandard.open(filename, "wb") as fid:
@@ -480,11 +481,12 @@ def _save_asdf(grid, filename):
 def load(filename):
     """Load data dictionary from a pickle file if needed."""
     if isinstance(filename, (str, Path)):
-        if filename.endswith("asdf"):
+        filename = Path(filename)
+        if filename.suffix == ".asdf":
             import asdf
 
             return asdf.open(filename)
-        if filename.endswith("zst"):
+        if filename.suffix == ".zst":
             import zstandard
 
             with zstandard.open(filename, "rb") as fid:

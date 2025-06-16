@@ -35,7 +35,11 @@ def test_contours(tmp_path):
     assert jnp.isfinite(grid["chi2"].any())
     temp_file = tmp_path / "test_file.txt"
     tools.save(grid, temp_file)
+    tools.save(grid, tmp_path / "test_file.asdf")
+    tools.save(grid, tmp_path / "test_file.zst")
     grid2 = tools.load(temp_file)
+    tools.load(tmp_path / "test_file.asdf")
+    tools.load(tmp_path / "test_file.zst")
     assert compare_dicts(grid, grid2)
     display.plot_contours(grid)
     grid_coarse = contours.frequentist_contour_2d(
