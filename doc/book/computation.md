@@ -1,4 +1,4 @@
-# Computations of the homogeneous background evolution
+# Computation details
 
 The core of the library provides `jax` functions to compute the
 evolution of energy density in the universe (module
