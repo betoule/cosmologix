@@ -20,7 +20,7 @@ authors:
     orcid: 0000-0002-1008-3394
     affiliation: 3
   - name: Bernard, Mathieu
-    orcid: 0000-0000-0000-0000
+    orcid: 0000-0001-7586-7133
     affiliation: 1
   - name: Regnault, Nicolas
     orcid: 0000-0001-7029-7901
