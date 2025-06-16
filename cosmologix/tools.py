@@ -475,7 +475,7 @@ def _save_asdf(grid, filename):
     numpy_pytree = jax.tree_util.tree_map(jax_to_numpy, grid)
 
     af = asdf.AsdfFile(numpy_pytree)
-    af.write_to(filename, all_array_compression="lz4")
+    af.write_to(filename)
 
 
 def load(filename):

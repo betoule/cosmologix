@@ -93,13 +93,8 @@ The core of the library provides `jax` functions to compute the
 evolution of energy density in the universe (module
 `cosmologix.densities`) and use them to provide efficient computation
 of derived quantities such as cosmological distances (module
-`cosmologix.distances`). The goal of this section is to specifically
-document the core of the implementation. We adopt commonly used
-notations and the code itself follow the same notations, spelling-out
-greek letters, whenever possible.
-
-# Numerical results
-\label{sec:numerical_results}
+`cosmologix.distances`). The details of the computation are available
+from the documentation, here we 
 
 ## Accuracy
 
@@ -162,52 +157,40 @@ displays the average time measured over 10 subsequent calls. The
 measurements were obtained on an Intel(R) Core(TM) i7-1165G7 CPU
 clocked at 2.80GHz, without GPU acceleration.](mu_speed.pdf)
 
-The JAX implementation enables seamless utilization of hardware accelerators, such as GPUs. However, the CPU-based computation is already highly efficient. To maintain high accuracy in distance calculations, double-precision floating-point arithmetic is currently required, which may necessitate adjustments to fully leverage GPU performance benefits. Given limited motivation to pursue further optimization, we conducted only minimal GPU testing, which indicated that the code, in its present form, does not gain significant performance advantages from GPU execution.
+The JAX implementation enables seamless utilization of hardware
+accelerators, such as GPUs. However, the CPU-based computation is
+already highly efficient. To maintain high accuracy in distance
+calculations, double-precision floating-point arithmetic is currently
+required, which may necessitate adjustments to fully leverage GPU
+performance benefits. Given limited motivation to pursue further
+optimization, we conducted only minimal GPU testing, which indicated
+that the code, in its present form, does not gain significant
+performance advantages from GPU execution.
 
 # Differentiability and likelihood maximization
 
 Last, the code provides a framework to efficiently build frequentist
 confidence contours for cosmological parameters for all measurements
-whose likelihood can be expressed as a chi-square.
+whose likelihood can be expressed as a chi-square. To provide the
+confidence region for a 1 or 2 dimensionnal subset $\alpha$ of the
+parameters, we divide the parameter vector as $\theta = (\alpha,
+\beta)$ into its fixed ($\alpha$) and varied parts $\beta$. The
+explored parameter space is divided on a regular grid, and for each
+point $\tilde \alpha$ of the grid, the profile likelihood $L_p(\beta)
+= L(\tilde \alpha, \beta)$ needs to be minimized. We take advantage of
+the quadratic nature of the chi-square to perform the minimization
+using the Gauss-Newton algorithm, which requires only the function
+returning the standardized residuals $R(\beta)$ and its Jacobian $J$
+to perform efficient second-order optimization, approximating the
+chi-square Hessian as $J^T J$.
 
-To provide the confidence region for a 1 or 2 dimensionnal subset
-$\alpha$ of the parameters, we divide the parameter vector as $\theta
-= (\alpha, \beta)$ into its fixed ($\alpha$) and varied parts
-$\beta$. The explored parameter space is divided on a regular grid,
-and for each point $\tilde \alpha$ of the grid, the profile likelihood
-$L_p(\beta) = L(\tilde \alpha, \beta)$ needs to be minimized. We take
-advantage of the quadratic nature of the chi-square to perform the
-minimization using the Gauss-Newton algorithm, which requires only the
-function returning the standardized residuals $R(\beta)$ and its
-Jacobian $J$ to perform efficient second-order optimization,
-approximating the chi-square Hessian as $J^T J$. Two details are
-instrumental in speeding up this computation.
-
-Firstly we offset the jit-compilation overhead by forming the restricted
-function $R(\beta, \alpha)$ outside the exploration loop, so that the
-jit-compilation of $R$ and its jacobian with respect to $\beta$ is
-performed only once and used for all the subsequent
-minimizations. This is obtained by passing the residual function $R$ to the `gauss_newton_prep` function, defined as follows:
-```python
-def partial(func, param_subset):
-    def _func(x, point):
-        return func(dict(x, **point))
-    return _func
-
-def gauss_newton_prep(func, params_subset):
-    f = jax.jit(partial(func, params_subset))
-    return f, jax.jit(jax.jacfwd(f))
-```
-The jacobian is taken with respect to the first parameter of the partial
-function but it can still be evaluated for any specific point of the second set of parameters.
-
-Secondly, we prune the exploration of the grid by starting at the grid
-point closest to the global best-fit. We pursue the exploration in
-every direction stopping at a $\Delta \chi^2$ threshold. Provided the
-threshold is sufficiently high that the resulting region is connected
-and encompasses the requested confidence level, the resulting confidence
-region is accurate and obtained at a fraction of the cost of an
-exhaustive exploration.
+By default, we prune the exploration of the parameter space by
+starting at the grid point closest to the global best-fit. We pursue
+the exploration in every direction stopping at a $\Delta \chi^2$
+threshold. Provided the threshold is sufficiently high that the
+resulting region is connected and encompasses the requested confidence
+level, the resulting confidence region is accurate and obtained at a
+fraction of the cost of an exhaustive exploration.
 
 \autoref{sample_contour} provides an example 2-dimensionnal
 confidence region in the plane $(\Omega_{bc}, w)$ for a flat $w$-CDM

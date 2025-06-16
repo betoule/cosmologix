@@ -297,3 +297,48 @@ given in Eq. E-1 in [Hu and Sugiyama, 1996](https://doi.org/10.1086/177989), and
 from Eq.4 in [Eisenstein and Hu, 1997](https://doi.org/10.1086/305424). We also implement the direct fit
 formula for the comoving sound horizon size at drag epoch used in
 Eq. 2.5 of [DESIDRI:VI](https://doi.org/10.1088/1475-7516/2025/02/021).
+
+# Differentiability and likelihood maximization
+
+The code provides a framework to efficiently build frequentist
+confidence contours for cosmological parameters for all measurements
+whose likelihood can be expressed as a chi-square.
+
+To provide the confidence region for a 1 or 2 dimensionnal subset
+$\alpha$ of the parameters, we divide the parameter vector as $\theta
+= (\alpha, \beta)$ into its fixed ($\alpha$) and varied parts
+$\beta$. The explored parameter space is divided on a regular grid,
+and for each point $\tilde \alpha$ of the grid, the profile likelihood
+$L_p(\beta) = L(\tilde \alpha, \beta)$ needs to be minimized. We take
+advantage of the quadratic nature of the chi-square to perform the
+minimization using the Gauss-Newton algorithm, which requires only the
+function returning the standardized residuals $R(\beta)$ and its
+Jacobian $J$ to perform efficient second-order optimization,
+approximating the chi-square Hessian as $J^T J$. Two details are
+instrumental in speeding up this computation.
+
+Firstly we offset the jit-compilation overhead by forming the restricted
+function $R(\beta, \alpha)$ outside the exploration loop, so that the
+jit-compilation of $R$ and its jacobian with respect to $\beta$ is
+performed only once and used for all the subsequent
+minimizations. This is obtained by passing the residual function $R$ to the `gauss_newton_prep` function, defined as follows:
+```python
+def partial(func, param_subset):
+    def _func(x, point):
+        return func(dict(x, **point))
+    return _func
+
+def gauss_newton_prep(func, params_subset):
+    f = jax.jit(partial(func, params_subset))
+    return f, jax.jit(jax.jacfwd(f))
+```
+The jacobian is taken with respect to the first parameter of the partial
+function but it can still be evaluated for any specific point of the second set of parameters.
+
+Secondly, we prune the exploration of the grid by starting at the grid
+point closest to the global best-fit. We pursue the exploration in
+every direction stopping at a $\Delta \chi^2$ threshold. Provided the
+threshold is sufficiently high that the resulting region is connected
+and encompasses the requested confidence level, the resulting confidence
+region is accurate and obtained at a fraction of the cost of an
+exhaustive exploration.
