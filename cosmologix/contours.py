@@ -1,6 +1,4 @@
-"""
-2D contour plots backend.
-"""
+"""2D contour plots backend."""
 
 from collections import deque
 import numpy as np
@@ -26,22 +24,30 @@ def frequentist_contour_2d(
     varied=None,
     fixed=None,
 ):
-    """Full explore a 2D parameter space to build confidence contours.
+    """Fully explore a 2D parameter space to build confidence contours.
 
-    Note: This can be unecessary slow for well behaved connected
-    contours. Have a look to Use frequentist_contour_2d_sparse for a
-    more lazy exploration.
+    Note:
+        This can be unnecessarily slow for well-behaved connected contours.
+        Consider using `frequentist_contour_2d_sparse` for a more lazy exploration.
 
     Args:
-        likelihoods: List of likelihood functions.
-        grid: Dict defining parameter ranges and grid sizes (e.g., {"param": [min, max, n]}).
-              default {"Omega_bc": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]}
-        varied: Additional parameters to vary at each grid point (fixed can be provided instead).
-        fixed: Dict of fixed parameter values.
+        likelihoods: A list of likelihood functions.
+        grid (dict, optional): A dictionary defining the parameter ranges and grid
+            sizes. Defaults to `{"Omega_bc": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]}`.
+            The format is `{"param_name": [min, max, num_points]}`.
+        varied (list, optional): A list of additional parameter names to vary at
+            each grid point. Defaults to None.
+        fixed (dict, optional): A dictionary of parameter names and their fixed
+            values. Defaults to None.
 
     Returns:
-        Dict with params, x, y, chi2 grid, bestfit, and extra info.
-
+        A dictionary containing:
+            - "params": A list of the two explored parameter names.
+            - "x": A jax.numpy.ndarray with the grid values for the first parameter.
+            - "y": A jax.numpy.ndarray with the grid values for the second parameter.
+            - "chi2": A jax.numpy.ndarray with the chi-squared values for each grid point.
+            - "bestfit": A dictionary with the best-fit parameter values.
+            - "extra": A dictionary with extra information from the minimizer.
     """
     if grid is None:
         grid = {"Omega_bc": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]}
@@ -109,28 +115,38 @@ def frequentist_contour_2d_sparse(
     fixed=None,
     confidence_threshold=95,  # 95% confidence for 2 parameters; adjust as needed
 ):
-    """
-    Compute 2D confidence contours using sparse exploration.
+    """Compute 2D confidence contours using sparse exploration.
 
-    Explores a grid starting from the best-fit point, stopping at a Δχ² threshold,
-    assuming a convex contour to optimize progress estimation. Unexplored points
-    are marked as NaN in the output grid.
+    Explores a grid starting from the best-fit point and expanding outwards,
+    stopping when a given Δχ² threshold is reached. This method is faster than
+    a full grid scan but assumes that the desired contour is connected.
+    Unexplored points are marked as NaN in the output grid.
 
-    Important Note:
-    This assumes that the contour is connected. Use frequentist_contour_2d when in doubt.
+    Note:
+        This assumes that the contour is connected. Use `frequentist_contour_2d`
+        if you suspect disconnected regions.
 
     Args:
-        likelihoods: List of likelihood functions.
-        grid: Dict defining parameter ranges and grid sizes (e.g., {"param": [min, max, n]}).
-              default {"Omega_bc": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]}
-        varied: Additional parameters to vary at each grid point (fixed can be provided instead).
-        fixed: Dict of fixed parameter values.
-        chi2_threshold: largest confidence level in percent for contour boundary.
-            A Δχ² threshold is computed for this value assuming 2 degrees of freedom.
-            (default: 95% corresponding to 6.17 for 2 params).
+        likelihoods: A list of likelihood functions.
+        grid (dict, optional): A dictionary defining the parameter ranges and grid
+            sizes. Defaults to `{"Omega_bc": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]}`.
+            The format is `{"param_name": [min, max, num_points]}`.
+        varied (list, optional): A list of additional parameter names to vary at
+            each grid point. Defaults to None.
+        fixed (dict, optional): A dictionary of parameter names and their fixed
+            values. Defaults to None.
+        confidence_threshold (float, optional): The desired confidence level in
+            percent. A Δχ² threshold is computed from this value assuming 2
+            degrees of freedom. Defaults to 95.
 
     Returns:
-        Dict with params, x, y, chi2 grid, bestfit, and extra info.
+        A dictionary containing:
+            - "params": A list of the two explored parameter names.
+            - "x": A jax.numpy.ndarray with the grid values for the first parameter.
+            - "y": A jax.numpy.ndarray with the grid values for the second parameter.
+            - "chi2": A jax.numpy.ndarray with the chi-squared values for each grid point.
+            - "bestfit": A dictionary with the best-fit parameter values.
+            - "extra": A dictionary with extra information from the minimizer.
     """
     if grid is None:
         grid = {"Omega_bc": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]}
@@ -280,30 +296,35 @@ def frequentist_1d_profile(
     fixed=None,
     confidence_threshold=99.74,  # 95% confidence for 2 parameters; adjust as needed
 ):
-    """Compute 1d likelihood profile.
+    """Compute a 1D likelihood profile.
 
-    Explores a grid starting from the best-fit point, stopping at a Δχ² threshold,
-    assuming. Unexplored points are marked as NaN in the output grid.
+    Explores a 1D grid for a single parameter, starting from the best-fit
+    point and stopping at a Δχ² threshold. Unexplored points are marked as NaN
+    in the output grid.
 
-    Important Note:
-    ---------------
-
-    This assumes that the region above confidence_threshold is
-    connected. Use a confidence_threshold of 100% when in doubt.
+    Note:
+        This assumes that the region above `confidence_threshold` is connected.
+        Use a `confidence_threshold` of 100 for a full scan if in doubt.
 
     Args:
-    -----
-        likelihoods: List of likelihood functions.
-        grid: Dict defining parameter ranges and grid sizes (e.g., {"param": [min, max, n]}).
-        fixed: Dict of fixed parameter values.
-        chi2_threshold: largest confidence level in percent for contour boundary.
-            A Δχ² threshold is computed for this value assuming 1 degrees of freedom.
-            (default: 99.74% corresponding to 3 sigmas).
+        likelihoods: A list of likelihood functions.
+        grid (dict, optional): A dictionary defining the parameter range and grid
+            size for the single parameter to be profiled.
+            Defaults to `{"Omega_bc": []}`. The format is
+            `{"param_name": [min, max, num_points]}`.
+        fixed (dict, optional): A dictionary of parameter names and their fixed
+            values. Defaults to None.
+        confidence_threshold (float, optional): The desired confidence level in
+            percent. A Δχ² threshold is computed from this value assuming 1
+            degree of freedom. Defaults to 99.74 (3 sigma).
 
     Returns:
-    --------
-        Dict with params, x, chi2 grid, bestfit, and extra info.
-
+        A dictionary containing:
+            - "params": A list containing the name of the explored parameter.
+            - "x": A jax.numpy.ndarray with the grid values for the parameter.
+            - "chi2": A jax.numpy.ndarray with the chi-squared values for each grid point.
+            - "bestfit": A dictionary with the best-fit parameter values.
+            - "extra": A dictionary with extra information from the minimizer.
     """
     if grid is None:
         grid = {"Omega_bc": []}

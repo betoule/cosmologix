@@ -1,6 +1,4 @@
-"""
-interpolation facilities
-"""
+"""Interpolation facilities."""
 
 import hashlib
 import os
@@ -11,7 +9,14 @@ from cosmologix.tools import get_cache_dir
 
 
 def barycentric_weights(x):
-    """Compute barycentric weights for interpolation points x."""
+    """Computes barycentric weights for interpolation points.
+
+    Args:
+        x (jnp.ndarray): The interpolation points.
+
+    Returns:
+        jnp.ndarray: The barycentric weights.
+    """
     n = len(x)
     w = jnp.ones(n)
 
@@ -30,7 +35,16 @@ def barycentric_weights(x):
 
 
 def chebyshev_nodes(n, a, b):
-    """Compute n Chebyshev nodes of the second kind on the interval [a,b]."""
+    """Computes n Chebyshev nodes of the second kind on the interval [a, b].
+
+    Args:
+        n (int): The number of nodes.
+        a (float): The start of the interval.
+        b (float): The end of the interval.
+
+    Returns:
+        jnp.ndarray: The Chebyshev nodes.
+    """
 
     # Compute indices k = 0, 1, ..., n
     k = np.arange(n + 1)
@@ -45,7 +59,14 @@ def chebyshev_nodes(n, a, b):
 
 
 def barycentric_weights_chebyshev(n):
-    """Compute barycentric weights for n+1 Chebyshev nodes."""
+    """Computes barycentric weights for n+1 Chebyshev nodes.
+
+    Args:
+        n (int): The number of nodes.
+
+    Returns:
+        jnp.ndarray: The barycentric weights.
+    """
     j = jnp.arange(n + 1)
     w = (-1.0) ** j
     w = w.at[0].set(w[0] / 2.0)
@@ -54,10 +75,20 @@ def barycentric_weights_chebyshev(n):
 
 
 def barycentric_interp(x_tab, y_tab, x_query, w=None):
-    """Perform barycentric interpolation at x_query given tabulated points (x_tab, y_tab).
+    """Performs barycentric interpolation.
 
-    This is reputed to be more stable numerically than Newton's
-    formulae but can causes issues regarding to differentiability.
+    This is reputed to be more stable numerically than Newton's formulae but
+    can cause issues regarding differentiability.
+
+    Args:
+        x_tab (jnp.ndarray): The x-coordinates of the tabulated points.
+        y_tab (jnp.ndarray): The y-coordinates of the tabulated points.
+        x_query (jnp.ndarray): The x-coordinate at which to interpolate.
+        w (jnp.ndarray, optional): The barycentric weights. If None, they are
+            computed. Defaults to None.
+
+    Returns:
+        jnp.ndarray: The interpolated value.
     """
     if w is None:
         w = barycentric_weights(x_tab)
@@ -83,7 +114,15 @@ def barycentric_interp(x_tab, y_tab, x_query, w=None):
 
 
 def newton_divided_differences(x, y):
-    """Compute the divided differences for Newton's interpolation."""
+    """Computes the divided differences for Newton's interpolation.
+
+    Args:
+        x (jnp.ndarray): The x-coordinates of the points.
+        y (jnp.ndarray): The y-coordinates of the points.
+
+    Returns:
+        jnp.ndarray: The divided differences.
+    """
     n = len(x)
     # Initialize the divided difference table with y values
     coeffs = jnp.zeros((n, n))
@@ -101,32 +140,25 @@ def newton_divided_differences(x, y):
 
 
 def cached_newton_divided_differences(x, func, cache_dir=None):
-    """Compute or retrieve cached Newton divided differences for given x and function.
+    """Computes or retrieves cached Newton divided differences.
 
-    This wrapper caches the result of newton_divided_differences(x, func(x)) to disk
-    using a unique filename based on the inputs. If the cache exists, it loads and
-    returns the result directly.
+    This wrapper caches the result of `newton_divided_differences(x, func(x))`
+    to disk using a unique filename based on the inputs. If the cache exists,
+    it loads and returns the result directly.
 
-    Parameters
-    ----------
-    x : jax.numpy.ndarray
-        Array of x-coordinates (interpolation points), shape (n,).
-    func : callable
-        Function that takes x as input and returns y-values, i.e., func(x).
-    cache_dir : str, optional
-        Directory where cache files are stored (default: "cache").
+    Args:
+        x (jnp.ndarray): Array of x-coordinates (interpolation points).
+        func (callable): Function that takes x as input and returns y-values.
+        cache_dir (str, optional): Directory where cache files are stored.
+            Defaults to None.
 
-    Returns
-    -------
-    jax.numpy.ndarray
-        Array of divided difference coefficients, shape (n,).
+    Returns:
+        jnp.ndarray: Array of divided difference coefficients.
 
-    Notes
-    -----
-    - The cache filename is generated from a hash of x and func.__name__ to ensure
-      uniqueness.
-    - Cache files are stored as .npy files for efficient NumPy/JAX array I/O.
-    - The cache directory is created if it doesn’t exist.
+    Notes:
+        The cache filename is generated from a hash of x and `func.__name__`.
+        Cache files are stored as .npy files.
+        The cache directory is created if it doesn’t exist.
     """
 
     if cache_dir is None:
@@ -160,7 +192,17 @@ def cached_newton_divided_differences(x, func, cache_dir=None):
 
 
 def newton_interp(x_tab, y_tab, coeffs=None):
-    """Evaluate Newton's interpolation polynomial."""
+    """Evaluates Newton's interpolation polynomial.
+
+    Args:
+        x_tab (jnp.ndarray): The x-coordinates of the tabulated points.
+        y_tab (jnp.ndarray): The y-coordinates of the tabulated points.
+        coeffs (jnp.ndarray, optional): The divided differences. If None,
+            they are computed. Defaults to None.
+
+    Returns:
+        callable: The interpolation function.
+    """
     if coeffs is None:
         coeffs = newton_divided_differences(x_tab, y_tab)
 
@@ -181,19 +223,15 @@ def newton_interp(x_tab, y_tab, coeffs=None):
 def linear_interpolation(
     x: jnp.ndarray, y_bins: jnp.ndarray, x_bins: jnp.ndarray
 ) -> jnp.ndarray:
-    """
-    Perform linear interpolation between set points.
+    """Performs linear interpolation between set points.
 
-    Parameters:
-    -----------
-    x: jnp.ndarray
-        x coordinates for interpolation.
-    y_bins, x_bins: jnp.ndarray
-        y and x coordinates of the set points.
+    Args:
+        x (jnp.ndarray): x-coordinates for interpolation.
+        y_bins (jnp.ndarray): y-coordinates of the set points.
+        x_bins (jnp.ndarray): x-coordinates of the set points.
 
     Returns:
-    --------
-    jnp.ndarray: Interpolated y values.
+        jnp.ndarray: Interpolated y-values.
     """
     bin_index = jnp.digitize(x, x_bins) - 1
     w = (x - x_bins[bin_index]) / (x_bins[bin_index + 1] - x_bins[bin_index])
@@ -201,23 +239,40 @@ def linear_interpolation(
 
 
 def newton_interpolant(func, a, b, n=10):
-    """Return a polynomial interpolant of the provided function on
-    interval [a, b] using n chebyshev_nodes
+    """Returns a polynomial interpolant of a function.
 
-    The polynomial is evaluated using the Newton formula whose precomputation is in O(n²).
+    The polynomial is evaluated using the Newton formula whose precomputation
+    is in O(n^2).
+
+    Args:
+        func (callable): The function to interpolate.
+        a (float): The start of the interval.
+        b (float): The end of the interval.
+        n (int, optional): The number of Chebyshev nodes to use. Defaults to 10.
+
+    Returns:
+        callable: The interpolation function.
     """
     nodes = chebyshev_nodes(n, a, b)
     return newton_interp(nodes, func(nodes))
 
 
 def barycentric_interpolant(func, a, b, n=10):
-    """Return a polynomial interpolant of the provided function on
-    interval [a, b] using n chebyshev nodes.
+    """Returns a polynomial interpolant of a function.
 
-    The polynomial is evaluated using the barycentric formula which is
-    faster to precompute for chebyshev nodes than the newton formula
-    and should be more stable numerically. However the jax
-    implementation is not fully differentiable.
+    The polynomial is evaluated using the barycentric formula, which is faster
+    to precompute for Chebyshev nodes than the Newton formula and should be
+    more stable numerically. However, the JAX implementation is not fully
+    differentiable.
+
+    Args:
+        func (callable): The function to interpolate.
+        a (float): The start of the interval.
+        b (float): The end of the interval.
+        n (int, optional): The number of Chebyshev nodes to use. Defaults to 10.
+
+    Returns:
+        callable: The interpolation function.
     """
     nodes = chebyshev_nodes(n, a, b)
     weights = barycentric_weights_chebyshev(n)
@@ -227,7 +282,17 @@ def barycentric_interpolant(func, a, b, n=10):
 
 
 def linear_interpolant(func, a, b, n=10):
-    """Return a linear interpolant of the provided function on
-    interval [a, b] using n regularly spaced nodes."""
+    """Returns a linear interpolant of a function.
+
+    Args:
+        func (callable): The function to interpolate.
+        a (float): The start of the interval.
+        b (float): The end of the interval.
+        n (int, optional): The number of regularly spaced nodes to use.
+            Defaults to 10.
+
+    Returns:
+        callable: The interpolation function.
+    """
     nodes = jnp.linspace(a, b * (1 + 1e-6), n)
     return lambda x: linear_interpolation(x, func(nodes), nodes)

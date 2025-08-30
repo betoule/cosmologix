@@ -10,58 +10,51 @@ from .parameters import Planck18
 
 
 def flatten_vector(v):
-    """Flatten a vector with a pytree structure into a 1D array.
+    """Flattens a pytree-structured vector into a 1D array.
 
-    This function takes a dictionary representing a pytree (a nested structure of arrays)
-    and concatenates all arrays into a single 1D array by raveling each component.
+    This function takes a dictionary representing a pytree (a nested structure of
+    arrays) and concatenates all arrays into a single 1D array by raveling each
+    component.
 
-    Parameters
-    ----------
-    v : dict
-        A dictionary where each value is a JAX array or a nested structure that can be
-        flattened into an array.
+    Args:
+        v (dict): A dictionary where each value is a JAX array or a nested
+            structure that can be flattened into an array.
 
-    Returns
-    -------
-    jnp.ndarray
-        A 1D JAX array containing the flattened and concatenated values from the input.
+    Returns:
+        jnp.ndarray: A 1D JAX array containing the flattened and concatenated
+            values from the input.
 
-    Examples
-    --------
-    >>> v = {'a': jnp.array([1, 2]), 'b': jnp.array([[3, 4], [5, 6]])}
-    >>> flatten_vector(v)
-    DeviceArray([1, 2, 3, 4, 5, 6], dtype=int32)
+    Examples:
+        >>> v = {'a': jnp.array([1, 2]), 'b': jnp.array([[3, 4], [5, 6]])}
+        >>> flatten_vector(v)
+        DeviceArray([1, 2, 3, 4, 5, 6], dtype=int32)
     """
     return jnp.hstack([jnp.ravel(v[p]) for p in v])
 
 
 def unflatten_vector(p, v):
-    """Reconstruct a pytree structure from a flattened array using a template.
+    """Reconstructs a pytree structure from a flattened array using a template.
 
-    This function takes a flattened 1D array and reshapes it to match the structure
-    of the template dictionary `p`, restoring the original shapes of the arrays.
+    This function takes a flattened 1D array and reshapes it to match the
+    structure of the template dictionary `p`, restoring the original shapes of
+    the arrays.
 
-    Parameters
-    ----------
-    p : dict
-        A dictionary serving as a template, where each value is a JAX array whose shape
-        defines the structure to be restored.
-    v : jnp.ndarray
-        A 1D JAX array containing the flattened values to be reshaped.
+    Args:
+        p (dict): A dictionary serving as a template, where each value is a JAX
+            array whose shape defines the structure to be restored.
+        v (jnp.ndarray): A 1D JAX array containing the flattened values to be
+            reshaped.
 
-    Returns
-    -------
-    dict
-        A dictionary with the same keys as `p` and values reshaped to match the
-        corresponding array shapes in `p`.
+    Returns:
+        dict: A dictionary with the same keys as `p` and values reshaped to match
+            the corresponding array shapes in `p`.
 
-    Examples
-    --------
-    >>> p = {'a': jnp.array([0, 0]), 'b': jnp.array([[0, 0], [0, 0]])}
-    >>> v = jnp.array([1, 2, 3, 4, 5, 6])
-    >>> unflatten_vector(p, v)
-    {'a': DeviceArray([1, 2], dtype=int32),
-     'b': DeviceArray([[3, 4], [5, 6]], dtype=int32)}
+    Examples:
+        >>> p = {'a': jnp.array([0, 0]), 'b': jnp.array([[0, 0], [0, 0]])}
+        >>> v = jnp.array([1, 2, 3, 4, 5, 6])
+        >>> unflatten_vector(p, v)
+        {'a': DeviceArray([1, 2], dtype=int32),
+         'b': DeviceArray([[3, 4], [5, 6]], dtype=int32)}
     """
     st = {}
     i = 0
@@ -73,28 +66,24 @@ def unflatten_vector(p, v):
 
 
 def restrict(f: Callable, fixed_params: dict = None) -> Callable:
-    """Modify a function by fixing some of its parameters.
+    """Modifies a function by fixing some of its parameters.
 
-    This is similar to functools.partial but allows fixing parts of
-    the first pytree argument.
+    This is similar to `functools.partial` but allows fixing parts of the first
+    pytree argument.
 
-    Parameters:
-    -----------
-    f: Callable
-        A function with signature f(params, *args, **keys) where params is a pytree.
-    fixed_params: dict
-        Parameters to fix with provided values.
+    Args:
+        f (Callable): A function with signature `f(params, *args, **kwargs)`
+            where `params` is a pytree.
+        fixed_params (dict, optional): Parameters to fix with provided values.
+            Defaults to None.
 
     Returns:
-    --------
-    Callable
-        Function with same signature but with parameters fixed to their provided values.
+        Callable: A function with the same signature but with parameters fixed
+            to their provided values.
 
     Example:
-    --------
-    If mu expects a dictionary with 'Omega_bc' and 'w',
-    restrict(mu, {'w': -1}) returns a function of 'Omega_bc' only.
-
+        If `mu` expects a dictionary with 'Omega_bc' and 'w',
+        `restrict(mu, {'w': -1})` returns a function of 'Omega_bc' only.
     """
     if fixed_params is None:
         fixed_params = {}
@@ -108,44 +97,48 @@ def restrict(f: Callable, fixed_params: dict = None) -> Callable:
 
 
 def restrict_to(func, complete, varied, flat=True):
-    """Create a new function by restricting the input parameters of `func` to a subset.
+    """Creates a new function by restricting the input parameters of `func` to a subset.
 
-    This utility function allows you to fix some parameters of `func` while allowing
-    others to vary. It effectively turns a function with multiple parameters into one
-    where only a subset of those parameters can be changed, with the others fixed.
+    This utility function allows you to fix some parameters of `func` while
+    allowing others to vary. It effectively turns a function with multiple
+    parameters into one where only a subset of those parameters can be changed,
+    with the others fixed.
 
-    Parameters:
-    - func (callable): The original function to be modified. It should accept a dictionary
-      of parameters as its argument.
-    - complete (dict): A dictionary containing all parameters that `func` could accept,
-      with their values set to what should be used when not varied.
-    - varied (list or tuple): A list of parameter names that should be allowed to vary.
-    - flat (bool): If True, the input to the returned lambda will be expected as a
-      flat vector (list or array) which will be converted into the dictionary form
-      for `func`. If False, the input should already be a dictionary containing
-      the varied parameters. Default is True.
+    Args:
+        func (callable): The original function to be modified. It should accept a
+            dictionary of parameters as its argument.
+        complete (dict): A dictionary containing all parameters that `func` could
+            accept, with their values set to what should be used when not varied.
+        varied (list or tuple): A list of parameter names that should be allowed
+            to vary.
+        flat (bool): If True, the input to the returned lambda will be expected
+            as a flat vector (list or array) which will be converted into the
+            dictionary form for `func`. If False, the input should already be a
+            dictionary containing the varied parameters. Default is True.
 
     Returns:
-    - callable: A lambda function that either:
-        - If `flat` is True, takes a flat vector of values for the `varied` parameters
-          and returns the result of calling `func` with those values and the fixed
-          parameters combined.
-        - If `flat` is False, takes a dictionary with keys matching `varied`, merges
-          it with `fixed`, and calls `func` with this merged dictionary.
+        callable: A lambda function that either:
+            - If `flat` is True, takes a flat vector of values for the `varied`
+              parameters and returns the result of calling `func` with those
+              values and the fixed parameters combined.
+            - If `flat` is False, takes a dictionary with keys matching `varied`,
+              merges it with `fixed`, and calls `func` with this merged
+              dictionary.
 
     Notes:
-    - This function is particularly useful in optimization routines where you need to
-      hold some parameters constant while optimizing others.
-    - See also `restrict` for another way to restrict the function by
-      specifying only the parameter to fix.
+        This function is particularly useful in optimization routines where you
+        need to hold some parameters constant while optimizing others. See also
+        `restrict` for another way to restrict the function by specifying only
+        the parameter to fix.
 
     Example:
-    >>> def original_func(params):
-    ...     return params['a'] + params['b'] * params['c']
-    >>> restricted_func = restrict_to(original_func, {'a': 1, 'b': 2, 'c': 3}, ['b', 'c'])
-    >>> restricted_func([2, 3])  # 'a' is fixed at 1, 'b' and 'c' are varied
-    7
-
+        >>> def original_func(params):
+        ...     return params['a'] + params['b'] * params['c']
+        >>> restricted_func = restrict_to(original_func,
+        ...                               {'a': 1, 'b': 2, 'c': 3},
+        ...                               ['b', 'c'])
+        >>> restricted_func([2, 3])  # 'a' is fixed at 1, 'b' and 'c' are varied
+        7
     """
     fixed = complete.copy()
     varied_dict = {}
@@ -158,33 +151,31 @@ def restrict_to(func, complete, varied, flat=True):
 
 
 def partial(func: Callable, param_subset: Dict[str, Any]) -> Callable:
-    """Create a new function that operates on a subset of parameters.
+    """Creates a new function that operates on a subset of parameters.
 
-    This function adapts an input function to accept a flattened array representing
-    a subset of parameters, while fixing the remaining parameters from a provided point.
+    This function adapts an input function to accept a flattened array
+    representing a subset of parameters, while fixing the remaining parameters
+    from a provided point.
 
-    Parameters
-    ----------
-    func : callable
-        The original function that takes a dictionary of parameters and returns a value.
-    param_subset : dict
-        A dictionary specifying the structure of the parameter subset to be optimized.
+    Args:
+        func (callable): The original function that takes a dictionary of
+            parameters and returns a value.
+        param_subset (dict): A dictionary specifying the structure of the
+            parameter subset to be optimized.
 
-    Returns
-    -------
-    callable
-        A new function that takes a flattened array `x` (representing the subset of
-        parameters) and a dictionary `point` (containing fixed parameters), and returns
-        the result of `func` applied to the combined parameters.
+    Returns:
+        callable: A new function that takes a flattened array `x` (representing
+            the subset of parameters) and a dictionary `point` (containing
+            fixed parameters), and returns the result of `func` applied to the
+            combined parameters.
 
-    Examples
-    --------
-    >>> def func(params): return params['a'] + params['b']
-    >>> param_subset = {'a': jnp.array([0])}
-    >>> new_func = partial(func, param_subset)
-    >>> point = {'b': jnp.array([10])}
-    >>> new_func(jnp.array([5]), point)
-    DeviceArray([15], dtype=int32)
+    Examples:
+        >>> def func(params): return params['a'] + params['b']
+        >>> param_subset = {'a': jnp.array([0])}
+        >>> new_func = partial(func, param_subset)
+        >>> point = {'b': jnp.array([10])}
+        >>> new_func(jnp.array([5]), point)
+        DeviceArray([15], dtype=int32)
     """
 
     def _func(x, point):
@@ -261,48 +252,55 @@ def analyze_fim_for_degeneracies(fim, param_names):
 
 
 class LikelihoodSum:
-    """Utility class to sum a list of Chi2 objects"""
+    """Utility class to sum a list of Chi2 objects."""
 
     def __init__(self, likelihoods):
-        """
-        Parameters:
-        ------------
-        likelihoods: list of instances of likelihoods.Chi2 (or its derivatives)
+        """Initializes the LikelihoodSum class.
+
+        Args:
+            likelihoods (list): A list of instances of `likelihoods.Chi2` (or
+                its derivatives).
         """
         self.likelihoods = likelihoods
 
     def negative_log_likelihood(self, params):
-        """Compute the sum of negative log-likelihood, which is
-        equivalent to half the chi-squared statistic for normally
+        """Computes the sum of negative log-likelihoods.
+
+        This is equivalent to half the chi-squared statistic for normally
         distributed errors.
 
-        Parameters:
-        - params: A dictionary of model parameters.
+        Args:
+            params (dict): A dictionary of model parameters.
 
         Returns:
-        - float: The sum of the squares of the weighted residuals, representing
-          -2 * ln(likelihood) for Gaussian errors.
+            float: The sum of the squares of the weighted residuals,
+                representing -2 * ln(likelihood) for Gaussian errors.
         """
         return jnp.sum(
             jnp.array([l.negative_log_likelihood(params) for l in self.likelihoods])
         )
 
     def weighted_residuals(self, params):
-        """
-        Calculate the concatenation of weighted residuals, normalized by their respective errors.
+        """Calculates the concatenation of weighted residuals.
 
-        Parameters:
-        - params: A dictionary or list of model parameters.
+        The residuals are normalized by their respective errors.
+
+        Args:
+            params (dict): A dictionary of model parameters.
 
         Returns:
-        - numpy.ndarray: An array where each element is residual/error.
+            jnp.ndarray: An array where each element is residual/error.
         """
         return jnp.hstack([l.weighted_residuals(params) for l in self.likelihoods])
 
     def initial_guess(self, params):
-        """
-        Append relevant starting point for all nuisance parameters to the parameter dictionary
+        """Appends relevant starting points for all nuisance parameters.
 
+        Args:
+            params (dict): The initial parameter dictionary.
+
+        Returns:
+            dict: The updated parameter dictionary with nuisance parameters.
         """
         for l in self.likelihoods:
             params = l.initial_guess(params)
@@ -312,99 +310,88 @@ class LikelihoodSum:
 def gauss_newton_prep(
     func: Callable, params_subset: Dict[str, Any]
 ) -> tuple[Callable, Callable]:
-    """Prepare a function and its Jacobian for the Gauss-Newton algorithm.
+    """Prepares a function and its Jacobian for the Gauss-Newton algorithm.
 
-    This function creates a restricted version of the input function that operates on
-    a subset of parameters and computes its Jacobian using JAX's forward-mode
-    automatic differentiation. The result is suitable for use in Gauss-Newton optimization.
+    This function creates a restricted version of the input function that
+    operates on a subset of parameters and computes its Jacobian using JAX's
+    forward-mode automatic differentiation. The result is suitable for use in
+    Gauss-Newton optimization.
 
-    Parameters
-    ----------
-    func : callable
-        The original function that takes a dictionary of parameters and returns a value.
-        Typically, this is a residual or cost function.
-    params_subset : dict
-        A dictionary specifying the structure of the parameter subset to be optimized.
+    Args:
+        func (callable): The original function that takes a dictionary of
+            parameters and returns a value. Typically, this is a residual or
+            cost function.
+        params_subset (dict): A dictionary specifying the structure of the
+            parameter subset to be optimized.
 
-    Returns
-    -------
-    tuple[callable, callable]
-        A tuple containing:
-        - The restricted function, JIT-compiled, that operates on a flattened array of
-          the parameter subset and fixed parameters.
-        - The Jacobian of the restricted function, JIT-compiled, computed with respect
-          to the flattened parameter subset.
+    Returns:
+        tuple[callable, callable]: A tuple containing:
+            - The restricted function, JIT-compiled, that operates on a
+              flattened array of the parameter subset and fixed parameters.
+            - The Jacobian of the restricted function, JIT-compiled, computed
+              with respect to the flattened parameter subset.
 
-    Notes
-    -----
-    The returned functions are JIT-compiled for performance using `jax.jit`. The Jacobian
-    is computed using forward-mode automatic differentiation (`jax.jacfwd`).
+    Notes:
+        The returned functions are JIT-compiled for performance using `jax.jit`.
+        The Jacobian is computed using forward-mode automatic differentiation
+        (`jax.jacfwd`).
 
-    Examples
-    --------
-    >>> def func(params): return params['a'] ** 2 + params['b']
-    >>> params_subset = {'a': jnp.array([0.])}
-    >>> f, jac = gauss_newton_prep(func, params_subset)
-    >>> x = jnp.array([2.])
-    >>> point = {'b': jnp.array([3.])}
-    >>> f(x, point)
-    DeviceArray(7., dtype=float32)
-    >>> jac(x, point)
-    DeviceArray([[4.]], dtype=float32)
+    Examples:
+        >>> def func(params): return params['a'] ** 2 + params['b']
+        >>> params_subset = {'a': jnp.array([0.])}
+        >>> f, jac = gauss_newton_prep(func, params_subset)
+        >>> x = jnp.array([2.])
+        >>> point = {'b': jnp.array([3.])}
+        >>> f(x, point)
+        DeviceArray(7., dtype=float32)
+        >>> jac(x, point)
+        DeviceArray([[4.]], dtype=float32)
     """
     f = jax.jit(partial(func, params_subset))
     return f, jax.jit(jax.jacfwd(f))
 
 
 def fit(likelihoods, fixed=None, verbose=False, initial_guess=None):
-    """Fit a set of likelihoods using the Gauss-Newton method with
-    partial parameter fixing.
+    """Fits a set of likelihoods using the Gauss-Newton method.
 
-    This function combines multiple likelihoods, optimizes the
-    parameters using an initial guess possibly augmented by fixed
-    parameters, and then applies the Gauss-Newton optimization method.
+    This function combines multiple likelihoods, optimizes the parameters using
+    an initial guess possibly augmented by fixed parameters, and then applies
+    the Gauss-Newton optimization method.
 
-    Parameters:
-    - likelihoods: A list of likelihood object, each expected to
-      provide a weighted_residuals function of parameters as a
-      dictionary and return weighted residuals or similar metrics.
-    - fixed (dict): A dictionary of parameters to be fixed during the optimization
-      process. Keys are parameter names, values are their fixed values. Default is an
-      empty dictionary.
+    Args:
+        likelihoods (list): A list of likelihood objects, each expected to
+            provide a `weighted_residuals` function.
+        fixed (dict, optional): A dictionary of parameters to be fixed during
+            the optimization process. Defaults to None.
+        verbose (bool, optional): If True, prints progress information.
+            Defaults to False.
+        initial_guess (dict, optional): An initial guess for the parameters.
+            Defaults to `Planck18`.
 
     Returns:
-    - dict: A dictionary containing:
-        - 'x': The optimized parameter values in a flattened form.
-        - 'bestfit': The best-fit parameters as a dictionary matching
-          the initial guess format.
-        - 'FIM': An approximation of the Fisher Information Matrix
-          (FIM) at the best fit.
-        - 'loss': The progression of loss values during optimization
-          (from `gauss_newton_partial`).
-        - 'timings': The time taken for each iteration of the
-          optimization (from `gauss_newton_partial`).
+        dict: A dictionary containing:
+            - 'x': The optimized parameter values in a flattened form.
+            - 'bestfit': The best-fit parameters as a dictionary.
+            - 'inverse_FIM': An approximation of the inverse Fisher Information
+              Matrix (FIM) at the best fit.
+            - 'loss': The progression of loss values during optimization.
+            - 'timings': The time taken for each iteration of the optimization.
+            - 'residuals': The residuals at the best-fit point.
 
     Notes:
-    - The function uses `LikelihoodSum` to combine multiple
-      likelihoods into one, which must be a class that can call
-      `.initial_guess()` with `Planck18` for a starting point.
-
-    The optimization process involves:
-
-    1. Determining an initial guess from the combined likelihoods,
-    updating with fixed parameters.
-    2. Preparing the weighted residuals and Jacobian for optimization.
-    3. Using a partial Gauss-Newton method for minimization, where
-    only non-fixed parameters are optimized.
-    4. Computing the Fisher Information Matrix for the best fit,
-    providing insight into parameter uncertainties.
+        The function uses `LikelihoodSum` to combine multiple likelihoods. The
+        optimization process involves:
+        1. Determining an initial guess from the combined likelihoods.
+        2. Preparing the weighted residuals and Jacobian for optimization.
+        3. Using a partial Gauss-Newton method for minimization.
+        4. Computing the Fisher Information Matrix for the best fit.
 
     Example:
-    >>> priors = [likelihoods.Planck2018Prior(), likelihoods.DES5yr()]
-    >>> fixed = {'Omega_k':0., 'm_nu':0.06, 'Neff':3.046, 'Tcmb': 2.7255}
-    >>> result = fit(priors, fixed=fixed)
-    >>> print(result['bestfit'])
-
+        >>> from cosmologix import likelihoods
+        >>> priors = [likelihoods.Planck2018Prior(), likelihoods.DES5yr()]
+        >>> fixed = {'Omega_k':0., 'm_nu':0.06, 'Neff':3.046, 'Tcmb': 2.7255}
+        >>> result = fit(priors, fixed=fixed)
+        >>> print(result['bestfit'])
     """
     if fixed is None:
         fixed = {}
@@ -488,51 +475,50 @@ def fit(likelihoods, fixed=None, verbose=False, initial_guess=None):
 def gauss_newton_partial(
     wres, jac, x0, fixed, niter=50, tol=1e-3, full=False, verbose=False
 ):
-    """Perform partial Gauss-Newton optimization for non-linear least squares problems.
+    """Performs partial Gauss-Newton optimization for non-linear least squares.
 
-    This function implements the Gauss-Newton method with partial updates, where some
-    parameters are fixed during optimization. It iteratively minimizes the sum of
-    squared residuals by approximating the Hessian matrix.
+    This function implements the Gauss-Newton method with partial updates, where
+    some parameters are fixed during optimization. It iteratively minimizes the
+    sum of squared residuals by approximating the Hessian matrix.
 
-    Parameters:
-    - wres (callable): Function to compute weighted residuals. Takes (x, fixed) as arguments.
-      - x: Current parameter values (free parameters).
-      - fixed: Fixed parameters that do not change during optimization.
-    - jac (callable): Function to compute the Jacobian of `wres`. Takes (x, fixed) as arguments.
-      - x: Current parameter values.
-      - fixed: Fixed parameters.
-    - x0 (array-like): Initial guess for the free parameters.
-    - fixed (array-like): Fixed parameters that are not optimized.
-    - niter (int): Maximum number of iterations to perform. Default is 1000.
-    - tol (float): Tolerance for convergence based on the change in loss. Default is 1e-3.
-    - full (bool): If True, includes the Fisher Information Matrix
-      (FIM) in the output. Default is False.
+    Args:
+        wres (callable): Function to compute weighted residuals. It takes `x`
+            (current parameter values) and `fixed` (fixed parameters) as
+            arguments.
+        jac (callable): Function to compute the Jacobian of `wres`. It takes `x`
+            and `fixed` as arguments.
+        x0 (jnp.ndarray): Initial guess for the free parameters.
+        fixed (dict): A dictionary of fixed parameters that are not optimized.
+        niter (int, optional): Maximum number of iterations. Defaults to 50.
+        tol (float, optional): Tolerance for convergence based on the change in
+            loss. Defaults to 1e-3.
+        full (bool, optional): If True, includes the Fisher Information Matrix
+            (FIM) in the output. Defaults to False.
+        verbose (bool, optional): If True, prints progress information.
+            Defaults to False.
 
     Returns:
-    - x (array-like): Optimized values of the free parameters.
-    - extra (dict): Additional information about the optimization process:
-      - 'loss' (list): Losses (sum of squared residuals) at each iteration.
-      - 'timings' (list): Time taken at each iteration in seconds.
-      - 'FIM' (array-like, optional): Fisher Information Matrix if `full` is True.
-
-    Notes:
-    - The function uses the Gauss-Newton method, which assumes that the Hessian of
-      the sum of squares can be approximated by J^T*J, where J is the Jacobian.
-    - Convergence is determined when the decrease in loss between iterations is
-      less than `tol`.
-    - This method is particularly useful for parameter estimation in non-linear
-      least squares problems where some parameters are known or fixed.
+        tuple[jnp.ndarray, dict]: A tuple containing:
+            - The optimized values of the free parameters.
+            - A dictionary with additional information about the optimization,
+              including 'loss', 'timings', and optionally 'FIM'.
 
     Raises:
-    - May raise a LinAlgError if the system of equations is singular or nearly singular,
-      causing problems with `jnp.linalg.solve`.
+        jnp.linalg.LinAlgError: If the system of equations is singular or
+            nearly singular.
+
+    Notes:
+        The function uses the Gauss-Newton method, which approximates the
+        Hessian of the sum of squares by J^T*J, where J is the Jacobian.
+        Convergence is determined when the decrease in loss between iterations
+        is less than `tol`.
 
     Example:
-    >>> def residuals(x, fixed): return x - fixed
-    >>> def jacobian(x, fixed): return jnp.ones_like(x)
-    >>> result, info = gauss_newton_partial(residuals, jacobian,
-                                            jnp.array([2.0]),
-                                            jnp.array([1.0]), niter=10, tol=1e-6)
+        >>> def residuals(x, fixed): return x - fixed['val']
+        >>> def jacobian(x, fixed): return jnp.ones_like(x)
+        >>> x0 = jnp.array([2.0])
+        >>> fixed = {'val': jnp.array([1.0])}
+        >>> result, info = gauss_newton_partial(residuals, jacobian, x0, fixed)
     """
     timings = [time.time()]
     x = x0

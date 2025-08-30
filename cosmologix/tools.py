@@ -1,5 +1,5 @@
-"""
-Collection of tools used in cosmologix:
+"""Collection of tools used in cosmologix.
+
 - Physical constants:
   Constants
 - Cache management:
@@ -26,7 +26,7 @@ import numpy as np
 
 
 class Constants:
-    """Physical constants"""
+    """A container for physical constants."""
 
     # pylint: disable=too-few-public-methods
     G = 6.67384e-11  # m^3/kg/s^2
@@ -45,12 +45,14 @@ class Constants:
 
 
 def get_cache_dir(jit=False):
-    """Determine the appropriate cache directory based on the OS.
+    """Determines the appropriate cache directory based on the OS.
 
-    parameters:
-    jit: bool, if True return the path to the jit cache subdirectory.
+    Args:
+        jit (bool, optional): If True, returns the path to the JIT cache
+            subdirectory. Defaults to False.
 
-    return: None
+    Returns:
+        str: The path to the cache directory.
     """
 
     if os.name == "nt":  # Windows
@@ -68,11 +70,13 @@ def get_cache_dir(jit=False):
 
 
 def persistent_compilation_cache_setup() -> str:
-    """
-    Setup the JAX cache directory checking for its size
+    """Sets up the JAX persistent compilation cache.
+
+    This function checks the size of the cache directory and disables caching
+    if it exceeds a certain threshold.
 
     Returns:
-        str: Human-readable size of the cache directory (e.g., '123.45 MB') or error message.
+        str: A human-readable size of the cache directory or an error message.
     """
     try:
         # Get the cache directory path
@@ -122,11 +126,11 @@ persistent_compilation_cache_setup()
 
 
 def clear_cache(jit=False):
-    """
-    Clear the cache directory used by cached_download.
+    """Clears the cache directory.
 
-    :param jit: Optional clear only the jit subdirectoryfor cache.
-    :return: None
+    Args:
+        jit (bool, optional): If True, clears only the JIT cache
+            subdirectory. Defaults to False.
     """
     cache_dir = get_cache_dir(jit)
 
@@ -139,11 +143,13 @@ def clear_cache(jit=False):
 
 
 def cached_download(url):
-    """
-    Download a file from the web with caching.
+    """Downloads a file from the web with caching.
 
-    :param url: The URL to download from.
-    :return: Path to the cached file.
+    Args:
+        url (str): The URL to download from.
+
+    Returns:
+        str: The path to the cached file.
     """
     cache_dir = get_cache_dir()
 
@@ -176,42 +182,29 @@ def cached_download(url):
 def cached(constant_function):
     """Decorator to cache the result of a function that always returns the same object.
 
-    This decorator is designed for functions with no arguments that
-    consistently return an identical object, such as Chi2FullCov
-    objects in likelihoods.py which can need expansive factorisation
-    of large matrices at their creation. It stores the result in a
-    file-based cache using pickle serialization, loading from the
-    cache if available or computing and saving it otherwise. The cache
-    file is named based on the function’s name and stored in a
-    directory returned by `get_cache_dir()`.
+    This decorator is designed for functions with no arguments that consistently
+    return an identical object. It stores the result in a file-based cache
+    using pickle serialization.
 
-    Parameters
-    ----------
-    constant_function : callable
-        A function with no arguments that returns a constant object to be cached.
-        Typically used for expensive-to-compute objects like Likelihood instances.
+    Args:
+        constant_function (callable): A function with no arguments that returns a
+            constant object to be cached.
 
-    Returns
-    -------
-    callable
-        A wrapped function that returns the cached object if available, or computes,
-        caches, and returns it if not.
+    Returns:
+        callable: A wrapped function that returns the cached object.
 
-    Notes
-    -----
-    - The cache is stored in a file named 'func_cache_<function_name>' within the
-      directory specified by `get_cache_dir()`.
-    - The decorator assumes `constant_function` is deterministic and side-effect-free.
-    - Uses `pickle` for serialization, so the returned object must be picklable.
+    Notes:
+        The cache is stored in a file named `func_cache_<function_name>` within
+        the directory specified by `get_cache_dir()`. The decorator assumes
+        `constant_function` is deterministic and side-effect-free. Uses
+        `pickle` for serialization, so the returned object must be picklable.
 
-    Examples
-    --------
-    >>> @cached
-    ... def expensive_likelihood():
-    ...     return Chi2FullCov(...)  # Expensive computation
-    >>> result = expensive_likelihood()  # Computes and caches
-    >>> result2 = expensive_likelihood()  # Loads from cache
-
+    Examples:
+        >>> @cached
+        ... def expensive_likelihood():
+        ...     return Chi2FullCov(...)  # Expensive computation
+        >>> result = expensive_likelihood()  # Computes and caches
+        >>> result2 = expensive_likelihood()  # Loads from cache
     """
     cache_dir = get_cache_dir()
 
@@ -235,16 +228,17 @@ def cached(constant_function):
 
 
 def safe_vmap(in_axes: Tuple[None | int, ...] = (None, 0)) -> Callable:
-    """
-    Vectorize a function with JAX's vmap, treating all inputs as arrays.
+    """Vectorizes a function with JAX's vmap, treating all inputs as arrays.
 
-    Converts scalar inputs to 1D arrays before applying vmap, ensuring 1D array outputs.
+    Converts scalar inputs to 1D arrays before applying vmap, ensuring 1D
+    array outputs.
 
-    Parameters:
-    - in_axes (Tuple[None | int, ...]): Specifies which dimensions of inputs to vectorize.
+    Args:
+        in_axes (Tuple[None | int, ...]): Specifies which dimensions of inputs
+            to vectorize.
 
     Returns:
-    - Callable: JIT-compiled, vectorized version of the input function.
+        Callable: A JIT-compiled, vectorized version of the input function.
     """
 
     def wrapper(f: Callable) -> Callable:
@@ -265,23 +259,17 @@ def safe_vmap(in_axes: Tuple[None | int, ...] = (None, 0)) -> Callable:
 def trapezoidal_rule_integration(
     f: Callable, bound_inf: float, bound_sup: float, n_step: int = 1000, **kwargs
 ) -> float:
-    """
-    Compute the integral of f over [bound_inf, bound_sup] using the trapezoidal rule.
+    """Computes the integral of a function using the trapezoidal rule.
 
-    Parameters:
-    -----------
-    f: Callable
-        Function to integrate.
-    bound_inf, bound_sup: float
-        Integration bounds.
-    n_step: int
-        Number of subdivisions.
-    kwargs:
-        Additional arguments passed to f.
+    Args:
+        f (Callable): The function to integrate.
+        bound_inf (float): The lower bound of integration.
+        bound_sup (float): The upper bound of integration.
+        n_step (int, optional): The number of subdivisions. Defaults to 1000.
+        **kwargs: Additional arguments passed to `f`.
 
     Returns:
-    --------
-    float: The computed integral.
+        float: The computed integral.
     """
     x = jnp.linspace(bound_inf, bound_sup, n_step)
     y = f(x, **kwargs)
@@ -290,15 +278,15 @@ def trapezoidal_rule_integration(
 
 
 def load_csv_from_url(url, delimiter=","):
-    """
-    Load a CSV file from a URL directly into a NumPy array
+    """Loads a CSV file from a URL into a NumPy array.
 
-    Parameters:
-    - url (str): URL of the CSV file to download.
-    - delimiter (str): The string used to separate values in the CSV file (default is ',').
+    Args:
+        url (str): The URL of the CSV file to download.
+        delimiter (str, optional): The string used to separate values in the
+            CSV file. Defaults to ",".
 
     Returns:
-    - numpy.ndarray: The loaded CSV data as a NumPy array.
+        numpy.ndarray: The loaded CSV data as a NumPy array.
     """
     # Decode the response content and split into lines
     # lines = response.content.decode("utf-8").splitlines()
@@ -328,16 +316,23 @@ def load_csv_from_url(url, delimiter=","):
 
 
 def conflevel_to_delta_chi2(level, dof=2, max_iter=1000, tol=1e-6):
-    """Return the ΔΧ² value corresponding to a given
-    confidence level in percent
+    """Returns the Δχ² value corresponding to a given confidence level.
 
-    parameter:
-    - level: confidence level in percent
-    - dof: Number of degrees of freedom of the chi2 law
-    - max_iter: maximum number of iteration in the Newton search.
-    - tol: The tolerance for the numerical accuracy of the solution.
-    Note: for some reason ppf is not available in jax.scipy but cdf
-    is, a quick fix was to solve for the root using Newton method.
+    Note:
+        For some reason, `ppf` is not available in `jax.scipy` but `cdf` is.
+        A quick fix was to solve for the root using Newton's method.
+
+    Args:
+        level (float): The confidence level in percent.
+        dof (int, optional): The number of degrees of freedom of the chi-squared
+            distribution. Defaults to 2.
+        max_iter (int, optional): The maximum number of iterations in the
+            Newton search. Defaults to 1000.
+        tol (float, optional): The tolerance for the numerical accuracy of the
+            solution. Defaults to 1e-6.
+
+    Returns:
+        float: The Δχ² value.
     """
     x = jnp.array(dof)
     prob = level / 100
@@ -365,39 +360,27 @@ GLOBAL_KEY = None
 
 # pylint: disable=global-statement
 def randn(sigma, n=None, key=None):
-    """
-    Generate a Gaussian random vector scaled by sigma.
+    """Generates a Gaussian random vector scaled by sigma.
 
-    Parameters:
-    -----------
-    sigma : float or array_like
-        Standard deviation to scale the random vector. If sigma is an array,
-        each element scales the corresponding element of the output vector.
-    n : int or tuple, optional
-        If provided, specifies the shape of the output. If not provided (None),
-        the shape of `sigma` is used.
-    key : jax.random.PRNGKey, optional
-        PRNG key for random number generation. If not provided, uses the
-        global key, which can lead to non-reproducible results.
+    Args:
+        sigma (float or array_like): Standard deviation to scale the random
+            vector.
+        n (int or tuple, optional): The shape of the output. If None, the
+            shape of `sigma` is used. Defaults to None.
+        key (jax.random.PRNGKey, optional): The PRNG key for random number
+            generation. If None, uses the global key. Defaults to None.
 
     Returns:
-    --------
-    ndarray
-        An array of Gaussian random numbers scaled by `sigma`.
+        jnp.ndarray: An array of Gaussian random numbers scaled by `sigma`.
 
     Notes:
-    ------
-    - Using the global key (`key=None`) can lead to correlated results across
-      function calls since the key is updated globally. For reproducibility,
-      pass an explicit key.
-    - The function splits the key if no key is provided, which might lead
-      to issues in parallel computing scenarios due to key reuse.
+        Using the global key (`key=None`) can lead to correlated results
+        across function calls. For reproducibility, pass an explicit key.
 
     Examples:
-    ---------
-    >>> import jax.numpy as jnp
-    >>> randn(1.0, (2, 3))  # 2x3 matrix of random numbers scaled by 1.0
-    >>> randn(jnp.array([1, 2, 3]))  # Vector scaled by different sigmas
+        >>> import jax.numpy as jnp
+        >>> randn(1.0, (2, 3))
+        >>> randn(jnp.array([1, 2, 3]))
     """
     global GLOBAL_KEY
     if key is None:
@@ -417,9 +400,18 @@ def randn(sigma, n=None, key=None):
 
 
 def speed_measurement(func, *args, n=10):
-    """Conveniency function to measure execution and jit speed of
-    functions in one go
+    """Measures the execution and JIT compilation speed of a function.
 
+    Args:
+        func (callable): The function to measure.
+        *args: Arguments to pass to the function.
+        n (int, optional): The number of executions to average over.
+            Defaults to 10.
+
+    Returns:
+        tuple: A tuple containing the compilation time, execution time,
+            JIT compilation time, JIT execution time, and averaged JIT
+            execution time.
     """
     jax.clear_caches()  # make sure that compilation is triggered
     tstart = time.time()
@@ -448,7 +440,12 @@ def speed_measurement(func, *args, n=10):
 
 
 def save(grid, filename):
-    """Save data dictionary to a pickle file or asdf file."""
+    """Saves a data dictionary to a pickle or ASDF file.
+
+    Args:
+        grid (dict): The dictionary to save.
+        filename (str or Path): The name of the file.
+    """
     filename = Path(filename)
     if filename.suffix == ".asdf":
         _save_asdf(grid, filename)
@@ -464,11 +461,24 @@ def save(grid, filename):
 
 
 def jax_to_numpy(x):
+    """Converts a JAX array to a NumPy array.
+
+    Args:
+        x: The input array.
+
+    Returns:
+        numpy.ndarray: The converted array.
+    """
     return np.asarray(x) if isinstance(x, jax.Array) else x
 
 
 def _save_asdf(grid, filename):
-    """ """
+    """Saves a data dictionary to an ASDF file.
+
+    Args:
+        grid (dict): The dictionary to save.
+        filename (str or Path): The name of the file.
+    """
     import asdf
 
     # Transform the pytree to convert JAX arrays to NumPy arrays
@@ -479,7 +489,14 @@ def _save_asdf(grid, filename):
 
 
 def load(filename):
-    """Load data dictionary from a pickle file if needed."""
+    """Loads a data dictionary from a pickle or ASDF file.
+
+    Args:
+        filename (str or Path): The name of the file.
+
+    Returns:
+        dict: The loaded dictionary.
+    """
     if isinstance(filename, (str, Path)):
         filename = Path(filename)
         if filename.suffix == ".asdf":

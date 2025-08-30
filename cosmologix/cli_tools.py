@@ -1,4 +1,4 @@
-"""Collection of constants and tools for the command line interface"""
+"""Collection of constants and tools for the command line interface."""
 
 from typing import Optional
 
@@ -28,7 +28,16 @@ PARAM_CHOICES = list(parameters.Planck18.keys()) + ["M", "rd"]
 
 
 def tuple_list_to_dict(tuple_list):
-    """Parse parameters such as --range Omega_bc 0 1 into a dict"""
+    """Parses a list of tuples into a dictionary.
+
+    For example, `[('Omega_bc', 0, 1)]` becomes `{'Omega_bc': [0, 1]}`.
+
+    Args:
+        tuple_list (list): A list of tuples.
+
+    Returns:
+        dict: The parsed dictionary.
+    """
     result_dict = {}
     for item in tuple_list:
         if len(item) == 2:
@@ -39,7 +48,14 @@ def tuple_list_to_dict(tuple_list):
 
 
 def dict_to_list(dictionnary):
-    """Convert default dictionnaries to string usable in command line completion"""
+    """Converts a dictionary to a list of strings for command-line completion.
+
+    Args:
+        dictionnary (dict): The dictionary to convert.
+
+    Returns:
+        list: A list of strings.
+    """
 
     def to_str(v):
         try:
@@ -111,19 +127,31 @@ MU_COV_OPTION = Option(
 
 
 def get_prior(p):
-    """Retrieve a prior by name"""
+    """Retrieves a prior by name from the `cosmologix.likelihoods` module.
+
+    Args:
+        p (str): The name of the prior.
+
+    Returns:
+        object: The prior object.
+    """
     import cosmologix.likelihoods
 
     return getattr(cosmologix.likelihoods, p)()
 
 
 def permissive_load(name):
-    """Load a numpy file if not already loaded
+    """Loads a NumPy file if the input is a string.
 
-    if name is a string load a numpy array from the corresponding
-    file, else assumed it is already loaded and return directly the
-    array.
+    If the input is not a string, it is assumed to be already loaded and is
+    returned directly.
 
+    Args:
+        name (str or object): The name of the file to load or an already
+            loaded object.
+
+    Returns:
+        object: The loaded object.
     """
     import numpy as np
 
@@ -133,7 +161,16 @@ def permissive_load(name):
 
 
 def load_mu(mu_file: str, cov_file: Optional[str] = None):
-    """Load distance measurement."""
+    """Loads distance modulus measurements.
+
+    Args:
+        mu_file (str): The path to the distance modulus data file.
+        cov_file (str, optional): The path to the covariance matrix file.
+            Defaults to None.
+
+    Returns:
+        list: A list containing the likelihood object.
+    """
     if mu_file is None:
         return []
     from cosmologix import likelihoods

@@ -1,4 +1,4 @@
-"""Best fit cosmologies"""
+"""Best fit cosmologies."""
 
 # Base-ΛCDM cosmological parameters from Planck
 # TT,TE,EE+lowE+lensing. Taken from Table 1. in
@@ -8,6 +8,22 @@ Planck18 = {
     "Omega_bc": (0.02233 + 0.1198) / (67.37 / 100) ** 2,  # ±0.0074
     "H0": 67.37,  # ±0.54
     "Omega_b_h2": 0.02233,  # ±0.00015
+    "Omega_k": 0.0,
+    "w": -1.0,
+    "wa": 0.0,
+    "m_nu": 0.06,  # jnp.array([0.06, 0.0, 0.0]),
+    "Neff": 3.046,
+}
+
+# Base-ΛCDM cosmological parameters from Planck
+# TT,TE,EE+lowE+lensing+BAO. Taken from Table 2. in
+# 10.1051/0004-6361/201833910
+# This is Planck18 in astropy
+PlanckBAO18 = {
+    "Tcmb": 2.7255,  # from Planck18 arxiv:1807.06209 footnote 14 citing Fixsen 2009
+    "Omega_bc": (0.11933 + 0.02242) / (67.66e-2**2),  # ±0.0074
+    "H0": 67.66,  # ±0.54
+    "Omega_b_h2": 0.02242,  # ±0.00015
     "Omega_k": 0.0,
     "w": -1.0,
     "wa": 0.0,
@@ -53,7 +69,16 @@ DEFAULT_RANGE = {
 
 
 def lcdm_deviation(**keys):
-    """Convenience function to easily manipulate parameters"""
+    """Convenience function to easily manipulate parameters.
+
+    This updates Planck18 default data.
+
+    Args:
+        **keys: Keyword arguments to update the default parameters.
+
+    Returns:
+        dict: The updated parameter dictionary.
+    """
     params = Planck18.copy()
     params.update(keys)
     return params

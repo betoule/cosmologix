@@ -1,6 +1,4 @@
-"""
-Chi squared and log likelihood
-"""
+"""Chi squared and log likelihood"""
 
 from functools import partial
 import gzip
@@ -12,136 +10,140 @@ from . import distances, acoustic_scale, densities, tools
 
 
 class Chi2:
-    """Basic implementation of chi-squared (χ²) evaluation for
-    statistical analysis.
+    """Basic implementation of chi-squared (χ²) evaluation.
 
-    This class provides a framework for computing the chi-squared
-    statistic, which is commonly used to evaluate how well a model
-    fits a set of observations.  It includes the following methods
+    This class provides a framework for computing the chi-squared statistic,
+    which is commonly used to evaluate how well a model fits a set of
+    observations.
 
-    - residuals: Computes the difference between observed data and model predictions.
-    - weighted_residuals: Computes residuals normalized by the error.
-    - negative_log_likelihood: Computes the sum of squared weighted residuals,
-      which corresponds to negative twice the log-likelihood for Gaussian errors.
-
-    In this base implementation we assume that we have a simple
-    measurement of a single parameter with its 1-sigma error. The
-    class can be derived to implement different behavior by
-    overwriting the following attributes:
-
-    - data: The observed data values.
-    - model: A function or callable that takes parameters and returns model predictions.
-    - error: The uncertainties or standard deviations of the data points.
-
+    Attributes:
+        data: The observed data values.
+        model: A function that takes parameters and returns model predictions.
+        error: The uncertainties of the data points.
     """
 
     def __init__(self, parameter, mean, error):
-        """Likelihood for a single parameter measurement
+        """Initializes the Chi2 class for a single parameter measurement.
 
-        Parameters:
-        - parameter: 'str' name of the measured parameter
-        - mean: float measured value
-        - error: float 1-sigma error
+        Args:
+            parameter (str): The name of the measured parameter.
+            mean (float): The measured value.
+            error (float): The 1-sigma error.
         """
         self.data = jnp.array([mean])
         self.error = jnp.array([error])
         self.parameter = parameter
 
     def model(self, params):
-        """Model evaluation
+        """Evaluates the model.
 
-        In this basic case we simply return the parameter value
+        In this basic case, it simply returns the parameter value.
+
+        Args:
+            params (dict): A dictionary of model parameters.
+
+        Returns:
+            jnp.ndarray: The model prediction.
         """
         return jnp.array(params[self.parameter])
 
     def residuals(self, params):
-        """
-        Calculate the residuals between data and model predictions.
+        """Calculates the residuals between data and model predictions.
 
-        Parameters:
-        - params: A dictionary or list of model parameters.
+        Args:
+            params (dict): A dictionary of model parameters.
 
         Returns:
-        - numpy.ndarray: An array of residuals where residuals = data - model(params).
+            jnp.ndarray: An array of residuals (data - model).
         """
         return self.data - self.model(params)
 
     def weighted_residuals(self, params):
-        """
-        Calculate the weighted residuals, normalizing by the error.
+        """Calculates the weighted residuals, normalizing by the error.
 
-        Parameters:
-        - params: A dictionary or list of model parameters.
+        Args:
+            params (dict): A dictionary of model parameters.
 
         Returns:
-        - numpy.ndarray: An array where each element is residual/error.
+            jnp.ndarray: An array where each element is residual/error.
         """
         return self.residuals(params) / self.error
 
     def negative_log_likelihood(self, params):
-        """Compute the negative log-likelihood, which is equivalent to half
-        the chi-squared statistic for normally distributed errors.
+        """Computes the negative log-likelihood.
 
-        Parameters:
-        - params: A dictionary or list of model parameters.
+        This is equivalent to half the chi-squared statistic for normally
+        distributed errors.
+
+        Args:
+            params (dict): A dictionary of model parameters.
 
         Returns:
-        - float: The sum of the squares of the weighted residuals, representing
-          -2 * ln(likelihood) for Gaussian errors.
-
+            float: The sum of the squares of the weighted residuals.
         """
         return (self.weighted_residuals(params) ** 2).sum()
 
     def initial_guess(self, params):
-        """
-        Append relevant starting point for nuisance parameters to the parameter dictionary
+        """Appends starting points for nuisance parameters.
 
+        Args:
+            params (dict): The initial parameter dictionary.
+
+        Returns:
+            dict: The updated parameter dictionary.
         """
         return params
 
     def draw(self, params):
-        """Draw a Gaussian random realisation of the model
+        """Draws a Gaussian random realization of the model.
 
-        Used in simulation and test
+        Used in simulations and tests.
+
+        Args:
+            params (dict): A dictionary of model parameters.
         """
         self.data = self.model(params) + tools.randn(self.error)
 
 
 class Chi2FullCov(Chi2):
-    """Same as Chi2 but with dense covariane instead of independant errors
+    """Chi2 evaluation with a dense covariance matrix.
 
-    The class assumes that self.upper_factor containts the upper cholesky factor
-    of the inverse of the covariance matrix of the measurements.
-
+    This class assumes that `self.upper_factor` contains the upper Cholesky
+    factor of the inverse of the covariance matrix of the measurements.
     """
 
     def weighted_residuals(self, params):
-        """
-        Calculate the weighted residuals, normalizing by the error.
+        """Calculates the weighted residuals using the covariance matrix.
 
-        Parameters:
-        - params: A dictionary or list of model parameters.
+        Args:
+            params (dict): A dictionary of model parameters.
 
         Returns:
-        - numpy.ndarray: An array where each element is residual/error.
+            jnp.ndarray: The array of weighted residuals.
         """
         return self.upper_factor @ self.residuals(params)
 
 
 class MuMeasurements(Chi2FullCov):
-    """Fully correlated measurements of distance modulus at given redshifts
+    """Likelihood for fully correlated measurements of distance modulus.
 
     Note:
-    -----
-
-    Using this prior introduce a new nuisance parameter "M" which is
-    the absolute magnitude of Supernovae. Be careful when combining
-    several supernovae measurement, because they will all share the
-    same nuisance parameter.
-
+        Using this prior introduces a new nuisance parameter "M", the absolute
+        magnitude of Supernovae. Be careful when combining several supernovae
+        measurements, as they will all share the same nuisance parameter.
     """
 
     def __init__(self, z_cmb, mu, mu_cov=None, weights=None):
+        """Initializes the MuMeasurements class.
+
+        Args:
+            z_cmb (jnp.ndarray): Redshifts of the measurements.
+            mu (jnp.ndarray): Distance moduli.
+            mu_cov (jnp.ndarray, optional): Covariance matrix of the distance
+                moduli. Defaults to None.
+            weights (jnp.ndarray, optional): Inverse of the covariance matrix.
+                If not provided, it is computed from `mu_cov`. Defaults to None.
+        """
         self.z_cmb = jnp.atleast_1d(z_cmb)
         self.data = jnp.atleast_1d(mu)
         if weights is None:
@@ -152,58 +154,92 @@ class MuMeasurements(Chi2FullCov):
         self.upper_factor = jnp.linalg.cholesky(self.weights, upper=True)
 
     def model(self, params):
+        """Calculates the model for the distance modulus.
+
+        Args:
+            params (dict): A dictionary of model parameters.
+
+        Returns:
+            jnp.ndarray: The predicted distance moduli.
+        """
         return distances.mu(params, self.z_cmb) + params["M"]
 
     def initial_guess(self, params):
+        """Appends starting points for nuisance parameters.
+
+        Args:
+            params (dict): The initial parameter dictionary.
+
+        Returns:
+            dict: The updated parameter dictionary.
+        """
         return dict(params, M=0.0)
 
 
 class DiagMuMeasurements(Chi2):
-    """Independent measurements of distance modulus at given redshifts
+    """Likelihood for independent measurements of distance modulus.
 
     Note:
-    -----
-
-    Using this prior introduce a new nuisance parameter "M" which is
-    the absolute magnitude of Supernovae. Be careful when combining
-    several supernovae measurement, because they will all share the
-    same nuisance parameter.
+        Using this prior introduces a new nuisance parameter "M", the absolute
+        magnitude of Supernovae. Be careful when combining several supernovae
+        measurements, as they will all share the same nuisance parameter.
     """
 
     def __init__(self, z_cmb, mu, mu_err):
+        """Initializes the DiagMuMeasurements class.
+
+        Args:
+            z_cmb (jnp.ndarray): Redshifts of the measurements.
+            mu (jnp.ndarray): Distance moduli.
+            mu_err (jnp.ndarray): Errors on the distance moduli.
+        """
         self.z_cmb = jnp.atleast_1d(z_cmb)
         self.data = jnp.atleast_1d(mu)
         self.error = jnp.atleast_1d(mu_err)
 
     def model(self, params):
+        """Calculates the model for the distance modulus.
+
+        Args:
+            params (dict): A dictionary of model parameters.
+
+        Returns:
+            jnp.ndarray: The predicted distance moduli.
+        """
         return distances.mu(params, self.z_cmb) + params["M"]
 
     def initial_guess(self, params):
+        """Appends starting points for nuisance parameters.
+
+        Args:
+            params (dict): The initial parameter dictionary.
+
+        Returns:
+            dict: The updated parameter dictionary.
+        """
         return dict(params, M=0.0)
 
 
 class GeometricCMBLikelihood(Chi2FullCov):
-    """An easy-to-work-with summary of CMB measurements
+    """A compressed summary of CMB measurements.
 
     Note:
-    -----
-
-    See e.g. Komatsu et al. 2009 for a discussion on the compression
-    of the CMB measurement into a scale measurement. At first order
-    the covariance matrix between the density parameters and the
-    angular scale capture the same constraints as the scale parameter.
+        See e.g. Komatsu et al. 2009 for a discussion on the compression of
+        the CMB measurement into a scale measurement. At first order, the
+        covariance matrix between the density parameters and the angular scale
+        captures the same constraints as the scale parameter.
     """
 
     def __init__(self, mean, covariance, param_names=None):
-        """
-        Parameters:
-        -----------
-        mean: best-fit values for the parameters
-        covariance: covariance matrix of vector mean
-        param_names: Parameter names constrained by the prior
-                     (by default ["Omega_bh2", "Omega_c_h2", and "100theta_MC"])
-                     Can be any combination of names from the primary parameter vector
-                     and secondary parameters computed in the model function
+        """Initializes the GeometricCMBLikelihood class.
+
+        Args:
+            mean (list or jnp.ndarray): Best-fit values for the parameters.
+            covariance (list or jnp.ndarray): Covariance matrix of the mean vector.
+            param_names (list, optional): Parameter names constrained by the
+                prior. Defaults to `["Omega_b_h2", "Omega_c_h2", "100theta_MC"]`.
+                Can be any combination of names from the primary parameter
+                vector and secondary parameters computed in the model function.
         """
         if param_names is None:
             param_names = ["Omega_b_h2", "Omega_c_h2", "100theta_MC"]
@@ -216,6 +252,14 @@ class GeometricCMBLikelihood(Chi2FullCov):
         self.param_names = param_names
 
     def model(self, params):
+        """Calculates the model for the CMB parameters.
+
+        Args:
+            params (dict): A dictionary of model parameters.
+
+        Returns:
+            jnp.ndarray: The predicted CMB parameters.
+        """
         params = densities.process_params(params)
         params["Omega_c_h2"] = params["Omega_c"] * (params["H0"] ** 2 * 1e-4)
         params["Omega_bc_h2"] = params["Omega_bc"] * (params["H0"] ** 2 * 1e-4)
@@ -225,27 +269,28 @@ class GeometricCMBLikelihood(Chi2FullCov):
         # return jnp.array([params["Omega_b_h2"], Omega_c_h2, theta_MC(params)])
 
     def draw(self, params):
+        """Draws a random realization of the model.
+
+        Args:
+            params (dict): A dictionary of model parameters.
+        """
         m = self.model(params)
         n = jnp.linalg.solve(self.upper_factor, tools.randn(1, n=len(m)))
         self.data = m + n
 
 
 class UncalibratedBAOLikelihood(Chi2FullCov):
-    """BAO measurements with r_d as a free parameter"""
+    """Likelihood for BAO measurements with r_d as a free parameter."""
 
     def __init__(self, redshifts, data, covariance, dist_type_labels):
-        """
-        Parameters:
-        -----------
-        redshifts: BAO redshifts
+        """Initializes the UncalibratedBAOLikelihood class.
 
-        data: BAO distances
-
-        covariance: covariance matrix of vector mean
-
-        dist_type_labels: list of labels for distances among
-        ['DV_over_rd', 'DM_over_rd', 'DH_over_rd']
-
+        Args:
+            redshifts (list or jnp.ndarray): BAO redshifts.
+            data (list or jnp.ndarray): BAO distances.
+            covariance (list or jnp.ndarray): Covariance matrix of the mean vector.
+            dist_type_labels (list): List of labels for distances among
+                ['DV_over_rd', 'DM_over_rd', 'DH_over_rd'].
         """
         self.redshifts = jnp.asarray(redshifts)
         self.data = jnp.asarray(data)
@@ -262,6 +307,7 @@ class UncalibratedBAOLikelihood(Chi2FullCov):
         self.dist_type_indices = self._convert_labels_to_indices()
 
     def _convert_labels_to_indices(self):
+        """Converts distance type labels to indices."""
         label_map = {
             "DV_over_rd": 0,
             "DM_over_rd": 1,
@@ -271,6 +317,14 @@ class UncalibratedBAOLikelihood(Chi2FullCov):
 
     @partial(jit, static_argnums=(0,))
     def model(self, params) -> jnp.ndarray:
+        """Calculates the model for the BAO distances.
+
+        Args:
+            params (dict): A dictionary of model parameters.
+
+        Returns:
+            jnp.ndarray: The predicted BAO distances.
+        """
         rd = params["rd"]
         choices = [
             distances.dV(params, self.redshifts),
@@ -280,33 +334,35 @@ class UncalibratedBAOLikelihood(Chi2FullCov):
         return jnp.choose(self.dist_type_indices, choices, mode="clip") / rd
 
     def initial_guess(self, params):
-        """
-        Append relevant starting point for nuisance parameters to the parameter dictionary
-
-        """
+        """Appends starting points for nuisance parameters."""
         return dict(params, rd=151.0)
 
 
 class CalibratedBAOLikelihood(UncalibratedBAOLikelihood):
-    """BAO measurements with rd computed from other parameters"""
+    """Likelihood for BAO measurements with rd computed from other parameters."""
 
     def model(self, params):
+        """Calculates the model for the BAO distances.
+
+        Args:
+            params (dict): A dictionary of model parameters.
+
+        Returns:
+            jnp.ndarray: The predicted BAO distances.
+        """
         rd = acoustic_scale.rd_approx(params)
         return super().model(dict(params, rd=rd))
 
     def initial_guess(self, params):
-        """
-        Append relevant starting point for nuisance parameters to the parameter dictionary
-
-        """
+        """Appends starting points for nuisance parameters."""
         return params
 
 
 @tools.cached
 def Pantheonplus():
-    """Return likelihood from the Pantheon+SHOES SNe-Ia measurement
+    """Returns the likelihood from the Pantheon+SHOES SNe-Ia measurement.
 
-    bibcode: 2022ApJ...938..113S
+    See bibcode: 2022ApJ...938..113S.
     """
     data = tools.load_csv_from_url(
         "https://github.com/PantheonPlusSH0ES/DataRelease/raw/refs/heads/main/Pantheon+_Data/"
@@ -328,9 +384,9 @@ def Pantheonplus():
 
 @tools.cached
 def DES5yr():
-    """Return likelihood from the DES 5year SNe-Ia survey
+    """Returns the likelihood from the DES 5-year SNe-Ia survey.
 
-    bibcode: 2024ApJ...973L..14D
+    See bibcode: 2024ApJ...973L..14D.
     """
     des_data = tools.load_csv_from_url(
         "https://github.com/des-science/DES-SN5YR/raw/refs/heads/main/4_DISTANCES_COVMAT/"
@@ -351,9 +407,9 @@ def DES5yr():
 
 @tools.cached
 def Union3():
-    """Return likelihood from the Union 3 compilation
+    """Returns the likelihood from the Union 3 compilation.
 
-    bibcode: 2023arXiv231112098R
+    See bibcode: 2023arXiv231112098R.
     """
     from astropy.io import fits  # pylint: disable=import-outside-toplevel
 
@@ -369,9 +425,9 @@ def Union3():
 
 @tools.cached
 def JLA():
-    """Return likelihood from the Joint Light-curve Analysis compilation
+    """Returns the likelihood from the Joint Light-curve Analysis compilation.
 
-    bibcode: 2014A&A...568A..22B
+    See bibcode: 2014A&A...568A..22B.
     """
     from astropy.io import fits  # pylint: disable=import-outside-toplevel
 
@@ -391,14 +447,12 @@ def JLA():
 
 
 def Planck2018():
-    """Geometric prior for Planck 2018 release
+    """Returns the geometric prior from the Planck 2018 release.
 
     The values have been extracted from the cosmomc archive. Relevant
     files for the central values and covariance were:
-
     - base_plikHM_TTTEEE_lowl_lowE.likestats
     - base_plikHM_TTTEEE_lowl_lowE.covmat
-
     """
     planck2018_prior = GeometricCMBLikelihood(
         [2.2337930e-02, 1.2041740e-01, 1.0409010e00],
@@ -412,8 +466,9 @@ def Planck2018():
 
 
 def PR4():
-    """
-    From DESI DR2 results https://arxiv.org/pdf/2503.14738 Appendix A
+    """Returns the geometric prior from DESI DR2 results.
+
+    See https://arxiv.org/pdf/2503.14738 Appendix A.
     """
     return GeometricCMBLikelihood(
         [0.01041, 0.02223, 0.14208],
@@ -430,9 +485,9 @@ def PR4():
 
 
 def DESIDR2(uncalibrated=False):
-    """
-    From DESI DR2 results https://arxiv.org/pdf/2503.14738 Table IV
-    :return:
+    """Returns the likelihood from DESI DR2 results.
+
+    See https://arxiv.org/pdf/2503.14738 Table IV.
     """
     Prior = UncalibratedBAOLikelihood if uncalibrated else CalibratedBAOLikelihood
     desi2025_prior = Prior(
@@ -501,9 +556,9 @@ def DESIDR2(uncalibrated=False):
 
 
 def DESIDR1(uncalibrated=False):
-    """
-    From DESI YR1 results https://arxiv.org/pdf/2404.03002 Table 1
-    :return:
+    """Returns the likelihood from DESI YR1 results.
+
+    See https://arxiv.org/pdf/2404.03002 Table 1.
     """
     Prior = UncalibratedBAOLikelihood if uncalibrated else CalibratedBAOLikelihood
     desi2024_prior = Prior(
@@ -568,18 +623,33 @@ def DESIDR1(uncalibrated=False):
 
 
 class BBNNeffLikelihood(GeometricCMBLikelihood):
-    """Prior of the couple (Omega_b_h2, Neff)"""
+    """Prior on the couple (Omega_b_h2, Neff)."""
 
     def __init__(self, mean, covariance):
+        """Initializes the BBNNeffLikelihood class.
+
+        Args:
+            mean (list or jnp.ndarray): Best-fit values for the parameters.
+            covariance (list or jnp.ndarray): Covariance matrix of the mean vector.
+        """
         GeometricCMBLikelihood.__init__(self, mean, covariance)
 
     def model(self, params):
+        """Calculates the model for the BBN parameters.
+
+        Args:
+            params (dict): A dictionary of model parameters.
+
+        Returns:
+            jnp.ndarray: The predicted BBN parameters.
+        """
         return jnp.array([params["Omega_b_h2"], params["Neff"]])
 
 
 def BBNNeffSchoneberg2024():
-    """
-    BBN measurement from https://arxiv.org/abs/2401.15054
+    """Returns the BBN measurement from Schoeneberg et al. 2024.
+
+    See https://arxiv.org/abs/2401.15054.
     """
 
     bbn_prior = BBNNeffLikelihood(
@@ -590,8 +660,9 @@ def BBNNeffSchoneberg2024():
 
 
 def BBNSchoneberg2024():
-    """
-    BBN measurement from https://arxiv.org/abs/2401.15054
+    """Returns the BBN measurement from Schoeneberg et al. 2024.
+
+    See https://arxiv.org/abs/2401.15054.
     """
 
     bbn_prior = Chi2("Omega_b_h2", 0.02218, 0.00055)
@@ -599,7 +670,8 @@ def BBNSchoneberg2024():
 
 
 def SH0ES():
-    """
-    H0 measurement from Murakami et al. 2023 (doi:10.1088/1475-7516/2023/11/046)
+    """Returns the H0 measurement from Murakami et al. 2023.
+
+    See doi:10.1088/1475-7516/2023/11/046.
     """
     return Chi2("H0", 73.29, 0.90)

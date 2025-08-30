@@ -1,6 +1,4 @@
-"""
-Fitting formulae for the acoustic scale
-"""
+"""Fitting formulae for the acoustic scale."""
 
 import jax.numpy as jnp
 from cosmologix import densities
@@ -8,12 +6,17 @@ from .tools import Constants
 from .distances import dM
 
 
-#
-# Approximation for z_star and z_drag
-#
 def z_star(params):
-    """Redshift of the recombination
-    From Hu & Sugiyama (1996) Eq. E-1
+    """Redshift of the recombination.
+
+    From Hu & Sugiyama (1996) Eq. E-1.
+
+    Args:
+        params (dict): A dictionary of cosmological parameters. Must contain
+            'Omega_b_h2', 'H0', 'Omega_bc', and 'Omega_nu'.
+
+    Returns:
+        float: The redshift of recombination.
     """
     Omega_b_h2 = params["Omega_b_h2"]
     h2 = params["H0"] ** 2 * 1e-4
@@ -24,10 +27,17 @@ def z_star(params):
 
 
 def z_drag(params):
-    """Redshift of the drag epoch
+    """Redshift of the drag epoch.
 
     Fitting formulae for adiabatic cold dark matter cosmology.
-    Eisenstein & Hu (1997) Eq.4, ApJ 496:605
+    From Eisenstein & Hu (1997) Eq. 4, ApJ 496:605.
+
+    Args:
+        params (dict): A dictionary of cosmological parameters. Must contain
+            'Omega_bc', 'H0', and 'Omega_b_h2'.
+
+    Returns:
+        float: The redshift of the drag epoch.
     """
     omegamh2 = params["Omega_bc"] * (params["H0"] * 1e-2) ** 2
     b1 = 0.313 * (omegamh2**-0.419) * (1 + 0.607 * omegamh2**0.674)
@@ -41,13 +51,18 @@ def z_drag(params):
 
 
 def dsound_da_approx(params, a):
-    """Approximate form of the sound horizon used by cosmomc for theta
+    """Approximate form of the sound horizon used by cosmomc for theta.
 
-    Notes
-    -----
+    Note:
+        This is to be used in comparison with values in the cosmomc chains.
 
-    This is to be used in comparison with values in the cosmomc chains
+    Args:
+        params (dict): A dictionary of cosmological parameters. Must contain
+            'Omega_b_h2' and 'H0'.
+        a (float): The scale factor.
 
+    Returns:
+        float: The approximate value of d(sound_horizon)/da.
     """
     z = 1 / a - 1
     return 1.0 / (
@@ -59,11 +74,18 @@ def dsound_da_approx(params, a):
 
 
 def dsound_da(params, a):
-    """The exact integrand in the computation of rs
+    """The exact integrand in the computation of the sound horizon.
 
-    Notes
-    -----
-    see e.g. Komatsu et al. (2009) eq. 6
+    Note:
+        See e.g. Komatsu et al. (2009) eq. 6.
+
+    Args:
+        params (dict): A dictionary of cosmological parameters. Must contain
+            'Omega_b', 'Omega_gamma', and 'H0'.
+        a (float): The scale factor.
+
+    Returns:
+        float: The value of d(sound_horizon)/da.
     """
     z = 1 / a - 1
     return 1.0 / (
@@ -77,7 +99,15 @@ def dsound_da(params, a):
 
 
 def rs(params, z):
-    """The comoving sound horizon size in Mpc"""
+    """The comoving sound horizon size in Mpc.
+
+    Args:
+        params (dict): A dictionary of cosmological parameters.
+        z (float): The redshift.
+
+    Returns:
+        float: The comoving sound horizon size in Mpc.
+    """
     nstep = 1000
     a = 1.0 / (1.0 + z)
     _a = jnp.linspace(1e-8, a, nstep)
@@ -87,11 +117,18 @@ def rs(params, z):
 
 
 def rs_approx(params, z):
-    """The approximated comoving sound horizon size in Mpc
+    """The approximated comoving sound horizon size in Mpc.
 
-    Notes
-    -----
-    Uses dsound_da_approx which is the formula in use to compute 100θ_MC in cosmomc
+    Note:
+        Uses `dsound_da_approx` which is the formula in use to compute
+        100*theta_MC in cosmomc.
+
+    Args:
+        params (dict): A dictionary of cosmological parameters.
+        z (float): The redshift.
+
+    Returns:
+        float: The approximated comoving sound horizon size in Mpc.
     """
     nstep = 1000
     a = 1.0 / (1.0 + z)
@@ -102,17 +139,29 @@ def rs_approx(params, z):
 
 
 def rd(params):
-    """
-    The comoving sound horizon size at drag redshift in Mpc
+    """The comoving sound horizon size at drag redshift in Mpc.
+
+    Args:
+        params (dict): A dictionary of cosmological parameters.
+
+    Returns:
+        float: The comoving sound horizon size at drag redshift in Mpc.
     """
     par = densities.process_params(params)
     return rs(par, z_drag(par))
 
 
 def rd_approx(params):
-    """
-    Fit formula for the comoving sound horizon size at drag redshift in Mpc
-    Formula from DESI 1yr cosmological result paper arxiv:2404.03002
+    """Fit formula for the comoving sound horizon size at drag redshift in Mpc.
+
+    Formula from DESI 1yr cosmological result paper arxiv:2404.03002.
+
+    Args:
+        params (dict): A dictionary of cosmological parameters. Must contain
+            'Omega_b_h2', 'Omega_bc', 'H0', and 'Neff'.
+
+    Returns:
+        float: The approximated comoving sound horizon size at drag redshift in Mpc.
     """
     omega_b = params["Omega_b_h2"]
     omega_m = params["Omega_bc"] * (params["H0"] / 100) ** 2
@@ -125,10 +174,16 @@ def rd_approx(params):
 
 
 def theta_MC(params):
-    """CosmoMC approximation of acoustic scale angle
+    """CosmoMC approximation of the acoustic scale angle.
 
-    The code returns 100 θ_MC which is the sampling variable in Planck
+    The code returns 100 * theta_MC, which is the sampling variable in Planck
     chains.
+
+    Args:
+        params (dict): A dictionary of cosmological parameters.
+
+    Returns:
+        float: 100 * theta_MC.
     """
     params = densities.process_params(params)
     zstar = z_star(params)

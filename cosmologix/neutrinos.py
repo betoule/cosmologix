@@ -1,7 +1,4 @@
-"""
-contribution from neutrinos
-
-"""
+"""Contribution from neutrinos."""
 
 import jax.numpy as jnp
 import jax
@@ -16,56 +13,41 @@ jax.config.update("jax_enable_x64", True)
 
 
 def compute_cmb_photon_density(Tcmb):
-    """
-    Compute the energy density of CMB photons today in kg/m^3.
+    """Computes the energy density of CMB photons today in kg/m^3.
 
-    Parameters:
-    -----------
-    Tcmb : float
-        CMB temperature today in K.
+    Args:
+        Tcmb (float): CMB temperature today in K.
 
     Returns:
-    --------
-    float
-        Energy density of CMB photons in kg/m^3.
+        float: Energy density of CMB photons in kg/m^3.
     """
     return 4 * Constants.sigma * Tcmb**4 / Constants.c**3
 
 
 def compute_neutrino_temperature(Tcmb, Neff):
-    """
-    Calculate the neutrino distribution temperature today.
+    """Calculates the neutrino distribution temperature today.
 
     Based on the decoupling model described in 2005NuPhB.729..221M.
 
-    Parameters:
-    -----------
-    Tcmb: float
-        CMB temperature today in K.
-    Neff: float
-        effective number of neutrino species.
+    Args:
+        Tcmb (float): CMB temperature today in K.
+        Neff (float): Effective number of neutrino species.
 
     Returns:
-    --------
-    float
-        neutrino temperature today in K.
+        float: Neutrino temperature today in K.
     """
     return (4 / 11) ** (1.0 / 3) * (Neff / 3) ** (1.0 / 4) * Tcmb
 
 
 def compute_relativistic_neutrino_density(params):
-    """
-    Compute the energy density of relativistic neutrinos.
+    """Computes the energy density of relativistic neutrinos.
 
-    Parameters:
-    -----------
-    params : dict
-        A dictionary containing cosmological parameters.
+    Args:
+        params (dict): A dictionary containing cosmological parameters. Must
+            contain 'Neff' and 'Tcmb'.
 
     Returns:
-    --------
-    float
-        Energy density of relativistic neutrinos in kg/m^3.
+        float: Energy density of relativistic neutrinos in kg/m^3.
     """
     return (
         7.0
@@ -79,20 +61,15 @@ def compute_relativistic_neutrino_density(params):
 
 @safe_vmap()
 def compute_neutrino_density(params, z):
-    """
-    Calculate the energy density of neutrinos at redshift z.
+    """Calculates the energy density of neutrinos at redshift z.
 
-    Parameters:
-    -----------
-    params : dict
-        A dictionary containing cosmological parameters.
-    z : float or array
-        Redshift.
+    Args:
+        params (dict): A dictionary containing cosmological parameters. Must
+            contain 'm_nu_bar'.
+        z (float or jnp.ndarray): Redshift.
 
     Returns:
-    --------
-    float or array
-        Neutrino energy density at redshift z.
+        float or jnp.ndarray: Neutrino energy density at redshift z.
     """
     return (
         compute_relativistic_neutrino_density(params)
@@ -104,27 +81,22 @@ def compute_neutrino_density(params, z):
 
 @safe_vmap(in_axes=(0,))
 def compute_fermion_distribution_integral(m_bar):
-    r"""
-    Helper function to compute the integral of the energy distribution of massive fermions.
+    r"""Computes the integral of the energy distribution of massive fermions.
 
     This function evaluates:
-    \int_0^\inf x^3 \sqrt(1 + (m_bar/x)^2)/(e^x + 1) dx
+    `\int_0^\inf x^3 \sqrt(1 + (m_bar/x)^2)/(e^x + 1) dx`
 
-    Parameters:
-    -----------
-    m_bar : float or array
-        Reduced mass parameter \bar m.
+    Args:
+        m_bar (float or jnp.ndarray): Reduced mass parameter `\bar m`.
 
     Returns:
-    --------
-    float or array
-        The result of the integral.
+        float or jnp.ndarray: The result of the integral.
 
     Notes:
-    ------
-    This function admits expansions for the non-relativistic and ultra-relativistic cases.
-    It is also very smooth in between, allowing for significant speed-up by combining
-    expansions with a precomputed polynomial interpolant (see `compute_composite_integral`).
+        This function admits expansions for the non-relativistic and
+        ultra-relativistic cases. It is also very smooth in between, allowing
+        for significant speed-up by combining expansions with a precomputed
+        polynomial interpolant (see `compute_composite_integral`).
     """
 
     def integrand(x):
@@ -134,60 +106,43 @@ def compute_fermion_distribution_integral(m_bar):
 
 
 def convert_mass_to_reduced_parameter(m_nu, T_nu):
-    """Convert neutrino masses from eV to the reduced energy parameter m_bar.
+    """Converts neutrino masses from eV to the reduced energy parameter m_bar.
 
-    m_bar = m c²/k_b T
+    `m_bar = m c^2 / (k_b T)`
 
-    While the rest of the code is generic, this function specifically
-    assume 2 massless species and 1 massive specie bearing the sum of
-    masses.
+    While the rest of the code is generic, this function specifically assumes
+    2 massless species and 1 massive species bearing the sum of masses.
 
-    Parameters:
-    -----------
-    m_nu: float
-        sum of neutrino masses in eV
-    T_nu: float
-        neutrino temperature today in K.
+    Args:
+        m_nu (float): Sum of neutrino masses in eV.
+        T_nu (float): Neutrino temperature today in K.
 
     Returns:
-    --------
-    jnp.array
-        Array of reduced mass parameters for neutrinos.
-
+        jnp.ndarray: Array of reduced mass parameters for neutrinos.
     """
     return jnp.array([m_nu, 0.0, 0.0]) * Constants.e / (Constants.k * T_nu)
 
 
 def analytical_small_mass_expansion(m_bar):
-    """
-    Analytical expansion for small mass parameter.
+    """Analytical expansion for small mass parameter.
 
-    Parameters:
-    -----------
-    m_bar : float or array
-        Reduced mass parameter.
+    Args:
+        m_bar (float or jnp.ndarray): Reduced mass parameter.
 
     Returns:
-    --------
-    float or array
-        Approximation of the integral for small m_bar.
+        float or jnp.ndarray: Approximation of the integral for small `m_bar`.
     """
     return 7 * jnp.pi**4 / 120 * (1 + 5 / (7 * jnp.pi**2) * m_bar**2)
 
 
 def analytical_large_mass_expansion(m_bar):
-    """
-    Analytical expansion for large mass parameter.
+    """Analytical expansion for large mass parameter.
 
-    Parameters:
-    -----------
-    m_bar : float or array
-        Reduced mass parameter.
+    Args:
+        m_bar (float or jnp.ndarray): Reduced mass parameter.
 
     Returns:
-    --------
-    float or array
-        Approximation of the integral for large m_bar.
+        float or jnp.ndarray: Approximation of the integral for large `m_bar`.
     """
     return 3.0 / 2 * Constants.zeta3 * m_bar + 3 / (4 * m_bar) * 15 * Constants.zeta5
 
@@ -202,24 +157,19 @@ _interpolant = newton_interp(chebyshev_nodes_mass, None, newton_interpolation_co
 
 
 def interpolant(x):
-    """Newton interpolation of compute_fermion_distribution_integral in log space"""
+    """Newton interpolation of `compute_fermion_distribution_integral` in log space."""
     return _interpolant(jnp.log10(x))
 
 
 @safe_vmap(in_axes=(0,))
 def compute_composite_integral(x):
-    """
-    Compute the integral using a composite approach of analytical expansions and interpolation.
+    """Computes the integral using analytical expansions and interpolation.
 
-    Parameters:
-    -----------
-    x : float or array
-        Reduced mass parameter.
+    Args:
+        x (float or jnp.ndarray): Reduced mass parameter.
 
     Returns:
-    --------
-    float or array
-        The composite integral result.
+        float or jnp.ndarray: The composite integral result.
     """
     # Compute the index based on x
     mass_thresholds = jnp.array([0.01, 1000])
