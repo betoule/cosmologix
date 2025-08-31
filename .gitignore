@@ -47,17 +47,6 @@ coverage.xml
 *.mo
 *.pot
 
-# Django stuff:
-*.log
-*.sqlite3
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
 # Sphinx documentation
 docs/_build/
 
@@ -71,8 +60,6 @@ target/
 # pyenv
 .python-version
 
-# celery beat schedule file
-celerybeat-schedule
 
 # SageMath parsed files
 *.sage.py
@@ -82,12 +69,6 @@ celerybeat-schedule
 env/
 venv/
 ENV/
-
-# Spyder project settings
-.spyproject
-
-# Rope project settings
-.ropeproject
 
 # mypy
 .mypy_cache/
