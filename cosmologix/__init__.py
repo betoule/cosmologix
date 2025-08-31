@@ -1,15 +1,15 @@
-"""Python package for computing cosmological distances, and
-cosmological parameter fit in JAX.
+"""Python package for computing cosmological distances and parameters.
 
-Look into cosmologix.cli for high level functions.
+This package provides tools for cosmological parameter fitting in JAX.
 
-The core library is organized as follows:
-- distances: common cosmological functions
-- parameters: default cosmological parameters
-- likelihoods: observationnal constraints from various probes
-- fitter: chi2 minimization in jax
-- contours: frequentist confidence contours
-- display: plotting tools
+Modules:
+    cli: High-level functions for command-line interface.
+    distances: Common cosmological functions.
+    parameters: Default cosmological parameters.
+    likelihoods: Observational constraints from various probes.
+    fitter: Chi-squared minimization in JAX.
+    contours: Frequentist confidence contours.
+    display: Plotting tools.
 """
 
 __all__ = [

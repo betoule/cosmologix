@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-"""Cosmologix high level interface
+"""Cosmologix high level interface.
 
 A collection of script for common tasks also made available from the
-command line thanks to typer
+command line thanks to typer.
 
 """
 
@@ -25,7 +25,16 @@ app = Typer(
 
 
 def auto_restricted_fit(priors, fixed, verbose):
-    """Test if there is unconstrained parameters"""
+    """Tests for and fixes unconstrained parameters in a fit.
+
+    Args:
+        priors (list): A list of likelihood priors.
+        fixed (dict): A dictionary of fixed parameters.
+        verbose (bool): Whether to print verbose output.
+
+    Returns:
+        dict: The fit result.
+    """
     from . import fitter
 
     for _ in range(3):
@@ -73,7 +82,7 @@ def fit(
         ),
     ] = None,
 ):
-    """Find bestfit cosmological model."""
+    """Finds the best-fit cosmological model."""
     from . import fitter, display, tools
 
     fix = fix or []
@@ -145,7 +154,7 @@ def explore(
         ),
     ] = "",
 ):
-    """Build 1D or 2D frequentists confidence maps"""
+    """Builds 1D or 2D frequentist confidence maps."""
     from cosmologix import contours, tools
 
     fix = fix or []
@@ -266,7 +275,7 @@ def contour(
         bool, Option("--latex", help="Plot in paper format using LaTeX")
     ] = False,
 ):
-    """Display (or save) a contour plot from explore output."""
+    """Displays or saves a contour plot from the output of `explore`."""
     from cosmologix import tools, display
     import matplotlib.pyplot as plt
 
@@ -334,7 +343,7 @@ def corner(
         bool, Option("--latex", help="Plot in paper format using LaTeX")
     ] = False,
 ):
-    """Produce a corner plot for a set of results."""
+    """Produces a corner plot for a set of results."""
     from cosmologix import display, tools
     import matplotlib.pyplot as plt
     import jax.numpy as jnp
@@ -402,14 +411,14 @@ def clear_cache(
         bool, Option("--jit", "-j", help="Clear only the persistent jit cache")
     ],
 ):
-    """Clear cached data."""
+    """Clears cached data."""
     from cosmologix import tools
 
     tools.clear_cache(jit)
 
 
 def main():
-    """Cosmologix Command Line Interface."""
+    """The main entry point for the Cosmologix command-line interface."""
     app()
 
 
