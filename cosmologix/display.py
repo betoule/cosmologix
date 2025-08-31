@@ -13,14 +13,14 @@ color_theme = ["#fbb4ae", "#b3cde3", "#ccebc5", "#decbe4", "#fed9a6", "#ffffcc"]
 
 latex_translation = {
     "Tcmb": r"$T_{cmb}$",
-    "Omega_m": r"$\\Omega_m$",
-    "Omega_bc": r"$\\Omega_{bc}$",
+    "Omega_m": r"$\Omega_m$",
+    "Omega_bc": r"$\Omega_{bc}$",
     "H0": r"$H_0$",
-    "Omega_b_h2": r"$\\Omega_b h^2$",
-    "Omega_k": r"$\\Omega_k$",
+    "Omega_b_h2": r"$\Omega_b h^2$",
+    "Omega_k": r"$\Omega_k$",
     "w": r"$w_0$",
     "wa": r"$w_a$",
-    "m_nu": r"$\\sum m_\\nu$",
+    "m_nu": r"$\sum m_\nu$",
     "Neff": r"$N_{eff}$",
     "M": r"$M_B$",
 }
@@ -75,7 +75,7 @@ def pretty_print(result):
         else:
             # Number of decimal places to align with first significant digit of uncertainty
             precision = max(0, -int(jnp.floor(jnp.log10(abs(uncertainty)))) + 1)
-        fmt = f"{{:.{{precision}}f}}"
+        fmt = f"{{:.{precision}f}}"
         print(f"{param} = {fmt.format(value)} ± {fmt.format(uncertainty)}")
     chi2 = result["loss"][-1]
     residuals = result["residuals"]
