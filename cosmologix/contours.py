@@ -15,7 +15,7 @@ from .fitter import (
     LikelihoodSum,
 )
 from .tools import conflevel_to_delta_chi2
-from .parameters import Planck18
+from .parameters import get_cosmo_params
 
 
 def frequentist_contour_2d(
@@ -57,7 +57,7 @@ def frequentist_contour_2d(
 
     # Update the initial guess with the nuisance parameters associated
     # with all involved likelihoods
-    params = likelihood.initial_guess(Planck18)
+    params = likelihood.initial_guess(get_cosmo_params())
     if fixed is not None:
         params.update(fixed)
         wres = restrict(likelihood.weighted_residuals, fixed)
@@ -158,7 +158,7 @@ def frequentist_contour_2d_sparse(
     likelihood = LikelihoodSum(likelihoods)
 
     # Initial setup (same as before)
-    params = likelihood.initial_guess(Planck18)
+    params = likelihood.initial_guess(get_cosmo_params())
     if fixed is not None:
         params.update(fixed)
         wres = restrict(likelihood.weighted_residuals, fixed)
@@ -333,7 +333,7 @@ def frequentist_1d_profile(
     likelihood = LikelihoodSum(likelihoods)
 
     # Initial setup (same as before)
-    params = likelihood.initial_guess(Planck18)
+    params = likelihood.initial_guess(get_cosmo_params())
     if fixed is not None:
         params.update(fixed)
         wres = restrict(likelihood.weighted_residuals, fixed)

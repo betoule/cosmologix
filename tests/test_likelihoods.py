@@ -1,6 +1,6 @@
 from cosmologix import likelihoods, tools
 from cosmologix.fitter import unflatten_vector, flatten_vector, LikelihoodSum
-from cosmologix.parameters import Planck18
+from cosmologix.parameters import get_cosmo_params
 import jax
 import jax.numpy as jnp
 from numpy.testing import assert_allclose
@@ -28,7 +28,7 @@ def func_and_derivatives(func, x, jac=False, hessian=False, funcname=""):
 
 
 def get_like_func(likelihood, fix=["Omega_k"]):
-    params = likelihood.initial_guess(Planck18.copy())
+    params = likelihood.initial_guess(get_cosmo_params())
     fixed = dict([(p, params.pop(p)) for p in fix])
     x = flatten_vector(params)
 
@@ -86,6 +86,6 @@ if __name__ == "__main__":
     from cosmologix.tools import speed_measurement
 
     for name, likelihood in priors.items():
-        params = likelihood.initial_guess(Planck18.copy())
+        params = likelihood.initial_guess(get_cosmo_params())
         # print(name, speed_measurement(likelihood.negative_log_likelihood, params))
         print(name, speed_measurement(likelihood.weighted_residuals, params))

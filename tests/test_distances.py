@@ -1,6 +1,6 @@
 from cosmologix import densities
 from cosmologix.distances import H, mu
-from cosmologix.parameters import Planck18, lcdm_deviation
+from cosmologix.parameters import lcdm_deviation
 import pyccl as ccl
 import jax.numpy as jnp
 import jax

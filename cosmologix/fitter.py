@@ -6,7 +6,7 @@ import time
 from typing import Callable, Dict, Any
 import jax
 import jax.numpy as jnp
-from .parameters import Planck18
+from .parameters import get_cosmo_params
 
 
 def flatten_vector(v):
@@ -366,7 +366,7 @@ def fit(likelihoods, fixed=None, verbose=False, initial_guess=None):
         verbose (bool, optional): If True, prints progress information.
             Defaults to False.
         initial_guess (dict, optional): An initial guess for the parameters.
-            Defaults to `Planck18`.
+            Defaults to `get_cosmo_params()` (PlanckBAO18).
 
     Returns:
         dict: A dictionary containing:
@@ -397,7 +397,7 @@ def fit(likelihoods, fixed=None, verbose=False, initial_guess=None):
         fixed = {}
 
     if initial_guess is None:
-        initial_guess = Planck18.copy()
+        initial_guess = get_cosmo_params()
     likelihood = LikelihoodSum(likelihoods)
 
     # Pick up a good starting point

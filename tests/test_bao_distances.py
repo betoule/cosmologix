@@ -1,6 +1,6 @@
 from cosmologix.acoustic_scale import rs, z_star, z_drag, theta_MC, dM, dsound_da_approx
-from cosmologix.parameters import Planck18
-from test_distances import params_to_CAMB, lcdm_deviation
+from cosmologix.parameters import get_cosmo_params
+from test_distances import params_to_CAMB
 import pyccl as ccl
 import jax
 import camb
@@ -14,19 +14,19 @@ if __name__ == "__main__":
     from cosmologix.likelihoods import DESIDR1Prior
 
     z = jnp.linspace(0.05, 2.5, 100)
-    rd1 = rs(Planck18, z_drag(Planck18))
-    rd2 = rd_approx(Planck18)
+    rd1 = rs(get_cosmo_params(), z_drag(get_cosmo_params()))
+    rd2 = rd_approx(get_cosmo_params())
 
     desi = DESIDR1Prior()
-    prediction = desi.model(Planck18)
+    prediction = desi.model(get_cosmo_params())
 
     desi_DV = desi.distances[desi.dist_type_indices == 0]
     desi_DM = desi.distances[desi.dist_type_indices == 1]
     desi_DH = desi.distances[desi.dist_type_indices == 2]
 
     fig = plt.figure(figsize=(8, 8))
-    plt.plot(z, dV(Planck18, z) / (rd1 * z ** (2 / 3)))
-    plt.plot(z, dV(Planck18, z) / (rd2 * z ** (2 / 3)))
+    plt.plot(z, dV(get_cosmo_params(), z) / (rd1 * z ** (2 / 3)))
+    plt.plot(z, dV(get_cosmo_params(), z) / (rd2 * z ** (2 / 3)))
     desi_DV_err = jnp.sqrt(
         desi.cov[desi.dist_type_indices == 0, desi.dist_type_indices == 0]
     )
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     plt.show()
 
     fig2 = plt.figure(figsize=(8, 8))
-    plt.plot(z, dM(Planck18, z) / (z * dH(Planck18, z)))
+    plt.plot(z, dM(get_cosmo_params(), z) / (z * dH(get_cosmo_params(), z)))
     desi_z = jnp.unique(desi.redshifts[desi.dist_type_indices != 0])
     desi_DM_over_DH = desi_DM / desi_DH / desi_z
     desi_DM_over_DH_err = desi_DM_over_DH * jnp.sqrt(

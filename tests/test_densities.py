@@ -1,7 +1,7 @@
 from test_distances import params_to_ccl
 from cosmologix.tools import speed_measurement
 from cosmologix import densities, neutrinos
-from cosmologix.parameters import Planck18
+from cosmologix.parameters import get_cosmo_params
 from cosmologix.distances import mu
 import jax.numpy as jnp
 import pyccl as ccl
@@ -52,8 +52,8 @@ def cosmologix_densities(params, z):
 
 def test_densities():
     z = jnp.logspace(jnp.log10(0.01), jnp.log10(1000), 3000)
-    d1 = cosmologix_densities(Planck18, z)
-    d2 = ccl_densities(Planck18, z)
+    d1 = cosmologix_densities(get_cosmo_params(), z)
+    d2 = ccl_densities(get_cosmo_params(), z)
     for specie in d1:
         print(f"testing densities for {specie}")
         # There is a rather large discrepancy in the handling of
@@ -63,7 +63,7 @@ def test_densities():
 
 
 if __name__ == "__main__":
-    params = densities.process_params(Planck18)
+    params = densities.process_params(get_cosmo_params())
     z = jnp.logspace(-2, 3, 1000)
     results = {}
     func_list = [
