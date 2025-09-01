@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import pyccl as ccl
 from cosmologix import neutrinos, densities
 from cosmologix.distances import mu
-from cosmologix.parameters import Planck18
+from cosmologix.parameters import get_cosmo_params
 import jax.numpy as jnp
 import numpy as np
 import jax
@@ -192,7 +192,7 @@ def cosmologix_densities(params, z):
     }
 
 
-def distance_accuracy(params=Planck18.copy(), title="distance_accuracy"):
+def distance_accuracy(params=get_cosmo_params(), title="distance_accuracy"):
     comparisons = {
         "ccl": mu_ccl,
         "camb": mu_camb,
@@ -217,7 +217,7 @@ def distance_accuracy(params=Planck18.copy(), title="distance_accuracy"):
     ax1.set_ylabel(r"$\mu$")
 
 
-def plot_densities(params=Planck18.copy(), title="densities"):
+def plot_densities(params=get_cosmo_params(), title="densities"):
     fig = plt.figure(title)
     ax1, ax2 = fig.subplots(2, 1, sharex=True)
     z = np.logspace(np.log10(0.01), np.log10(1000), 3000)
@@ -239,7 +239,7 @@ def plot_densities(params=Planck18.copy(), title="densities"):
 
 
 def lcdm_deviation(**keys):
-    params = Planck18.copy()
+    params = get_cosmo_params()
     params.update(keys)
     return params
 

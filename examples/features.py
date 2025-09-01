@@ -18,13 +18,13 @@ axes[1, 1].set_title("Frequentist contour exploration")
 #
 z_values = jnp.logspace(-2, 3.0, 1000)
 axes[0, 0].loglog(
-    z_values, distances.dL(parameters.Planck18, z_values), label="luminosity"
+    z_values, distances.dL(parameters.get_cosmo_params(), z_values), label="luminosity"
 )
 axes[0, 0].loglog(
-    z_values, distances.dM(parameters.Planck18, z_values), label="comoving"
+    z_values, distances.dM(parameters.get_cosmo_params(), z_values), label="comoving"
 )
 axes[0, 0].loglog(
-    z_values, distances.dA(parameters.Planck18, z_values), label="angular"
+    z_values, distances.dA(parameters.get_cosmo_params(), z_values), label="angular"
 )
 axes[0, 0].set_xlabel(r"$z$")
 axes[0, 0].set_ylabel(r"$D$ [Mpc]")
@@ -34,7 +34,7 @@ axes[0, 0].legend(frameon=False)
 # DERIVATIVES
 #
 dmu = jax.jacfwd(distances.mu)
-J = dmu(parameters.Planck18.copy(), z_values)
+J = dmu(parameters.get_cosmo_params(), z_values)
 for var in J:
     if var == "Omega_b_h2":
         continue
@@ -71,8 +71,8 @@ grid1 = contours.frequentist_contour_2d_sparse(
     grid={"Omega_bc": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]},
     fixed=dict(
         fixed,
-        H0=parameters.Planck18["H0"],
-        Omega_b_h2=parameters.Planck18["Omega_b_h2"],
+        H0=parameters.get_cosmo_params()["H0"],
+        Omega_b_h2=parameters.get_cosmo_params()["Omega_b_h2"],
     ),
 )
 grid = contours.frequentist_contour_2d_sparse(

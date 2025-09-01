@@ -1,8 +1,7 @@
 from cosmologix import (
-    Planck18,
     likelihoods,
-    lcdm_deviation,
-    fit,
+    parameters,
+    fitter,
     distances,
     acoustic_scale,
 )
@@ -12,20 +11,20 @@ import jax.numpy as jnp
 
 
 # Uncalibrated DESI prior
-desiu = likelihoods.DESIDR1Prior(True)
+desiu = likelihoods.DESIDR1(True)
 
 # Prep for flat ΛCDM fit
-fixed = lcdm_deviation()
+fixed = parameters.get_cosmo_params()
 fixed.pop("Omega_bc")
 
-results = fit([desiu], fixed=fixed, verbose=True, initial_guess=lcdm_deviation())
+results = fitter.fit([desiu], fixed=fixed, verbose=True, initial_guess=parameters.get_cosmo_params())
 
 # Reconstruct the full vector of parameters
-aparams = lcdm_deviation(**results["bestfit"])
+aparams = parameters.get_cosmo_params(**results["bestfit"])
 
 # Extract the Omega_bc and error
 Om = results["bestfit"]["Omega_bc"]
-eOm = jnp.sqrt(jnp.diag(results["FIM"]))[0]
+eOm = jnp.sqrt(jnp.diag(results["inverse_FIM"]))[0]
 
 # Compute residuals
 res = desiu.residuals(aparams)
@@ -60,7 +59,7 @@ for dist_type, distfunc, zscale, label in [
     )
     ax1.plot(
         z,
-        distfunc(Planck18, z) / (acoustic_scale.rd(Planck18) * z ** (zscale)),
+        distfunc(parameters.get_cosmo_params(), z) / (acoustic_scale.rd(parameters.get_cosmo_params()) * z ** (zscale)),
         color=l[0].get_color(),
         ls="--",
     )
