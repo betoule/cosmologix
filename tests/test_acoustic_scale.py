@@ -11,7 +11,7 @@ from cosmologix.acoustic_scale import (
 from cosmologix import densities
 from cosmologix.parameters import get_cosmo_params
 from cosmologix.tools import Constants
-from test_distances import params_to_CAMB, lcdm_deviation
+from test_distances import params_to_CAMB
 import pyccl as ccl
 import jax
 import camb
@@ -50,8 +50,8 @@ def timings():
 
 
 if __name__ == "__main__":
-    # params = lcdm_deviation(m_nu=0)
-    params = densities.process_params(lcdm_deviation())
+    # params = get_cosmo_params('Planck18', m_nu=0)
+    params = densities.process_params(get_cosmo_params("Planck18"))
     pars = params_to_CAMB(params)
     zstar = z_star(params)
     astar = 1 / (1 + zstar)

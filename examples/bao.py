@@ -17,7 +17,9 @@ desiu = likelihoods.DESIDR1(True)
 fixed = parameters.get_cosmo_params()
 fixed.pop("Omega_bc")
 
-results = fitter.fit([desiu], fixed=fixed, verbose=True, initial_guess=parameters.get_cosmo_params())
+results = fitter.fit(
+    [desiu], fixed=fixed, verbose=True, initial_guess=parameters.get_cosmo_params()
+)
 
 # Reconstruct the full vector of parameters
 aparams = parameters.get_cosmo_params(**results["bestfit"])
@@ -59,7 +61,8 @@ for dist_type, distfunc, zscale, label in [
     )
     ax1.plot(
         z,
-        distfunc(parameters.get_cosmo_params(), z) / (acoustic_scale.rd(parameters.get_cosmo_params()) * z ** (zscale)),
+        distfunc(parameters.get_cosmo_params(), z)
+        / (acoustic_scale.rd(parameters.get_cosmo_params()) * z ** (zscale)),
         color=l[0].get_color(),
         ls="--",
     )
