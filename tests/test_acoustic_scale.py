@@ -19,7 +19,7 @@ import jax.numpy as jnp
 
 
 def test_acoustic_scale():
-    params = densities.process_params(get_cosmo_params('Planck18'))
+    params = densities.process_params(get_cosmo_params("Planck18"))
     assert abs(z_star(params) - 1091.95) < 1e-2
     # The following are not really used in practice, still testing
     # them as they are provided for convenience.
@@ -34,19 +34,19 @@ def test_acoustic_scale():
     assert abs(theta_MC(params) - 1.04089) < 0.0001
     # Computation made by dividing alpha by reported distance in
     # arxiv/2404.03000
-    assert abs(rd_approx(get_cosmo_params('DESI2024YR1_Fiducial')) - 147.238) < 1e-2
+    assert abs(rd_approx(get_cosmo_params("DESI2024YR1_Fiducial")) - 147.238) < 1e-2
 
 
 def timings():
     zs = jax.jit(z_star)
     zd = jax.jit(z_drag)
     rsj = jax.jit(rs)
-    zs(get_cosmo_params('Planck18'))
-    zd(get_cosmo_params('Planck18'))
-    rsj(get_cosmo_params('Planck18'), zs(get_cosmo_params('Planck18')))
-    zs(get_cosmo_params('Planck18'))
-    zd(get_cosmo_params('Planck18'))
-    rsj(get_cosmo_params('Planck18'), zs(get_cosmo_params('Planck18')))
+    zs(get_cosmo_params("Planck18"))
+    zd(get_cosmo_params("Planck18"))
+    rsj(get_cosmo_params("Planck18"), zs(get_cosmo_params("Planck18")))
+    zs(get_cosmo_params("Planck18"))
+    zd(get_cosmo_params("Planck18"))
+    rsj(get_cosmo_params("Planck18"), zs(get_cosmo_params("Planck18")))
 
 
 if __name__ == "__main__":
