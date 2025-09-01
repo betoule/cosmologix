@@ -224,6 +224,15 @@ def mu(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarr
 
     Returns:
         The distance modulus as a jax.numpy.ndarray.
+
+    Notes:
+    
+        The default quadrature uses 1000 steps which does not provide
+        10⁻⁴ accuracy below z<0.01 (see
+        https://lemaitre.pages.in2p3.fr/cosmologix/numerical_results.html).
+        If your use case require high-accuracy at lower redshift
+        consider using nstep=10000 instead.
+
     """
     return 5 * jnp.log10(dL(params, z, nstep)) + 25
 
