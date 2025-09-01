@@ -73,6 +73,13 @@ def fit(
     show: Annotated[
         bool, Option("--show", "-s", help="Display best-fit results as a corner plot")
     ] = False,
+    strict_fom: Annotated[
+        bool,
+        Option(
+            "--strict-fom",
+            help="Report DETF FoM as reciprocal area of the 95% contour instead of the more commonly used 1/(sigma(w_p)sigma(w_a)).",
+        ),
+    ] = False,
     output: Annotated[
         Optional[str],
         Option(
@@ -101,7 +108,10 @@ def fit(
         result = auto_restricted_fit(priors, fixed, verbose)
     else:
         result = fitter.fit(priors, fixed=fixed, verbose=verbose)
-    display.pretty_print(result)
+    if strict_fom:
+        display.pretty_print(result, fom_scale=95)
+    else:
+        display.pretty_print(result, fom_scale="1sigma")
     result["label"] = "+".join(prior_names) + ("+SN" if mu is not None else "")
     if output:
         tools.save(result, output)

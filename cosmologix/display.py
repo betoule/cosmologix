@@ -26,18 +26,37 @@ latex_translation = {
 }
 
 
-def detf_fom(result):
+def detf_fom(result, scale="1sigma"):
     """Computes the Dark Energy Task Force (DETF) Figure of Merit (FoM).
 
     The FoM is calculated as the inverse of the square root of the
-    determinant of the w-wa covariance matrix.
+    determinant of the w-wa covariance matrix by default (standard
+    metric). Scale can be changed to reciprocal area of the 95%
+    confidence contour using scale=95 (sporadic use).
 
     Args:
         result (dict): A dictionary containing the Fisher matrix results,
             including 'bestfit' and 'inverse_FIM'.
+        scale (float or str): Choose the scale of the metric use
+            default for the standard FoM.
 
     Returns:
         float: The DETF Figure of Merit.
+
+    Notes:
+        The scale of this metric is sometimes confusing. The DETF
+        report (arxiv:0609591) defines the FoM as the reciprocal area
+        of the 95% confidence contour in w_0-w_a plane, but then
+        proceed in quoting the simpler and more commonly used metric:
+
+        (sigma(w_p)sigma(w_a))^-1
+
+        This is what this function return when scale='1sigma'
+        (default). If a confidence level is provided instead, the
+        reciprocal of the contour area = FoM/(πΔχ²) is returned. For
+        example scale=95 returns the reciprocal area of the 95%
+        confidence contour, which is about 20 times smaller.
+
     """
     bestfit = result["bestfit"]
     ifim = result["inverse_FIM"]  # covariance matrix
@@ -48,15 +67,21 @@ def detf_fom(result):
     # Retrieve indexes corresponding to param1 and 2
     index = [param_names.index("w"), param_names.index("wa")]
 
-    return 1.0 / np.sqrt(np.linalg.det(ifim[np.ix_(index, index)]))
+    reciprocal_area = 1.0 / np.sqrt(np.linalg.det(ifim[np.ix_(index, index)]))
+    if scale == "1sigma":
+        return reciprocal_area
+    else:
+        return reciprocal_area / (conflevel_to_delta_chi2(scale) * np.pi)
 
 
-def pretty_print(result):
+def pretty_print(result, fom_scale="1sigma"):
     """Pretty-prints best-fit parameters with uncertainties.
 
     Args:
         result (dict): A dictionary containing the fit results, including
             'bestfit', 'inverse_FIM', 'loss', and 'residuals'.
+        fom_scale: Which scaling is used to report the DETF FoM when
+            applicable.
     """
     bestfit = result["bestfit"]
     ifim = result["inverse_FIM"]  # covariance matrix
@@ -85,7 +110,7 @@ def pretty_print(result):
     # If the fit involves w and wa print the FOM
     print(f"p-value: {pvalue*100:.2f}%")
     if "w" in param_names and "wa" in param_names:
-        print(f"FOM={detf_fom(result):.1f}")
+        print(f"FOM={detf_fom(result, scale=fom_scale):.1f}")
 
 
 def plot_confidence_ellipse(
