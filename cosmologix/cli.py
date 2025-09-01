@@ -37,6 +37,7 @@ def auto_restricted_fit(priors, fixed, verbose):
     """
     from . import fitter
 
+    default_params = parameters.get_cosmo_params()
     for _ in range(3):
         try:
             result = fitter.fit(priors, fixed=fixed, verbose=verbose)
@@ -44,10 +45,10 @@ def auto_restricted_fit(priors, fixed, verbose):
         except fitter.UnconstrainedParameterError as e:
             for param in e.params:
                 print(f"Fixing unconstrained parameter {param[0]}")
-                fixed[param[0]] = parameters.Planck18[param[0]]
+                fixed[param[0]] = default_params[param[0]]
         except fitter.DegenerateParametersError:
             print("Try again fixing H0")
-            fixed["H0"] = parameters.Planck18["H0"]
+            fixed["H0"] = default_params["H0"]
     return result
 
 
@@ -98,7 +99,7 @@ def fit(
     priors = [cli_tools.get_prior(p) for p in prior_names] + cli_tools.load_mu(
         mu, mucov
     )
-    fixed = parameters.Planck18.copy()
+    fixed = parameters.get_cosmo_params()
     to_free = parameters.DEFAULT_FREE[cosmology].copy()
     for par in to_free + free:
         fixed.pop(par)
@@ -174,7 +175,7 @@ def explore(
     priors = [cli_tools.get_prior(p) for p in prior_names] + cli_tools.load_mu(
         mu, mucov
     )
-    fixed = parameters.Planck18.copy()
+    fixed = parameters.get_cosmo_params()
     to_free = parameters.DEFAULT_FREE[cosmology].copy()
     for par in to_free + free:
         fixed.pop(par)

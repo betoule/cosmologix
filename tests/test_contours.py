@@ -1,5 +1,4 @@
 from cosmologix import likelihoods, contours, tools, display
-from cosmologix.parameters import Planck18
 from cosmologix.distances import mu
 import jax.numpy as jnp
 import numpy as np

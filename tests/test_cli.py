@@ -19,7 +19,9 @@ def test_main_cli(tmp_path, capsys):
     # Create synthetic distance modulus data (100 points, mean=40, std=1)
     nz = 100
     z = np.logspace(-2, 0, nz)
-    mu_data = distances.mu(parameters.Planck18, z) + np.random.normal(0, 0.15, size=nz)
+    mu_data = distances.mu(parameters.get_cosmo_params(), z) + np.random.normal(
+        0, 0.15, size=nz
+    )
     # Create a diagonal covariance matrix (variances=0.1)
     cov_data = np.diag(np.full(nz, 0.15**2))
     np.save(mu_path, np.rec.fromarrays([z, mu_data], names=["z", "mu"]))

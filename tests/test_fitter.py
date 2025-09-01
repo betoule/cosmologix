@@ -4,7 +4,7 @@ from cosmologix import (
     acoustic_scale,
     display,
 )
-from cosmologix.parameters import Planck18, lcdm_deviation
+from cosmologix.parameters import get_cosmo_params
 from cosmologix.fitter import flatten_vector, unflatten_vector, restrict_to, fit
 import jax.numpy as jnp
 import jax
@@ -16,7 +16,7 @@ jax.config.update("jax_enable_x64", True)
 
 def control_fitter_bias_and_coverage(priors, point, fitter, ndraw=50):
     # Simulated data
-    params = Planck18.copy()
+    params = get_cosmo_params()
     params.update(point)
     likelihood = likelihoods.LikelihoodSum(priors)
 

@@ -1,6 +1,6 @@
 from cosmologix import densities
 from cosmologix.distances import H, mu
-from cosmologix.parameters import Planck18, lcdm_deviation
+from cosmologix.parameters import get_cosmo_params
 import pyccl as ccl
 import jax.numpy as jnp
 import jax
@@ -10,12 +10,12 @@ import camb
 # jax.config.update("jax_enable_x64", True)
 
 cosmologies = {
-    "flcdm": lcdm_deviation(),
-    "massless": lcdm_deviation(m_nu=0),
-    "opened": lcdm_deviation(Omega_k=0.01),
-    "closed": lcdm_deviation(Omega_k=-0.01),
-    "w0wa": lcdm_deviation(w=-0.9, wa=0.1),
-    "dark_energy": lcdm_deviation(w=-0.9),
+    "flcdm": get_cosmo_params("Planck18"),
+    "massless": get_cosmo_params("Planck18", m_nu=0),
+    "opened": get_cosmo_params("Planck18", Omega_k=0.01),
+    "closed": get_cosmo_params("Planck18", Omega_k=-0.01),
+    "w0wa": get_cosmo_params("Planck18", w=-0.9, wa=0.1),
+    "dark_energy": get_cosmo_params("Planck18", w=-0.9),
 }
 
 

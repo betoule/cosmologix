@@ -35,7 +35,7 @@ if __name__ == "__main__":
         "jax_cosmo": mu_jaxcosmo,
         "cosmoprimo": mu_cosmoprimo,
     }
-    params = Planck18.copy()
+    params = get_cosmo_params()
     ns = jnp.array([10, 30, 100, 300, 1000, 3000, 10000])
     result = {}
     for func in tested:

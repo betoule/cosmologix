@@ -4,6 +4,17 @@
 
 - [ ] Conversion of contours to different parameterisation (e.g. `Omega_bc` to `Omega_m`)
 
+### v0.9.8 (in prep.)
+- API refinement:
+  - introduction of `parameters.get_cosmo_params`
+  - deprecation of `parameters.lcdm_deviation`
+- Improved docstrings
+- Improved documentation
+- Clarify the scaling of the DETF FoM
+- Enable storing files in ASDF format
+- Shorten the paper
+- Minor bug Fixes
+
 ### v0.9.7 (current)
 - Improved documention
 - Refined API to simplify providing distance measurements

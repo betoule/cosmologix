@@ -138,6 +138,13 @@ def dM(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarr
 
     Returns:
         The transverse comoving distance in Mpc as a jax.numpy.ndarray.
+
+    Notes:
+        The default quadrature uses 1000 steps which does not provide
+        10⁻⁴ accuracy below z<0.01 (see
+        https://lemaitre.pages.in2p3.fr/cosmologix/numerical_results.html).
+        If your use case requires high-accuracy at lower redshift
+        consider using nstep=10000 instead.
     """
     index = -jnp.sign(params["Omega_k"]).astype(jnp.int8) + 1
     # we need to pass nstep explicitly to branches to avoid
@@ -164,6 +171,13 @@ def dL(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarr
 
     Returns:
         The luminosity distance in Mpc as a jax.numpy.ndarray.
+
+    Notes:
+        The default quadrature uses 1000 steps which does not provide
+        10⁻⁴ accuracy below z<0.01 (see
+        https://lemaitre.pages.in2p3.fr/cosmologix/numerical_results.html).
+        If your use case requires high-accuracy at lower redshift
+        consider using nstep=10000 instead.
     """
     return (1 + z) * dM(params, z, nstep)
 
@@ -181,6 +195,13 @@ def dA(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarr
 
     Returns:
         The angular diameter distance in Mpc as a jax.numpy.ndarray.
+
+    Notes:
+        The default quadrature uses 1000 steps which does not provide
+        10⁻⁴ accuracy below z<0.01 (see
+        https://lemaitre.pages.in2p3.fr/cosmologix/numerical_results.html).
+        If your use case requires high-accuracy at lower redshift
+        consider using nstep=10000 instead.
     """
     return dM(params, z, nstep) / (1 + z)
 
@@ -224,6 +245,13 @@ def mu(params: Dict[str, float], z: jnp.ndarray, nstep: int = 1000) -> jnp.ndarr
 
     Returns:
         The distance modulus as a jax.numpy.ndarray.
+
+    Notes:
+        The default quadrature uses 1000 steps which does not provide
+        10⁻⁴ accuracy below z<0.01 (see
+        https://lemaitre.pages.in2p3.fr/cosmologix/numerical_results.html).
+        If your use case requires high-accuracy at lower redshift
+        consider using nstep=10000 instead.
     """
     return 5 * jnp.log10(dL(params, z, nstep)) + 25
 

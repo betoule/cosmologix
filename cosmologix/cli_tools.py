@@ -24,7 +24,7 @@ AVAILABLE_PRIORS = [
     "BBNSchoneberg2024",
 ]
 
-PARAM_CHOICES = list(parameters.Planck18.keys()) + ["M", "rd"]
+PARAM_CHOICES = list(parameters.get_cosmo_params().keys()) + ["M", "rd"]
 
 
 def tuple_list_to_dict(tuple_list):
@@ -89,7 +89,7 @@ FIX_OPTION = Option(
     "--fix",
     "-F",
     help="Fix PARAM at VALUE (e.g., -F H0 70)",
-    autocompletion=dict_to_list(parameters.Planck18),
+    autocompletion=dict_to_list(parameters.get_cosmo_params()),
     click_type=click.Tuple([str, float]),
 )
 LABELS_OPTION = Option(
