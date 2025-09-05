@@ -528,6 +528,9 @@ def gauss_newton_partial(
         losses.append((R**2).sum())
         if i > 1:
             if losses[-2] - losses[-1] < tol:
+                if losses[-2] < losses[-1]:
+                    # Revert unproductive step
+                    x = x + dx
                 break
         J = jac(x, fixed)
         g = J.T @ R
