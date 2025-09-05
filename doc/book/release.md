@@ -4,7 +4,7 @@
 
 - [ ] Conversion of contours to different parameterisation (e.g. `Omega_bc` to `Omega_m`)
 
-### v0.9.8 (in prep.)
+### v0.9.8 (current)
 - API refinement:
   - introduction of `parameters.get_cosmo_params`
   - deprecation of `parameters.lcdm_deviation`
@@ -15,7 +15,7 @@
 - Shorten the paper
 - Minor bug Fixes
 
-### v0.9.7 (current)
+### v0.9.7
 - Improved documention
 - Refined API to simplify providing distance measurements
 
