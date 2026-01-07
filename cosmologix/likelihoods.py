@@ -389,12 +389,10 @@ def DES5yr():
     See bibcode: 2024ApJ...973L..14D.
     """
     des_data = tools.load_csv_from_url(
-        "https://github.com/des-science/DES-SN5YR/raw/refs/heads/main/4_DISTANCES_COVMAT/"
-        "DES-SN5YR_HD+MetaData.csv"
+        "https://raw.githubusercontent.com/des-science/DES-SN5YR/refs/tags/v1.2/4_DISTANCES_COVMAT/DES-SN5YR_HD%2BMetaData.csv"
     )
     covmat = tools.cached_download(
-        "https://github.com/des-science/DES-SN5YR/raw/refs/heads/main/4_DISTANCES_COVMAT/"
-        "STAT+SYS.txt.gz"
+        "https://github.com/des-science/DES-SN5YR/raw/refs/tags/v1.2/4_DISTANCES_COVMAT/STAT+SYS.txt.gz"
     )
     with gzip.open(covmat, "rt") as f:  # 'rt' mode for text reading
         cov_matrix = np.loadtxt(f)
