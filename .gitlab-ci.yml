@@ -85,7 +85,7 @@ pages:
   stage: deploy
   script:
     - pip install .
-    - pip install -U jupyter-book sphinx-autoapi anybadge
+    - pip install -U jupyter-book==1.0.4-post1 sphinx-autoapi anybadge
     - cd doc
     - jupyter-book clean book
     - jupyter-book build book
