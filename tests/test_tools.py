@@ -6,10 +6,10 @@ import scipy.stats
 def test_csv():
     clear_cache()
     des_data1 = load_csv_from_url(
-        "https://github.com/des-science/DES-SN5YR/raw/refs/heads/main/4_DISTANCES_COVMAT/DES-SN5YR_HD+MetaData.csv"
+        "https://raw.githubusercontent.com/des-science/DES-SN5YR/refs/tags/v1.2/4_DISTANCES_COVMAT/DES-SN5YR_HD%2BMetaData.csv"
     )
     des_data2 = load_csv_from_url(
-        "https://github.com/des-science/DES-SN5YR/raw/refs/heads/main/4_DISTANCES_COVMAT/DES-SN5YR_HD+MetaData.csv"
+        "https://raw.githubusercontent.com/des-science/DES-SN5YR/refs/tags/v1.2/4_DISTANCES_COVMAT/DES-SN5YR_HD%2BMetaData.csv"
     )
     assert len(des_data1) == 1829
     assert "zCMB" in des_data1.dtype.names
