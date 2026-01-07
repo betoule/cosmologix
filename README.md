@@ -105,9 +105,19 @@ and full [API](https://lemaitre.pages.in2p3.fr/cosmologix/autoapi/cosmologix/ind
 
 Contributions are welcome! Please fork the repository, make changes, and submit a pull request. Here are some guidelines:
 
-- Follow PEP 8 style. The commited code has to go through black.
+- Follow PEP 8 style. The submitted code has to go through black.
 - Write clear commit messages.
 - Include tests for new features or bug fixes.
+- Run the test suite before submission
+
+Running the test suite requires a few more package:
+```bash
+git clone https://gitlab.in2p3.fr/lemaitre/cosmologix.git
+pip install .[test]
+pytest -v
+```
+```
+```
 
 Look at the [Road map and release history
 page](https://lemaitre.pages.in2p3.fr/cosmologix/release.html) for
@@ -122,6 +132,22 @@ ongoing and planned implementation of new features.
 - Requests to retrieve external data files.
 - tqdm to display progression of contour computation
 - typer for the cli.
+- astropy for reading fits tables.
+- asdf results can be written in the ASDF format.
+- zstandard for file compression.
+
+A few optional dependencies are necessary to run the test suite and some of the provided examples, or useful for the development:
+
+- pytest
+- pytest-cov for coverage reports
+- pyccl for accuracy tests
+- pyyaml
+- black for code formating
+- scipy for accuracy tests
+- camb for accuracy tests
+- jax_cosmo for accuracy and performance tests
+
+Install with `pip install cosmologix[test]` to retrieve the optional dependencies.
 
 ## License
 This project is licensed under the GPLV2 License - see the LICENSE.md file for details.

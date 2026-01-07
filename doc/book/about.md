@@ -8,6 +8,23 @@
 - Requests to retrieve external data files.
 - tqdm to display progression of contour computation
 - typer for the cli.
+- astropy for reading fits tables.
+- asdf results can be written in the ASDF format.
+- zstandard for file compression.
+
+A few optional dependencies are necessary to run the test suite and some of the provided examples, or useful for the development:
+
+- pytest
+- pytest-cov for coverage reports
+- pyccl for accuracy tests
+- pyyaml
+- black for code formating
+- scipy for accuracy tests
+- camb for accuracy tests
+- jax_cosmo for accuracy and performance tests
+
+Install with `pip install cosmologix[test]` to retrieve the optional dependencies.
+
 
 ## License
 This project is licensed under the GPLV2 License - see the LICENSE.md file for details.

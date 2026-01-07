@@ -35,7 +35,6 @@ dependencies = [
     "tqdm",
     "astropy", # for pyfits and tests
     "typer",
-    "importlib_resources",
     "asdf", # to save in asdf format
     "zstandard", # for file compression 
 ]
