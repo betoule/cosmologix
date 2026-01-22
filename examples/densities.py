@@ -13,12 +13,12 @@ def cosmologix_densities(params, z):
     )
     massless = params["m_nu_bar"] == 0
     return {
-        "matter": densities.Omega_c(params, z)
-        + densities.Omega_b(params, z)
-        + rho_nu[:, ~massless].sum(axis=1),
+        "baryon+dark matter": densities.Omega_c(params, z)
+        + densities.Omega_b(params, z),
         "dark_energy": densities.Omega_de(params, z),
         "radiation": densities.Omega_gamma(params, z),
         "curvature": densities.Omega_k(params, z),
+        "neutrinos_tot": densities.Omega_nu(params, z),
         "neutrinos_rel": rho_nu[:, massless].sum(
             axis=1
         ),  # cosmologix.densities.Omega_nu_massless(params, z),

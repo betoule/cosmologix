@@ -170,7 +170,8 @@ def process_params(params):
 
 
 def derived_parameters(params):
-    """Further decomposes Omega_nu into massless and massive components.
+    """Processes the set of primary parameters to add derived quantities with a call to `process_params`.
+    Further decomposes Omega_nu into massless and massive components.
 
     Args:
         params (dict): A dictionary of cosmological parameters.
@@ -178,6 +179,8 @@ def derived_parameters(params):
     Returns:
         dict: Updated dictionary with `Omega_nu_massless` and
             `Omega_nu_massive`.
+            
+    See also: `process_params`
     """
     params = process_params(params)
     rho_nu = neutrinos.compute_neutrino_density(params, jnp.array([0])) / rhoc(
