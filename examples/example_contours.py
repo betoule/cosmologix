@@ -1,8 +1,6 @@
 from cosmologix import likelihoods, parameters, contours, tools, display
 import matplotlib.pyplot as plt
 
-plt.ion()
-
 
 # Define the explored space (a regular grid in the plane Omega_bc/w
 # with 60 points between the boundaries)

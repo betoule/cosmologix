@@ -99,7 +99,6 @@ display.plot_contours(
 axes[1, 1].set_xlabel(display.latex_translation["Omega_bc"])
 axes[1, 1].set_ylabel(display.latex_translation["w"])
 
-plt.ion()
 plt.legend(loc="lower right", frameon=False)
 
 plt.tight_layout()
