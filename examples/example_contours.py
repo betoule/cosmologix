@@ -14,6 +14,7 @@ fixed = {"Omega_k": 0.0, "m_nu": 0.06, "Neff": 3.046, "Tcmb": 2.7255, "wa": 0.0}
 
 # Compute BAO constraints keeping Omega_b_h2 fixed to the best-fit
 # Planck value
+params = parameters.get_cosmo_params('Planck18')
 grid_bao = contours.frequentist_contour_2d_sparse(
     [likelihoods.DESIDR2(uncalibrated=True)],
     grid=param_space,
