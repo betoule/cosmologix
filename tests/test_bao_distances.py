@@ -6,7 +6,6 @@ import jax
 import camb
 import jax.numpy as jnp
 
-
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     from cosmologix.distances import dV, dM, dH
