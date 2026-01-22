@@ -52,6 +52,4 @@ if __name__ == "__main__":
     plt.rc("text", usetex=True)
     plt.rc("axes.spines", top=False, right=False, bottom=True, left=True)
 
-
-    dens = plot_densities(get_cosmo_params('Planck18'))
-
+    dens = plot_densities(get_cosmo_params("Planck18"))
