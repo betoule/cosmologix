@@ -86,7 +86,7 @@ pages:
   script:
     - pip install .
     - pip install -U jupyter-book==1.0.4-post1 sphinx-autoapi anybadge
-    - pip install jax-cosmo
+    - pip install jax-cosmo pyccl camb
     - python -m pip install git+https://github.com/cosmodesi/cosmoprimo
     - cd doc
     - python accuracy_plots.py
