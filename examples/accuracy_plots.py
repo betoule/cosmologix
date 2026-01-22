@@ -245,7 +245,6 @@ def lcdm_deviation(**keys):
 
 
 if __name__ == "__main__":
-    plt.ion()
     plt.rc("text", usetex=True)
     plt.rc("axes.spines", top=False, right=False, bottom=True, left=True)
 
