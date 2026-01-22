@@ -55,13 +55,13 @@ from cosmologix import distances, parameters
 import jax.numpy as jnp
 
 # Best-fit parameters to Planck 2018 are:
-print(parameters.Planck18)
+print(parameters.get_cosmo_params('Planck18'))
 
 # Redshift values for supernovae
 z_values = jnp.linspace(0.1, 1.0, 10)
 
 # Compute distance modulus 
-distance_modulus = distances.mu(parameters.Planck18, z_values)
+distance_modulus = distances.mu(parameters.get_cosmo_params('Planck18'), z_values)
 print(distance_modulus)
 
 # Find bestfit flat w-CDM cosmology

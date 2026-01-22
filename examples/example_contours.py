@@ -21,8 +21,8 @@ grid_bao = contours.frequentist_contour_2d_sparse(
     grid=param_space,
     fixed=dict(
         fixed,
-        Omega_b_h2=parameters.Planck18["Omega_b_h2"],
-        H0=parameters.Planck18["H0"],
+        Omega_b_h2=params["Omega_b_h2"],
+        H0=params["H0"],
     ),
 )
 tools.save(grid_bao, "contour_desi.pkl")
@@ -36,8 +36,8 @@ grid_sn = contours.frequentist_contour_2d_sparse(
     grid=param_space,
     fixed=dict(
         fixed,
-        H0=parameters.Planck18["H0"],
-        Omega_b_h2=parameters.Planck18["Omega_b_h2"],
+        H0=params["H0"],
+        Omega_b_h2=params["Omega_b_h2"],
     ),
 )
 
@@ -46,8 +46,8 @@ grid_jla = contours.frequentist_contour_2d_sparse(
     grid=param_space,
     fixed=dict(
         fixed,
-        H0=parameters.Planck18["H0"],
-        Omega_b_h2=parameters.Planck18["Omega_b_h2"],
+        H0=params["H0"],
+        Omega_b_h2=params["Omega_b_h2"],
     ),
 )
 tools.save(grid_jla, "contour_jla.pkl")
