@@ -250,7 +250,7 @@ if __name__ == "__main__":
 
     distance_accuracy()
     plt.tight_layout()
-    plt.savefig("doc/mu_accuracy.pdf")
+    plt.savefig("mu_accuracy.pdf")
     distance_accuracy(
         lcdm_deviation(m_nu=0.0), title="distance_accuracy (massless neutrinos)"
     )

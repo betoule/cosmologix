@@ -60,4 +60,4 @@ if __name__ == "__main__":
     ax1.set_ylabel("wall time [s]")
     ax1.legend(loc="best", frameon=False)
     plt.tight_layout()
-    plt.savefig("doc/mu_speed.pdf")
+    plt.savefig("mu_speed.pdf")
