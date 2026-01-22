@@ -84,6 +84,7 @@ pypi:
 pages:
   stage: deploy
   script:
+    - apt-get update && apt-get install -y texlive texlive-latex-extra texlive-fonts-recommended dvipng cm-super
     - pip install .
     - pip install -U jupyter-book==1.0.4-post1 sphinx-autoapi anybadge
     - pip install jax-cosmo pyccl camb
