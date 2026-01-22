@@ -179,7 +179,7 @@ def derived_parameters(params):
     Returns:
         dict: Updated dictionary with `Omega_nu_massless` and
             `Omega_nu_massive`.
-            
+
     See also: `process_params`
     """
     params = process_params(params)
