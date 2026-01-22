@@ -1,13 +1,7 @@
 import matplotlib.pyplot as plt
-import pyccl as ccl
 from cosmologix import neutrinos, densities
-from cosmologix.distances import mu
 from cosmologix.parameters import get_cosmo_params
-import jax.numpy as jnp
 import numpy as np
-import jax
-from cosmologix.tools import Constants
-from astropy import cosmology
 
 
 def cosmologix_densities(params, z):
