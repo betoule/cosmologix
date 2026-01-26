@@ -17,6 +17,111 @@ neutrinos to the density which prevents a relevant comparison.
 
 ![Distance modulus accuracy](https://gitlab.in2p3.fr/lemaitre/cosmologix/-/raw/master/doc/mu_accuracy.svg)
 
+To help people comparing code parametrisation, here are the parameter transformations that we used (also in `doc/accuracy_plots.py`).
+
+### [Core Cosmological Library](https://ccl.readthedocs.io/en/latest/)
+
+```
+from cosmologix import parameters
+params = get_cosmo_params('Planck18')
+params = densities.derived_parameters(params)
+ccl_params = {
+        "Omega_c": params["Omega_c"],
+        "Omega_b": params["Omega_b"],
+        "Omega_k": params["Omega_k"],
+        "h": params["H0"] / 100,
+        "Neff": params["Neff"],
+        "m_nu": [params["m_nu"], 0, 0],
+        "T_CMB": params["Tcmb"],
+        "T_ncdm": 0.7137658555036082,
+        "n_s": 0.9652,
+        "sigma8": 0.8101,
+        "transfer_function": "bbks"}
+```
+
+### [CAMB](https://camb.readthedocs.io/en/latest/)
+
+```
+from cosmologix import parameters
+params = get_cosmo_params('Planck18')
+params = densities.derived_parameters(params)
+h = params["H0"] / 100
+pars = camb.set_params(
+    H0=params["H0"],
+    ombh2=params["Omega_b_h2"],
+    omch2=params["Omega_c"] * h**2,
+    mnu=params["m_nu"],
+    omk=params["Omega_k"],
+    tau=0.0540,
+    As=jnp.exp(3.043) / 10**10,
+    ns=0.9652,
+    halofit_version="mead",
+    lmax=3000,
+)
+```
+
+### [Astropy](https://docs.astropy.org/en/stable/cosmology/index.html)
+
+```
+from cosmologix import parameters
+params = get_cosmo_params('Planck18')
+params = densities.derived_parameters(params)
+    h = params["H0"] / 100.0
+astropy_cosmo = cosmology.w0waCDM(
+        H0=params["H0"],
+        Om0=params["Omega_bc"],
+        Ob0=params["Omega_b"],
+        Ode0=params["Omega_x"],
+        m_nu=[params["m_nu"], 0, 0],
+        Tcmb0=params["Tcmb"],
+        Neff=params["Neff"],
+        w0=params["w"],
+        wa=params["wa"],
+    )
+```
+
+### [JaxCosmo](https://jax-cosmo.readthedocs.io/en/latest/)
+
+```
+from cosmologix import parameters
+params = get_cosmo_params('Planck18')
+params = densities.derived_parameters(params)
+h = params["H0"] / 100
+omega_b = params["Omega_b_h2"] / h**2
+a = 1 / (1 + z)
+jaxcosmo = jc.Cosmology(
+    Omega_c=params["Omega_bc"] - omega_b,
+    Omega_b=omega_b,
+    h=h,
+    Omega_k=params["Omega_k"],
+    n_s=0.96,
+    sigma8=0.8,
+    w0=params["w"],
+    wa=params["wa"],
+)
+```
+    
+### [CosmoPrimo](https://cosmoprimo.readthedocs.io/en/latest/)
+
+```
+from cosmologix import parameters
+params = get_cosmo_params('Planck18')
+params = densities.derived_parameters(params)
+h = params["H0"] / 100
+omega_b = params["Omega_b_h2"] / h**2
+c = cosmoprimo.Cosmology(
+    engine="eisenstein_hu",
+    h=h,
+    Omega_b=omega_b,
+    Omega_cdm=params["Omega_bc"] - omega_b,
+    Omega_k=params["Omega_k"],
+    Tcmb=params["Tcmb"],
+    w0_fld=params["w"],
+    wa_fld=params["wa"],
+    m_ncdm=params["m_nu"],
+)
+```
+
 ## Speed test
 
 The plot below illustrates the computation time for a vector of

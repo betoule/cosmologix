@@ -245,13 +245,12 @@ def lcdm_deviation(**keys):
 
 
 if __name__ == "__main__":
-    plt.ion()
     plt.rc("text", usetex=True)
     plt.rc("axes.spines", top=False, right=False, bottom=True, left=True)
 
     distance_accuracy()
     plt.tight_layout()
-    plt.savefig("doc/mu_accuracy.pdf")
+    plt.savefig("mu_accuracy.pdf")
     distance_accuracy(
         lcdm_deviation(m_nu=0.0), title="distance_accuracy (massless neutrinos)"
     )

@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import jax.numpy as jnp
 
-
 # Uncalibrated DESI prior
 desiu = likelihoods.DESIDR1(True)
 

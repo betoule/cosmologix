@@ -1,9 +1,6 @@
 from cosmologix import likelihoods, parameters, contours, tools, display
 import matplotlib.pyplot as plt
 
-plt.ion()
-
-
 # Define the explored space (a regular grid in the plane Omega_bc/w
 # with 60 points between the boundaries)
 n = 60
@@ -16,13 +13,14 @@ fixed = {"Omega_k": 0.0, "m_nu": 0.06, "Neff": 3.046, "Tcmb": 2.7255, "wa": 0.0}
 
 # Compute BAO constraints keeping Omega_b_h2 fixed to the best-fit
 # Planck value
+params = parameters.get_cosmo_params("Planck18")
 grid_bao = contours.frequentist_contour_2d_sparse(
     [likelihoods.DESIDR2(uncalibrated=True)],
     grid=param_space,
     fixed=dict(
         fixed,
-        Omega_b_h2=parameters.Planck18["Omega_b_h2"],
-        H0=parameters.Planck18["H0"],
+        Omega_b_h2=params["Omega_b_h2"],
+        H0=params["H0"],
     ),
 )
 tools.save(grid_bao, "contour_desi.pkl")
@@ -36,8 +34,8 @@ grid_sn = contours.frequentist_contour_2d_sparse(
     grid=param_space,
     fixed=dict(
         fixed,
-        H0=parameters.Planck18["H0"],
-        Omega_b_h2=parameters.Planck18["Omega_b_h2"],
+        H0=params["H0"],
+        Omega_b_h2=params["Omega_b_h2"],
     ),
 )
 
@@ -46,8 +44,8 @@ grid_jla = contours.frequentist_contour_2d_sparse(
     grid=param_space,
     fixed=dict(
         fixed,
-        H0=parameters.Planck18["H0"],
-        Omega_b_h2=parameters.Planck18["Omega_b_h2"],
+        H0=params["H0"],
+        Omega_b_h2=params["Omega_b_h2"],
     ),
 )
 tools.save(grid_jla, "contour_jla.pkl")
