@@ -96,3 +96,6 @@ ehthumbs.db
 # Vim
 *.un~
 .aider*
+
+# local CI
+.gitlab-ci-local
