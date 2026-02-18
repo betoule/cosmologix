@@ -70,22 +70,22 @@ def test_de_fit():
     display.plot_2d(result, "w", "wa")
 
 
-if __name__ == "__main__":
-    des = likelihoods.DES5yr()
-    pl = likelihoods.Planck2018()
-    desiu = likelihoods.DESIDR1(True)
-    point = {
-        "Omega_bc": 0.3,
-        "M": 0.0,
-    }
+# if __name__ == "__main__":
+#     des = likelihoods.DES5yr()
+#     pl = likelihoods.Planck2018()
+#     desiu = likelihoods.DESIDR1(True)
+#     point = {
+#         "Omega_bc": 0.3,
+#         "M": 0.0,
+#     }
 
 
-#    fixed_params = Planck18.copy()
-#    fixed_params.pop("Omega_bc")
-#    fixed_params.pop("w")
-#
-#    likelihoods = [des]
-#
-#
-#    starting_point = Planck18
-#
+# #    fixed_params = Planck18.copy()
+# #    fixed_params.pop("Omega_bc")
+# #    fixed_params.pop("w")
+# #
+# #    likelihoods = [des]
+# #
+# #
+# #    starting_point = Planck18
+# #

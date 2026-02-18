@@ -103,3 +103,5 @@ if __name__ == "__main__":
         ax.bar(r + i * bar_width, values, width=bar_width, label=label, alpha=0.8)
     ax.set_xticks(r + bar_width * (4 - 1) / 2)
     ax.set_xticklabels(labels)
+
+    plt.show()

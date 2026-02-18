@@ -60,7 +60,3 @@ def test_profile(tmp_path):
     grid2 = tools.load(temp_file)
     assert compare_dicts(grid, grid2)
     display.plot_profile(grid)
-
-
-if __name__ == "__main__":
-    test_contours()

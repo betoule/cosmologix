@@ -67,26 +67,26 @@ def test_likelihoods(fix=["Omega_k"]):
         gc.collect()
 
 
-if __name__ == "__main__":
-    # test_likelihoods()
-    tools.clear_cache()
-    priors = {
-        "desiu": likelihoods.DESIDR1Prior(True),
-        "desi": likelihoods.DESIDR1Prior(),
-        "desi2u": likelihoods.DESIDR2Prior(True),
-        "desi2": likelihoods.DESIDR2Prior(),
-        "des": likelihoods.DES5yr(),
-        "union3": likelihoods.Union3(),
-        "pantheon+": likelihoods.Pantheonplus(),
-        "planck": likelihoods.Planck2018Prior(),
-        "jla": likelihoods.JLA(),
-        "BBN": likelihoods.BBNSchoneberg2024Prior(),
-        "BBNNeff": likelihoods.BBNNeffSchoneberg2024Prior(),
-    }
-    priors["sum"] = likelihoods.LikelihoodSum([priors["planck"], priors["des"]])
-    from cosmologix.tools import speed_measurement
+# if __name__ == "__main__":
+#     # test_likelihoods()
+#     tools.clear_cache()
+#     priors = {
+#         "desiu": likelihoods.DESIDR1Prior(True),
+#         "desi": likelihoods.DESIDR1Prior(),
+#         "desi2u": likelihoods.DESIDR2Prior(True),
+#         "desi2": likelihoods.DESIDR2Prior(),
+#         "des": likelihoods.DES5yr(),
+#         "union3": likelihoods.Union3(),
+#         "pantheon+": likelihoods.Pantheonplus(),
+#         "planck": likelihoods.Planck2018Prior(),
+#         "jla": likelihoods.JLA(),
+#         "BBN": likelihoods.BBNSchoneberg2024Prior(),
+#         "BBNNeff": likelihoods.BBNNeffSchoneberg2024Prior(),
+#     }
+#     priors["sum"] = likelihoods.LikelihoodSum([priors["planck"], priors["des"]])
+#     from cosmologix.tools import speed_measurement
 
-    for name, likelihood in priors.items():
-        params = likelihood.initial_guess(get_cosmo_params())
-        # print(name, speed_measurement(likelihood.negative_log_likelihood, params))
-        print(name, speed_measurement(likelihood.weighted_residuals, params))
+#     for name, likelihood in priors.items():
+#         params = likelihood.initial_guess(get_cosmo_params())
+#         # print(name, speed_measurement(likelihood.negative_log_likelihood, params))
+#         print(name, speed_measurement(likelihood.weighted_residuals, params))

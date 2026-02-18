@@ -36,7 +36,9 @@ def test_interpolation():
             (cosmologix.interpolation.linear_interpolant, 1000),
             (jnp_interpolant, 1000),
         ]:
-            print(interpolation_accuracy(func, method, n=n))
+            res = interpolation_accuracy(func, method, n=n)
+            print(res)
+            assert res["accuracy"] <= 1e-6
 
 
 if __name__ == "__main__":
