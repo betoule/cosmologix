@@ -1,13 +1,14 @@
-from cosmologix import (
-    likelihoods,
-    parameters,
-    fitter,
-    distances,
-    acoustic_scale,
-)
+import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
-import jax.numpy as jnp
+
+from cosmologix import (
+    acoustic_scale,
+    distances,
+    fitter,
+    likelihoods,
+    parameters,
+)
 
 # Uncalibrated DESI prior
 desiu = likelihoods.DESIDR1(True)
@@ -77,3 +78,5 @@ ax2.set_ylabel("residuals/model")
 ax2.axhline(0, color="k", label=rf"$\Omega_bc = {Om:.3f} ± {eOm:.3f}$")
 ax1.legend(loc="lower right", frameon=False)
 ax2.legend(loc="lower right", frameon=False)
+
+plt.show(block=True)

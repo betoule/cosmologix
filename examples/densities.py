@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
-from cosmologix import neutrinos, densities
-from cosmologix.parameters import get_cosmo_params
 import numpy as np
+
+from cosmologix import densities, neutrinos
+from cosmologix.parameters import get_cosmo_params
 
 
 def cosmologix_densities(params, z):
