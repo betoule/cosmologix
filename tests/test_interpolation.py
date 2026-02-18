@@ -1,5 +1,5 @@
-import jax
 import jax.numpy as jnp
+
 import cosmologix.interpolation
 from cosmologix.tools import speed_measurement
 

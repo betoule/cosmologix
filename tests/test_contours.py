@@ -1,8 +1,8 @@
-from cosmologix import likelihoods, contours, tools, display
-from cosmologix.distances import mu
 import jax.numpy as jnp
 import numpy as np
 from numpy.testing import assert_allclose
+
+from cosmologix import contours, display, likelihoods, tools
 
 
 def compare_dicts(dict1, dict2):

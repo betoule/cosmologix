@@ -1,11 +1,12 @@
-from test_distances import params_to_ccl
-from cosmologix.tools import speed_measurement
-from cosmologix import densities, neutrinos
-from cosmologix.parameters import get_cosmo_params
-from cosmologix.distances import mu
 import jax.numpy as jnp
 import pyccl as ccl
 from numpy.testing import assert_allclose
+from test_distances import params_to_ccl
+
+from cosmologix import densities, neutrinos
+from cosmologix.distances import mu
+from cosmologix.parameters import get_cosmo_params
+from cosmologix.tools import speed_measurement
 
 
 def ccl_densities(params, z):
@@ -78,7 +79,6 @@ if __name__ == "__main__":
     funcdict = dict([(func, getattr(densities, func)) for func in func_list])
     funcdict["mu"] = mu
     for func, f in funcdict.items():
-
         results[func] = speed_measurement(f, params, z)
     print(results)
 
@@ -98,7 +98,6 @@ if __name__ == "__main__":
             ("subsequent (jitted)", 4),
         ]
     ):
-
         values = [results[k][num] for k in labels]
         # plt.barh(labels, values)
         ax.bar(r + i * bar_width, values, width=bar_width, label=label, alpha=0.8)

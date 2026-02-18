@@ -1,10 +1,10 @@
+import camb
+import jax.numpy as jnp
+import pyccl as ccl
+
 from cosmologix import densities
 from cosmologix.distances import H, mu
 from cosmologix.parameters import get_cosmo_params
-import pyccl as ccl
-import jax.numpy as jnp
-import jax
-import camb
 
 # Set the default precision to float64 for all operations
 # jax.config.update("jax_enable_x64", True)
@@ -88,9 +88,9 @@ def test_distance_modulus():
     for label, params in cosmologies.items():
         for mu_check in [mu_ccl, mu_camb]:
             delta_mu = mu(params, z) - mu_check(params, z)
-            assert (
-                jnp.abs(delta_mu) < 1e-3
-            ).all(), f"Distances differs for cosmology {label}, {mu_check}"
+            assert (jnp.abs(delta_mu) < 1e-3).all(), (
+                f"Distances differs for cosmology {label}, {mu_check}"
+            )
 
 
 def test_hubble_rate():
@@ -99,6 +99,6 @@ def test_hubble_rate():
         h = H(params, z) / params["H0"]
         for h_check in [h_ccl, h_camb]:
             delta_h = h - h_check(params, z)
-            assert (
-                jnp.abs(delta_h / h) < 1e-3
-            ).all(), f"Hubble rate differs for cosmology {label}, {h_check}"
+            assert (jnp.abs(delta_h / h) < 1e-3).all(), (
+                f"Hubble rate differs for cosmology {label}, {h_check}"
+            )

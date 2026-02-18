@@ -1,6 +1,7 @@
-from cosmologix.tools import load_csv_from_url, clear_cache, conflevel_to_delta_chi2
-from numpy.testing import assert_array_equal, assert_allclose
 import scipy.stats
+from numpy.testing import assert_allclose, assert_array_equal
+
+from cosmologix.tools import clear_cache, conflevel_to_delta_chi2, load_csv_from_url
 
 
 def test_csv():

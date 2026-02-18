@@ -1,11 +1,12 @@
-from cosmologix import likelihoods, tools
-from cosmologix.fitter import unflatten_vector, flatten_vector, LikelihoodSum
-from cosmologix.parameters import get_cosmo_params
+import gc
+
 import jax
 import jax.numpy as jnp
 from numpy.testing import assert_allclose
-import time
-import gc
+
+from cosmologix import likelihoods, tools
+from cosmologix.fitter import LikelihoodSum, flatten_vector, unflatten_vector
+from cosmologix.parameters import get_cosmo_params
 
 jax.config.update("jax_enable_x64", True)
 

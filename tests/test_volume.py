@@ -1,14 +1,14 @@
-import camb
-from test_distances import params_to_CAMB, cosmologies
-import numpy as np
 import jax.numpy as jnp
-from cosmologix import densities, distances
+import numpy as np
 from astropy import cosmology
+from test_distances import cosmologies
+
+from cosmologix import densities, distances
 
 
 def params_to_astropy(params):
     params = densities.derived_parameters(params)
-    h = params["H0"] / 100.0
+    # h = params["H0"] / 100.0
     # Omega_b = params['Omega_b_h2'] / h ** 2
     # Omega_nu_mass = float(Omega_n_mass(params, 1.)[0])
     return cosmology.w0waCDM(
@@ -43,9 +43,9 @@ def test_volumes():
     z = jnp.linspace(0.01, 1, 3000)
     for label, params in cosmologies.items():
         dV_over_V = V_astropy(params, z) / distances.comoving_volume(params, z) - 1
-        assert (
-            jnp.abs(dV_over_V) < 1e-3
-        ).all(), f"Volume differs for cosmology {label}, {dV_over_V}"
+        assert (jnp.abs(dV_over_V) < 1e-3).all(), (
+            f"Volume differs for cosmology {label}, {dV_over_V}"
+        )
 
 
 def test_lookback_time():
@@ -54,9 +54,9 @@ def test_lookback_time():
         dV_over_V = (
             lookback_time_astropy(params, z) / distances.lookback_time(params, z) - 1
         )
-        assert (
-            jnp.abs(dV_over_V) < 1e-3
-        ).all(), f"Volume differs for cosmology {label}, {dV_over_V}"
+        assert (jnp.abs(dV_over_V) < 1e-3).all(), (
+            f"Volume differs for cosmology {label}, {dV_over_V}"
+        )
 
 
 if __name__ == "__main__":
