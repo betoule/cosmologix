@@ -6,9 +6,10 @@ stages:
   - test
   - build
   - deploy
-  
+
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  DEFAULT_PYTHON_VERSION: "3.10"
 
 cache:
   paths:
@@ -22,7 +23,7 @@ lint:
     - black --check --diff .
   allow_failure: false
 
-#Linting stage to check code style with pylint 
+#Linting stage to check code style with pylint
 pylint:
   stage: lint
   script:
@@ -36,10 +37,13 @@ pylint:
     paths:
       - pylint.svg
 
-
-# Testing stage to run your tests
+# Testing stage to run your tests on multiple Python versions
 test:
   stage: test
+  parallel:
+    matrix:
+      - PYTHON_VERSION: ["3.10", "3.12", "3.14"]
+  image: python:$PYTHON_VERSION
   script:
     - pip install -e .[test]
     - pytest -v --junitxml=report.xml --cov-report=term --cov-report xml
@@ -56,7 +60,6 @@ test:
         path: coverage.xml
   allow_failure: false
 
-
 # Building the package stage
 build:
   stage: build
@@ -71,8 +74,6 @@ build:
   allow_failure: false
 
 pypi:
-  # publish the source distribution on https://pypi.org/project/stardiceonline/, only when
-  # a new tag
   stage: deploy
   needs: ["build"]
   rules:
@@ -85,10 +86,8 @@ pages:
   stage: deploy
   script:
     - apt-get update && apt-get install -y texlive texlive-latex-extra texlive-fonts-recommended dvipng cm-super
-    - pip install .
+    - pip install .[test]
     - pip install -U jupyter-book==1.0.4-post1 sphinx-autoapi anybadge
-    - pip install jax-cosmo pyccl camb
-    - python -m pip install git+https://github.com/cosmodesi/cosmoprimo
     - cd doc
     - python accuracy_plots.py
     - jupyter-book clean book
@@ -100,29 +99,3 @@ pages:
     paths:
       - public
       - documentation.svg
-
-
-# pages:
-#   stage: deploy
-#   script:
-#   - pip install .
-#   - pip install --no-cache-dir sphinx sphinx-rtd-theme
-#   - cd doc
-#   - sphinx-apidoc -s rst -e -o ./ ../cosmologix
-#   - sphinx-build -b html . ../public
-#   artifacts:
-#     paths:
-#     - public
-
-
-# Optional: Publish to PyPI (This step is commented out and should only be enabled for your main branch or when you're ready to publish)
-#publish:
-#  stage: deploy
-#  image: python:3.9
-#  script:
-#    - pip install twine
-#    - twine upload --repository-url ${PYPI_REPOSITORY_URL} -u __token__ -p ${PYPI_API_TOKEN} dist/*
-#  only:
-#    - main  # or your release branch name
-#  environment:
-#    name: production
