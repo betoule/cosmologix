@@ -43,9 +43,9 @@ def test_volumes():
     z = jnp.linspace(0.01, 1, 3000)
     for label, params in cosmologies.items():
         dV_over_V = V_astropy(params, z) / distances.comoving_volume(params, z) - 1
-        assert (jnp.abs(dV_over_V) < 1e-3).all(), (
-            f"Volume differs for cosmology {label}, {dV_over_V}"
-        )
+        assert (
+            jnp.abs(dV_over_V) < 1e-3
+        ).all(), f"Volume differs for cosmology {label}, {dV_over_V}"
 
 
 def test_lookback_time():
@@ -54,9 +54,9 @@ def test_lookback_time():
         dV_over_V = (
             lookback_time_astropy(params, z) / distances.lookback_time(params, z) - 1
         )
-        assert (jnp.abs(dV_over_V) < 1e-3).all(), (
-            f"Volume differs for cosmology {label}, {dV_over_V}"
-        )
+        assert (
+            jnp.abs(dV_over_V) < 1e-3
+        ).all(), f"Volume differs for cosmology {label}, {dV_over_V}"
 
 
 if __name__ == "__main__":
