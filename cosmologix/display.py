@@ -1,4 +1,4 @@
-"""Plotting functions."""
+"""Functions to display fit and exploration results."""
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse

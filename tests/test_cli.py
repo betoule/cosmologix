@@ -44,3 +44,9 @@ def test_main_cli(tmp_path, capsys):
             assert exc_info.value.code == 0, f"Expected exit code 0 for {test_case}"
         captured = capsys.readouterr()
         assert "saved" in captured.out
+
+def test_get_priors():
+    from cosmologix.parameters import get_priors, known_priors
+    plist = [p.lower() for p in known_priors()]
+    priors = get_priors(plist, Omega_b_h2=1e-3, H0=(73, 1))
+    assert len(priors) == len(plist) + 2

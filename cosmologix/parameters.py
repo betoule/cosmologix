@@ -49,12 +49,12 @@ AVAILABLE_PARAMETER_SETS = {
 # Default fixed parameters for flat w-CDM
 CMB_FREE = ["Omega_b_h2", "H0"]
 DEFAULT_FREE = {
-    "FLCDM": ["Omega_bc"] + CMB_FREE,
-    "LCDM": ["Omega_bc", "Omega_k"] + CMB_FREE,
-    "FwCDM": ["Omega_bc", "w"] + CMB_FREE,
-    "wCDM": ["Omega_bc", "Omega_k", "w"] + CMB_FREE,
-    "FwwaCDM": ["Omega_bc", "w", "wa"] + CMB_FREE,
-    "wwaCDM": ["Omega_bc", "Omega_k", "w", "wa"] + CMB_FREE,
+    "FLCDM": ["Omega_bc"],
+    "LCDM": ["Omega_bc", "Omega_k"],
+    "FwCDM": ["Omega_bc", "w"],
+    "wCDM": ["Omega_bc", "Omega_k", "w"],
+    "FwwaCDM": ["Omega_bc", "w", "wa"],
+    "wwaCDM": ["Omega_bc", "Omega_k", "w", "wa"],
 }
 
 # Default ranges for the exploration of parameters
@@ -117,6 +117,32 @@ def get_cosmo_params(base="PlanckBAO18", **kwargs):
     params.update(kwargs)
     return params
 
+def get_constrained_params(priors, cosmology="wwaCDM",  base="PlanckBAO18", **kwargs):
+    """ Convenience funtion to distinguish between parameters constrained by a list of priors and parameters that need to be fixed.
+    Args:
+        priors (list): list of likelihoods.Chi2 (or derivative) instances
+        cosmology (str): Name of the cosmology model to be fitted
+        base (str): Name of the reference set of default parameters.
+        **kwargs: Deviations to the set of default parameters.
+
+    Returns:
+        (dict, dict): (free_params, fixed_params)
+    """
+    from cosmologix import likelihoods
+    fixed = get_cosmo_params(base=base, **kwargs)
+    to_free = DEFAULT_FREE[cosmology].copy()
+    for p in priors:
+        if type(p) is likelihoods.GeometricCMBLikelihood:
+            to_free.extend(CMB_FREE)
+        elif type(p) is likelihoods.Chi2:
+            to_free.append(p.parameter)
+        elif type(p) is likelihoods.CalibratedBAOLikelihood:
+            to_free.extend(CMB_FREE)
+    constrained = {}
+    for par in set(to_free):
+        constrained[par] = fixed.pop(par)
+    return constrained, fixed
+
 def known_priors():
     """ Return the list of predifined prior names in the likelihood module
     """
@@ -139,27 +165,38 @@ def get_prior(p):
     """
     import cosmologix.likelihoods
     original_name = known_priors()
-    name_match = {k.lower(): k for k in original_name}[p.lower()]
+    try:
+        name_match = {k.lower(): k for k in original_name}[p.lower()]
+    except KeyError:
+        raise KeyError(f'Unknown prior name. Available priors: {original_name}')
     return getattr(cosmologix.likelihoods, name_match)()
 
 def get_priors(prior_names, base='PlanckBAO18', **kwargs):
     """ Convenience function to build a list of priors
 
     Args:
-
+        prior_names (list[str]):
+            list of predefined prior names (case insensitive)
+            see known_priors() for the list of predefined priors.
+        base (str): Name of the base cosmology to pick central values from.
+        kwargs (dict): specify a set of gaussian priors on parameters as:
+                       {param_name: (central_value, precision)}
+                      if central value is omitted, it is picked up from the base cosmology.
     Returns:
         list: The resulting list of prior objects
 
     Example:
-    
+        priors = get_priors(['pr4', 'desidr2'], H0=(70, 1))
     """
+    import numpy as np
+    from cosmologix import likelihoods
     priors = [get_prior(name) for name in prior_names]
-    for key, values in prior.items():
+    for key, values in kwargs.items():
         if len(values:=np.atleast_1d(values)) == 1:
             central_value = get_cosmo_params(base=base)[key]
             precision = values[0]
         else:
             central_value, precision = values
-        priors.append(likelihoods.Chi2(key, central_value, precision))
+        priors.append(likelihoods.Chi2(key, float(central_value), float(precision)))
     return priors
-
+    
