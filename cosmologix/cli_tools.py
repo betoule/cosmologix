@@ -6,6 +6,7 @@ import click
 from typer import Option
 
 from cosmologix import parameters
+from cosmologix.parameters import get_prior
 
 # We defer other imports to improve responsiveness on the command line
 # pylint: disable=import-outside-toplevel
@@ -19,6 +20,7 @@ AVAILABLE_PRIORS = [
     "DES5yr",
     "Pantheonplus",
     "Union3",
+    "JLA",
     "SH0ES",
     "BBNNeffSchoneberg2024",
     "BBNSchoneberg2024",
@@ -124,20 +126,6 @@ MU_COV_OPTION = Option(
     "--mu-cov",
     help="Optional covariance matrix in npy format",
 )
-
-
-def get_prior(p):
-    """Retrieves a prior by name from the `cosmologix.likelihoods` module.
-
-    Args:
-        p (str): The name of the prior.
-
-    Returns:
-        object: The prior object.
-    """
-    import cosmologix.likelihoods
-
-    return getattr(cosmologix.likelihoods, p)()
 
 
 def permissive_load(name):

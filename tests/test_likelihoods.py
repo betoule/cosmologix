@@ -10,6 +10,12 @@ import gc
 jax.config.update("jax_enable_x64", True)
 
 
+def test_names():
+    from cosmologix.parameters import known_priors
+    assert len(set(known_priors())) == len(set([k.lower() for k in known_priors()])), f"Conflicting prior names: {known_priors()}"
+    from cosmologix.cli_tools import AVAILABLE_PRIORS
+    assert sorted(known_priors()) == sorted(AVAILABLE_PRIORS), set(known_priors()).symmetric_difference(set(AVAILABLE_PRIORS))
+
 def func_and_derivatives(func, x, jac=False, hessian=False, funcname=""):
     """Test whether jitted and normal version of a function and its derivative are correct"""
     funcs = {"func": func}
