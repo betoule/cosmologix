@@ -42,6 +42,9 @@ htmlcov/
 .pytest_cache/
 nosetests.xml
 coverage.xml
+pylint.svg
+documentation.svg
+report.xml
 
 # Translations
 *.mo

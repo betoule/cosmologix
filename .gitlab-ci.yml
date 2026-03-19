@@ -1,5 +1,5 @@
 default:
-  image: python:3.10
+  image: python:3.14
 
 stages:
   - lint
@@ -9,7 +9,7 @@ stages:
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  DEFAULT_PYTHON_VERSION: "3.10"
+  DEFAULT_PYTHON_VERSION: "3.14"
 
 cache:
   paths:
@@ -42,7 +42,7 @@ test:
   stage: test
   parallel:
     matrix:
-      - PYTHON_VERSION: ["3.10", "3.12", "3.14"]
+      - PYTHON_VERSION: ["3.11", "3.12", "3.13", "3.14"]
   image: python:$PYTHON_VERSION
   script:
     - pip install -e .[test]
