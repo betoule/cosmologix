@@ -117,16 +117,23 @@ def get_cosmo_params(base="PlanckBAO18", **kwargs):
     params.update(kwargs)
     return params
 
+
 def known_priors():
-    """ Return the list of predifined prior names in the likelihood module
-    """
+    """Return the list of predifined prior names in the likelihood module"""
     import cosmologix.likelihoods
     import types
+
     # The convention is that Pre-defined priors in the likelihood
     # module are functions whose name is capitalized, taking no
     # parameters and returning an object of type Chi2
-    known_priors = [k for k in dir(cosmologix.likelihoods) if type(getattr(cosmologix.likelihoods, k)) is types.FunctionType and k[0].upper() == k[0]]
+    known_priors = [
+        k
+        for k in dir(cosmologix.likelihoods)
+        if type(getattr(cosmologix.likelihoods, k)) is types.FunctionType
+        and k[0].upper() == k[0]
+    ]
     return known_priors
+
 
 def get_prior(p):
     """Retrieves a prior by name from the `cosmologix.likelihoods` module.
@@ -138,12 +145,14 @@ def get_prior(p):
         object: The prior object.
     """
     import cosmologix.likelihoods
+
     original_name = known_priors()
     name_match = {k.lower(): k for k in original_name}[p.lower()]
     return getattr(cosmologix.likelihoods, name_match)()
 
-def get_priors(prior_names, base='PlanckBAO18', **kwargs):
-    """ Convenience function to build a list of priors
+
+def get_priors(prior_names, base="PlanckBAO18", **kwargs):
+    """Convenience function to build a list of priors
 
     Args:
 
@@ -151,15 +160,14 @@ def get_priors(prior_names, base='PlanckBAO18', **kwargs):
         list: The resulting list of prior objects
 
     Example:
-    
+
     """
     priors = [get_prior(name) for name in prior_names]
     for key, values in prior.items():
-        if len(values:=np.atleast_1d(values)) == 1:
+        if len(values := np.atleast_1d(values)) == 1:
             central_value = get_cosmo_params(base=base)[key]
             precision = values[0]
         else:
             central_value, precision = values
         priors.append(likelihoods.Chi2(key, central_value, precision))
     return priors
-
