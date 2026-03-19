@@ -36,7 +36,7 @@ dependencies = [
     "astropy", # for pyfits and tests
     "typer",
     "asdf", # to save in asdf format
-    "zstandard", # for file compression 
+    "zstandard", # for file compression
 ]
 
 [project.scripts]
@@ -52,6 +52,8 @@ test = [
     "scipy",
     "camb",
     "jax_cosmo",
+    "setuptools<82.0.0",  # pkg_resources (needed by jax_cosmo) is deprecated and removed from setuptools>=82
+    "cosmoprimo @ git+https://github.com/cosmodesi/cosmoprimo"
 ]
 [project.urls]
 "Source Code" = "https://gitlab.in2p3.fr/lemaitre/cosmologix"
@@ -61,7 +63,7 @@ test = [
 packages = ["cosmologix"]
 
 #[tool.setuptools.package-data]
-#"cosmologix" = ["*.npy", "*.txt"]  
+#"cosmologix" = ["*.npy", "*.txt"]
 
 [tool.isort]
 profile = "black"
@@ -102,5 +104,5 @@ addopts = [
   '-m', "not slow",
   "--cov=cosmologix",
   "--cov-report=term-missing",
-  "-p no:astropy", 
+  "-p no:astropy",
 ]

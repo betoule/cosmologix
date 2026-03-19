@@ -49,6 +49,7 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+public
 
 # PyBuilder
 .pybuilder/
@@ -96,3 +97,6 @@ ehthumbs.db
 # Vim
 *.un~
 .aider*
+
+# local CI
+.gitlab-ci-local

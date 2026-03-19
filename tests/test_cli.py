@@ -1,9 +1,10 @@
-import pytest
-import argparse
 from unittest.mock import patch
-from cosmologix.cli import main
-from cosmologix import likelihoods, contours, distances, parameters
+
 import numpy as np
+import pytest
+
+from cosmologix import distances, parameters
+from cosmologix.cli import main
 
 
 # Test the main entry point
@@ -11,7 +12,6 @@ def test_main_cli(tmp_path, capsys):
     best_fit_path = tmp_path / "bestfit.pkl"
     contour_path = tmp_path / "contour.pkl"
     plot_path = tmp_path / "plot.png"
-    corner_path = tmp_path / "corner.png"
 
     # Generate test mu.npy and cov.npy for load_mu
     mu_path = tmp_path / "mu.npy"

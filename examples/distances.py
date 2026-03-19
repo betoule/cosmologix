@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
-from cosmologix import distances, densities
-from cosmologix.parameters import get_cosmo_params
 import numpy as np
+
+from cosmologix import densities, distances
+from cosmologix.parameters import get_cosmo_params
 
 
 def cosmologix_distances(params, z):

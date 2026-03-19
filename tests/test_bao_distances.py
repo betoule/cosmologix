@@ -1,15 +1,13 @@
-from cosmologix.acoustic_scale import rs, z_star, z_drag, theta_MC, dM, dsound_da_approx
-from cosmologix.parameters import get_cosmo_params
-from test_distances import params_to_CAMB
-import pyccl as ccl
-import jax
-import camb
 import jax.numpy as jnp
+
+from cosmologix.acoustic_scale import dM, rs, z_drag
+from cosmologix.parameters import get_cosmo_params
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
-    from cosmologix.distances import dV, dM, dH
-    from cosmologix.acoustic_scale import z_drag, rs, rd_approx
+
+    from cosmologix.acoustic_scale import rd_approx, rs, z_drag
+    from cosmologix.distances import dH, dM, dV
     from cosmologix.likelihoods import DESIDR1Prior
 
     z = jnp.linspace(0.05, 2.5, 100)

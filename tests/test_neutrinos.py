@@ -1,5 +1,6 @@
-from cosmologix import neutrinos
 import jax.numpy as jnp
+
+from cosmologix import neutrinos
 
 
 def test_composition(plot=False):
@@ -38,8 +39,9 @@ def test_composition(plot=False):
 
 
 if __name__ == "__main__":
-    from cosmologix.tools import speed_measurement
     import matplotlib.pyplot as plt
+
+    from cosmologix.tools import speed_measurement
 
     mbar = jnp.logspace(-3, 4, 1000)
     print(speed_measurement(neutrinos.compute_composite_integral, mbar))

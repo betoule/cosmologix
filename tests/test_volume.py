@@ -1,14 +1,14 @@
-import camb
-from test_distances import params_to_CAMB, cosmologies
-import numpy as np
 import jax.numpy as jnp
-from cosmologix import densities, distances
+import numpy as np
 from astropy import cosmology
+from test_distances import cosmologies
+
+from cosmologix import densities, distances
 
 
 def params_to_astropy(params):
     params = densities.derived_parameters(params)
-    h = params["H0"] / 100.0
+    # h = params["H0"] / 100.0
     # Omega_b = params['Omega_b_h2'] / h ** 2
     # Omega_nu_mass = float(Omega_n_mass(params, 1.)[0])
     return cosmology.w0waCDM(

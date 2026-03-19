@@ -1,21 +1,20 @@
-from cosmologix.acoustic_scale import (
-    rd,
-    rs,
-    z_star,
-    z_drag,
-    theta_MC,
-    dM,
-    dsound_da_approx,
-    rd_approx,
-)
+import camb
+import jax
+import jax.numpy as jnp
+from test_distances import params_to_CAMB
+
 from cosmologix import densities
+from cosmologix.acoustic_scale import (
+    dsound_da_approx,
+    rd,
+    rd_approx,
+    rs,
+    theta_MC,
+    z_drag,
+    z_star,
+)
 from cosmologix.parameters import get_cosmo_params
 from cosmologix.tools import Constants
-from test_distances import params_to_CAMB
-import pyccl as ccl
-import jax
-import camb
-import jax.numpy as jnp
 
 
 def test_acoustic_scale():
@@ -57,7 +56,7 @@ if __name__ == "__main__":
     astar = 1 / (1 + zstar)
     results = camb.get_results(pars)
     thetastar = theta_MC(params)
-    print(f"CAMB: {100*results.cosmomc_theta()}")
+    print(f"CAMB: {100 * results.cosmomc_theta()}")
     print(f"Cosmologix: {thetastar}")
     print(Constants.c * 1e-3 / jnp.sqrt(3) * dsound_da_approx(params, 1e-8))
     print(Constants.c * 1e-3 / jnp.sqrt(3) * dsound_da_approx(params, astar / 2))
