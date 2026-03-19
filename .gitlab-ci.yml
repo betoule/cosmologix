@@ -1,5 +1,5 @@
 default:
-  image: python:3.10
+  image: python:3.14
 
 stages:
   - lint
@@ -9,7 +9,7 @@ stages:
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  DEFAULT_PYTHON_VERSION: "3.10"
+  DEFAULT_PYTHON_VERSION: "3.14"
 
 cache:
   paths:
@@ -42,8 +42,14 @@ test:
   stage: test
   parallel:
     matrix:
-      - PYTHON_VERSION: ["3.10", "3.12", "3.14"]
+      - PYTHON_VERSION: ["3.11", "3.12", "3.13", "3.14"]
   image: python:$PYTHON_VERSION
+  variables:
+    # jaxlib 0.9.x cp311 wheels are AOT-compiled with CPU features (+prefer-no-gather,
+    # +prefer-no-scatter) absent on some runners, causing NaN results. Disabling the
+    # thunk runtime forces XLA to JIT-compile for the actual host CPU instead of
+    # loading the pre-compiled AOT executables.
+    XLA_FLAGS: "--xla_cpu_use_thunk_runtime=false"
   script:
     - pip install -e .[test]
     - pytest -v --junitxml=report.xml --cov-report=term --cov-report xml
