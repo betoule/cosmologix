@@ -116,8 +116,6 @@ git clone https://gitlab.in2p3.fr/lemaitre/cosmologix.git
 pip install .[test]
 pytest -v
 ```
-```
-```
 
 Look at the [Road map and release history
 page](https://lemaitre.pages.in2p3.fr/cosmologix/release.html) for
