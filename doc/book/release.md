@@ -10,6 +10,7 @@
 - Get rid of annoying XLA warnings
 - Use tagged versions for DES files (fixing download issues)
 - Update documentation and examples
+- Drop support for python 3.10
 
 ### v0.9.8
 - API refinement:

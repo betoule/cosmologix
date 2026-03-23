@@ -137,7 +137,7 @@ architecture for 2000 redshifts (corresponding to the current number
 of supernovae in Hubble diagrams).
 
 In addition we also timed the computation of the jacobian matrix
-($\grad \vec \mu$) of the distance modulus with respect to the 9
+($\vec\nabla \vec \mu$) of the distance modulus with respect to the 9
 cosmological parameters. It is evaluated as `jax.jacfwd(mu)`. The
 computation time for the Jacobian is roughly 5 times larger than the
 function itself. This is faster than finite differences, which require
