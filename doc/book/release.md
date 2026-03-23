@@ -4,7 +4,12 @@
 
 - [ ] Conversion of contours to different parameterisation (e.g. `Omega_bc` to `Omega_m`)
 
-### v0.9.8 (current)
+### v0.9.9 (current)
+- API refinement: Introduction of parameters.get_priors to ease retrieval of predifined priors by name
+- Use tagged versions for DES files (fixing download issues)
+- Update documentation and examples
+
+### v0.9.8
 - API refinement:
   - introduction of `parameters.get_cosmo_params`
   - deprecation of `parameters.lcdm_deviation`

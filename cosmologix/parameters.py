@@ -163,7 +163,7 @@ def get_priors(prior_names, base="PlanckBAO18", **kwargs):
 
     """
     priors = [get_prior(name) for name in prior_names]
-    for key, values in prior.items():
+    for key, values in kwargs.items():
         if len(values := np.atleast_1d(values)) == 1:
             central_value = get_cosmo_params(base=base)[key]
             precision = values[0]
