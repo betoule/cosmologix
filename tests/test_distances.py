@@ -1,10 +1,10 @@
+import camb
+import jax.numpy as jnp
+import pyccl as ccl
+
 from cosmologix import densities
 from cosmologix.distances import H, mu
 from cosmologix.parameters import get_cosmo_params
-import pyccl as ccl
-import jax.numpy as jnp
-import jax
-import camb
 
 # Set the default precision to float64 for all operations
 # jax.config.update("jax_enable_x64", True)

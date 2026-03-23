@@ -168,8 +168,11 @@ def cached_download(url):
     # this module is a bit slow to import (don't unless needed)
     import requests  # pylint: disable=import-outside-toplevel
 
-    response = requests.get(url, stream=True, timeout=30)
-    response.raise_for_status()
+    try:
+        response = requests.get(url, stream=True, timeout=30)
+        response.raise_for_status()
+    except Exception as e:
+        raise RuntimeError(f"Failed to download {url}, check your internet connection")
 
     with open(cache_path, "wb") as file:
         for chunk in response.iter_content(chunk_size=8192):

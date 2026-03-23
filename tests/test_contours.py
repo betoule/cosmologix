@@ -1,8 +1,8 @@
-from cosmologix import likelihoods, contours, tools, display
-from cosmologix.distances import mu
 import jax.numpy as jnp
 import numpy as np
 from numpy.testing import assert_allclose
+
+from cosmologix import contours, display, likelihoods, tools
 
 
 def compare_dicts(dict1, dict2):
@@ -60,7 +60,3 @@ def test_profile(tmp_path):
     grid2 = tools.load(temp_file)
     assert compare_dicts(grid, grid2)
     display.plot_profile(grid)
-
-
-if __name__ == "__main__":
-    test_contours()

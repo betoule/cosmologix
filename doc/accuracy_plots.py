@@ -1,22 +1,17 @@
+import camb
+import cosmoprimo
+import jax
+import jax.numpy as jnp
+import jax_cosmo as jc
 import matplotlib.pyplot as plt
+import numpy as np
 import pyccl as ccl
-from cosmologix import neutrinos, densities
+from astropy import cosmology
+
+from cosmologix import densities, neutrinos
 from cosmologix.distances import mu
 from cosmologix.parameters import get_cosmo_params
-import jax.numpy as jnp
-import numpy as np
-import jax
-import camb
 from cosmologix.tools import Constants
-from astropy import cosmology
-import jax_cosmo as jc
-
-try:
-    import cosmoprimo
-except ImportError:
-    print(
-        "Running the full comparison requires manual installation of cosmoprimo, for example via python -m pip install git+https://github.com/cosmodesi/cosmoprimo"
-    )
 
 
 #

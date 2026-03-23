@@ -1,7 +1,8 @@
-from cosmologix import distances, contours, display, parameters, likelihoods, fitter
-import matplotlib.pyplot as plt
 import jax
 import jax.numpy as jnp
+import matplotlib.pyplot as plt
+
+from cosmologix import contours, display, distances, fitter, likelihoods, parameters
 
 # Plot settings
 plt.rc("text", usetex=True)

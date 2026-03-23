@@ -106,9 +106,9 @@ def pretty_print(result, fom_scale="1sigma"):
     residuals = result["residuals"]
     ndof = len(residuals) - len(param_names)
     pvalue = 1 - jax.scipy.stats.chi2.cdf(chi2, ndof)
-    print(f"χ²={chi2:.2f} (d.o.f. = {ndof}), χ²/d.o.f = {chi2/ndof:.3f}")
+    print(f"χ²={chi2:.2f} (d.o.f. = {ndof}), χ²/d.o.f = {chi2 / ndof:.3f}")
     # If the fit involves w and wa print the FOM
-    print(f"p-value: {pvalue*100:.2f}%")
+    print(f"p-value: {pvalue * 100:.2f}%")
     if "w" in param_names and "wa" in param_names:
         print(f"FOM={detf_fom(result, scale=fom_scale):.1f}")
 

@@ -21,7 +21,7 @@ distances. It has been tested against the CCL.
 ## Installation
 
 
-To install `cosmologix`, you need Python 3.10 or newer. Use pip:
+To install `cosmologix`, you need Python 3.11 or newer. Use pip:
 
 ```sh
 pip install cosmologix
@@ -116,8 +116,6 @@ git clone https://gitlab.in2p3.fr/lemaitre/cosmologix.git
 pip install .[test]
 pytest -v
 ```
-```
-```
 
 Look at the [Road map and release history
 page](https://lemaitre.pages.in2p3.fr/cosmologix/release.html) for
@@ -169,5 +167,3 @@ for its clean and inspiring interface and of course
 [jax-cosmo](https://github.com/DifferentiableUniverseInitiative/jax_cosmo),
 pioneer and much more advanced in differentiable cosmology
 computations.
-
-

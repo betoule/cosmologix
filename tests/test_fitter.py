@@ -1,37 +1,34 @@
-from cosmologix import (
-    likelihoods,
-    distances,
-    acoustic_scale,
-    display,
-)
-from cosmologix.parameters import get_cosmo_params
-from cosmologix.fitter import flatten_vector, unflatten_vector, restrict_to, fit
-import jax.numpy as jnp
 import jax
-import time
-import pytest
+import jax.numpy as jnp
+
+from cosmologix import (
+    display,
+    likelihoods,
+)
+from cosmologix.fitter import fit, flatten_vector, restrict_to
+from cosmologix.parameters import get_cosmo_params
 
 jax.config.update("jax_enable_x64", True)
 
 
-def control_fitter_bias_and_coverage(priors, point, fitter, ndraw=50):
-    # Simulated data
-    params = get_cosmo_params()
-    params.update(point)
-    likelihood = likelihoods.LikelihoodSum(priors)
+# def control_fitter_bias_and_coverage(priors, point, fitter, ndraw=50):
+#     # Simulated data
+#     params = get_cosmo_params()
+#     params.update(point)
+#     likelihood = likelihoods.LikelihoodSum(priors)
 
-    def draw():
-        likelihood.draw(params)
-        loss, start = restrict_to(
-            likelihood.negative_log_likelihood, params, list(point.keys()), flat=False
-        )
-        bestfit, extra = newton(loss, start)
-        return flatten_vector(bestfit)
+#     def draw():
+#         likelihood.draw(params)
+#         loss, start = restrict_to(
+#             likelihood.negative_log_likelihood, params, list(point.keys()), flat=False
+#         )
+#         bestfit, extra = newton(loss, start)
+#         return flatten_vector(bestfit)
 
-    results = jnp.array([draw() for _ in range(ndraw)])
-    bias = jnp.mean(results, axis=0) - flatten_vector(point)
-    sigma = jnp.std(results, axis=0) / jnp.sqrt(ndraw)
-    assert (jnp.abs(bias / sigma) < 3).all()
+#     results = jnp.array([draw() for _ in range(ndraw)])
+#     bias = jnp.mean(results, axis=0) - flatten_vector(point)
+#     sigma = jnp.std(results, axis=0) / jnp.sqrt(ndraw)
+#     assert (jnp.abs(bias / sigma) < 3).all()
 
 
 # @pytest.mark.slow
@@ -73,22 +70,22 @@ def test_de_fit():
     display.plot_2d(result, "w", "wa")
 
 
-if __name__ == "__main__":
-    des = likelihoods.DES5yr()
-    pl = likelihoods.Planck2018()
-    desiu = likelihoods.DESIDR1(True)
-    point = {
-        "Omega_bc": 0.3,
-        "M": 0.0,
-    }
+# if __name__ == "__main__":
+#     des = likelihoods.DES5yr()
+#     pl = likelihoods.Planck2018()
+#     desiu = likelihoods.DESIDR1(True)
+#     point = {
+#         "Omega_bc": 0.3,
+#         "M": 0.0,
+#     }
 
 
-#    fixed_params = Planck18.copy()
-#    fixed_params.pop("Omega_bc")
-#    fixed_params.pop("w")
-#
-#    likelihoods = [des]
-#
-#
-#    starting_point = Planck18
-#
+# #    fixed_params = Planck18.copy()
+# #    fixed_params.pop("Omega_bc")
+# #    fixed_params.pop("w")
+# #
+# #    likelihoods = [des]
+# #
+# #
+# #    starting_point = Planck18
+# #

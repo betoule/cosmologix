@@ -1,7 +1,8 @@
-from accuracy_plots import *
 import time
+
 import jax
 import numpy as np
+from accuracy_plots import *
 
 
 def speed_measurement(func, params, z, n=10):

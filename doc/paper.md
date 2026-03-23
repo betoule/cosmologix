@@ -46,7 +46,7 @@ bibliography: paper.bib
 # Summary
 
 Type-Ia supernovae serve as standardizable candles to measure
-luminosity distances in the universe. Cosmologix accelerates and
+luminosity distances in the universe. `Cosmologix` accelerates and
 simplifies cosmological parameter inference from large datasets by
 providing fully differentiable calculations of the distance-redshift
 relation as a function of cosmological parameters. This is achieved
@@ -67,22 +67,23 @@ magnitudes in the distance modulus over the redshift range $0.01 < z <
 
 # Statement of need
 
-Many software are available to compute cosmological distances
-including `astropy` [@astropy], `camb` [@Challinor:2011bk], `class`
+Many software packages are available to compute cosmological distances
+including `astropy` [@astropy], `CAMB` [@Challinor:2011bk], `class`
 [@class1], `ccl` [@ccl]. To our knowledge only `jax-cosmo` [@jaxcosmo]
 and `cosmoprimo` [@cosmoprimo] provide automatic differentiation
 through the use of JAX. Unfortunately, at the time of writing, the
-computation in cosmoprimo does not seem to be jitable and distance
-computation in jax-cosmo is neglecting contributions to the energy
+computation in `cosmoprimo` does not seem to be jittable and distance
+computation in `jax-cosmo` is neglecting contributions to the energy
 density from neutrinos and photons. The accuracy of the resulting
-computation is insufficient for the need of the LEMAITRE analysis, a
+computation is insufficient for the needs of the LEMAITRE analysis, a
 compilation of type-Ia Supernovae joining the very large sample of
-nearby events discovered by ZTF [@rigault:2025] to higher redshift
-events from the SNLS [@astier:2006] and HSC [@yasuda:2019]. The
-LEMAITRE collaboration is therefore releasing its internal code for
-computing cosmological distances. The computation follows standard
-methods, but our JAX implementation is optimized for speed while
-maintaining sufficient accuracy.
+nearby events discovered by the Zwicky Transient Factory
+[@rigault:2025] to higher redshift events from the Supernova Legacy
+Survey [@astier:2006] and the Subaru Strategic Program
+[@yasuda:2019]. The LEMAITRE collaboration is therefore releasing its
+internal code for computing cosmological distances. The computation
+follows standard methods, but our JAX implementation is optimized for
+speed while maintaining sufficient accuracy.
 
 # Computations of the homogeneous background evolution
 
@@ -120,7 +121,7 @@ comparison.
 
 ![Difference in distance modulus for the Planck best-fit
 $\Lambda$CDM model with respect to the higher resolution quadrature
-computation in cosmologix.\label{fig:accuracy}](mu_accuracy.pdf)
+computation in `cosmologix`.\label{fig:accuracy}](mu_accuracy.pdf)
 
 ## Computation speed
 
