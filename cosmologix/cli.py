@@ -96,11 +96,9 @@ def fit(
     fix = fix or []
     free = free or []
     prior_names = prior_names or []
-    priors = parameters.get_priors(prior_names) + cli_tools.load_mu(
-        mu, mucov
-    )
-    
-    constrained, fixed  = parameters.get_constrained_params(priors, cosmology=cosmology)
+    priors = parameters.get_priors(prior_names) + cli_tools.load_mu(mu, mucov)
+
+    constrained, fixed = parameters.get_constrained_params(priors, cosmology=cosmology)
     to_free = parameters.DEFAULT_FREE[cosmology].copy()
     for par, value in fix:
         fixed[par] = value
@@ -171,9 +169,7 @@ def explore(
     free = free or []
     prior_names = prior_names or []
     var_range = var_range or []
-    priors = parameters.get_priors(prior_names) + cli_tools.load_mu(
-        mu, mucov
-    )
+    priors = parameters.get_priors(prior_names) + cli_tools.load_mu(mu, mucov)
     constrained, fixed = parameters.get_constrained_params(priors, cosmology=cosmology)
     for par, value in fix:
         fixed[par] = value

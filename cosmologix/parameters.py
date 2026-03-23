@@ -185,19 +185,19 @@ def get_prior(p):
 def get_priors(prior_names, base="PlanckBAO18", **kwargs):
     """Convenience function to build a list of priors
 
-        Args:
-            prior_names (list[str]):
-                list of predefined prior names (case insensitive)
-                see known_priors() for the list of predefined priors.
-            base (str): Name of the base cosmology to pick central values from.
-            kwargs (dict): specify a set of gaussian priors on parameters as:
-                           {param_name: (central_value, precision)}
-                          if central value is omitted, it is picked up from the base cosmology.
-        Returns:
-            list: The resulting list of prior objects
+    Args:
+        prior_names (list[str]):
+            list of predefined prior names (case insensitive)
+            see known_priors() for the list of predefined priors.
+        base (str): Name of the base cosmology to pick central values from.
+        kwargs (dict): specify a set of gaussian priors on parameters as:
+                       {param_name: (central_value, precision)}
+                      if central value is omitted, it is picked up from the base cosmology.
+    Returns:
+        list: The resulting list of prior objects
 
-        Example:
-            priors = get_priors(['pr4', 'desidr2'], H0=(70, 1))
+    Example:
+        priors = get_priors(['pr4', 'desidr2'], H0=(70, 1))
     """
     import numpy as np
     from cosmologix import likelihoods
