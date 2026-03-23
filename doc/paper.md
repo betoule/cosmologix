@@ -132,33 +132,37 @@ and subsequent calls, as the initial call may involve specific
 overheads. For `cosmologix`, this includes JIT-compilation times,
 which introduces a significant delay. In subsequent calls,
 `cosmologix` overperforms all other tested codes by a significant
-margin.
+margin, typically 10 times faster or more on the tested CPU
+architecture for 2000 redshifts (corresponding to the current number
+of supernovae in Hubble diagrams).
 
-In addition we also timed the computation of the jacobian matrix of
-the distance modulus with respect to the 9 cosmological parameters. It
-is evaluated as `jax.jacfwd(mu)`. The computation time for the Jacobian
-is roughly 5 times larger than the function itself. This is faster
-than finite differences, which require 10 function evaluations,
-reducing computation time by approximately 50\%.
+In addition we also timed the computation of the jacobian matrix
+($\grad \vec \mu$) of the distance modulus with respect to the 9
+cosmological parameters. It is evaluated as `jax.jacfwd(mu)`. The
+computation time for the Jacobian is roughly 5 times larger than the
+function itself. This is faster than finite differences, which require
+10 function evaluations, reducing computation time by approximately
+50\%.
 
 ![Computation speed of the distance modulus \label{fig:speed} for
 various cosmological codes. The left panel displays the measured time
 for the first call which integrates pre-computation and in the case of
 jax codes overhead associated with jit compilation. The right panel
-displays the average time measured over 10 subsequent calls. The
-measurements were obtained on an Intel(R) Core(TM) i7-1165G7 CPU
-clocked at 2.80GHz, without GPU acceleration.](mu_speed.pdf)
+displays the median time measured over 10 subsequent calls. The error
+bar is the rms over 10 measurements. The measurements were obtained on
+an AMD RYZEN AI MAX+ 395, without GPU acceleration.](mu_speed.pdf)
 
 # Differentiability and likelihood maximization
 
 Last, the code provides a framework to efficiently build frequentist
 confidence contours for cosmological parameters for all measurements
-whose likelihood can be expressed as a chi-square. 
-\autoref{sample_contour} provides an example 2-dimensionnal
-confidence region in the plane $(\Omega_{bc}, w)$ for a flat $w$-CDM
-model as probed by the Union3 supernovae compilation
-[@2023arXiv231112098R]. The full computation took 3.86s on an
-Intel(R) Core(TM) i7-1165G7 at 2.80GHz without GPU acceleration.
+whose likelihood can be expressed as a chi-square.
+\autoref{sample_contour} provides an example 2-dimensionnal confidence
+region in the plane $(\Omega_{bc}, w)$ for a flat $w$-CDM model as
+probed by the Union3 supernovae compilation
+[@2023arXiv231112098R]. $Omega_{bc}$ is the combined density parameter
+of baryonic and cold dark matter. The full computation took 3.86s on
+an Intel(R) Core(TM) i7-1165G7 at 2.80GHz without GPU acceleration.
 
 ![Confidence region at 68 and 95 percent for the $w$ and $\Omega_{bc}$ parameters probed by the Union3 compilation.\label{sample_contour}](sample_contour.pdf)
 

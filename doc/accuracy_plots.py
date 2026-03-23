@@ -201,15 +201,15 @@ def distance_accuracy(params=get_cosmo_params(), title="distance_accuracy"):
     ax1, ax2 = fig.subplots(2, 1, sharex=True)
     for label, mu_alt in comparisons.items():
         ax1.plot(z, mu_alt(params, z), label=label)
-        ax2.plot(z, mu_alt(params, z) - mu(params, z, 10000), label=label)
+        ax2.plot(z, (mu_alt(params, z) - mu(params, z, 10000)) * 1000, label=label)
     ax1.plot(z, mu(params, z), "k-", label="cosmologix fine ($10^4$ nodes)")
     ax2.axhline(0, color="k")
     ax1.set_xscale("log")
     ax1.legend(frameon=False, loc="best", ncols=2)
     ax2.set_xlabel(r"$z$")
-    ax2.set_ylabel(r"$\mu - \mu_{fine}$")
-    ax2.set_ylim([-1e-4, 1e-4])
-    ax1.set_ylabel(r"$\mu$")
+    ax2.set_ylabel(r"$\mu - \mu_{fine}$ [mmag]")
+    ax2.set_ylim([-1e-1, 1e-1])
+    ax1.set_ylabel(r"$\mu$ [mag]")
 
 
 def plot_densities(params=get_cosmo_params(), title="densities"):
