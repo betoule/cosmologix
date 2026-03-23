@@ -68,8 +68,8 @@ magnitudes in the distance modulus over the redshift range $0.01 < z <
 # Statement of need
 
 Many software packages are available to compute cosmological distances
-including `astropy` [@astropy], `CAMB` [@Challinor:2011bk], `class`
-[@class1], `ccl` [@ccl]. To our knowledge only `jax-cosmo` [@jaxcosmo]
+including `astropy` [@astropy], `CAMB` [@Challinor:2011bk], `CLASS`
+[@class1], `CCL` [@ccl]. To our knowledge only `jax-cosmo` [@jaxcosmo]
 and `cosmoprimo` [@cosmoprimo] provide automatic differentiation
 through the use of JAX. Unfortunately, at the time of writing, the
 computation in `cosmoprimo` does not seem to be jittable and distance
@@ -115,7 +115,7 @@ range. Residual discrepancies between libraries stem from differences
 in handling the effective number of neutrino species. We adopt
 `CAMB`’s convention, where all species share the same temperature,
 resulting in closer alignment with its predictions. We exclude
-`jax_cosmo` from this comparison because it does not account for
+`jax-cosmo` from this comparison because it does not account for
 neutrino contributions to energy density, precluding a meaningful
 comparison.
 

@@ -15,7 +15,7 @@ def speed_measurement(func, params, z, n=10):
         result = jax.block_until_ready(func(params, z))
         dur.append(time.time() - t0)
     # return (len(z), tcomp-tstart, (tstop-tcomp)/n)
-    return (tcomp - tstart, np.mean(dur), np.std(dur) / np.sqrt(n))
+    return (tcomp - tstart, np.median(dur), np.std(dur) / np.sqrt(n))
 
 
 if __name__ == "__main__":
@@ -29,10 +29,10 @@ if __name__ == "__main__":
         # "cosmologix (grad-jit)": jax.jit(jax.jacfwd(mu)),
         r"cosmologix ($\mu$)": jax.jit(mu),
         r"cosmologix ($\vec \nabla \mu$)": jax.jit(jax.jacfwd(mu)),
-        "ccl": mu_ccl,
-        "camb": mu_camb,
+        "CCL": mu_ccl,
+        "CAMB": mu_camb,
         "astropy": mu_astropy,
-        "jax_cosmo": mu_jaxcosmo,
+        "jax-cosmo": mu_jaxcosmo,
         "cosmoprimo": mu_cosmoprimo,
     }
     params = get_cosmo_params()

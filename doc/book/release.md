@@ -6,6 +6,8 @@
 
 ### v0.9.9 (current)
 - API refinement: Introduction of parameters.get_priors to ease retrieval of predifined priors by name
+- Introduction of the helper parameters.get_constrained_params, making it easy to decide which parameters are constrained by a given set of probes.
+- Get rid of annoying XLA warnings
 - Use tagged versions for DES files (fixing download issues)
 - Update documentation and examples
 

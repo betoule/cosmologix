@@ -189,8 +189,8 @@ def cosmologix_densities(params, z):
 
 def distance_accuracy(params=get_cosmo_params(), title="distance_accuracy"):
     comparisons = {
-        "ccl": mu_ccl,
-        "camb": mu_camb,
+        "CCL": mu_ccl,
+        "CAMB": mu_camb,
         "astropy": mu_astropy,
         "cosmologix coarse ($10^3$ nodes)": lambda params, z: mu(params, z, 1000),
         "cosmoprimo": mu_cosmoprimo,
