@@ -21,7 +21,6 @@ from .parameters import get_cosmo_params
 def frequentist_contour_2d(
     likelihoods,
     grid=None,
-    varied=None,
     fixed=None,
 ):
     """Fully explore a 2D parameter space to build confidence contours.
@@ -35,8 +34,6 @@ def frequentist_contour_2d(
         grid (dict, optional): A dictionary defining the parameter ranges and grid
             sizes. Defaults to `{"Omega_bc": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]}`.
             The format is `{"param_name": [min, max, num_points]}`.
-        varied (list, optional): A list of additional parameter names to vary at
-            each grid point. Defaults to None.
         fixed (dict, optional): A dictionary of parameter names and their fixed
             values. Defaults to None.
 
@@ -51,30 +48,24 @@ def frequentist_contour_2d(
     """
     if grid is None:
         grid = {"Omega_bc": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]}
-    if varied is None:
-        varied = []
+    if fixed is None:
+        fixed = {}
+
     likelihood = LikelihoodSum(likelihoods)
 
     # Update the initial guess with the nuisance parameters associated
     # with all involved likelihoods
     params = likelihood.initial_guess(get_cosmo_params())
-    if fixed is not None:
-        params.update(fixed)
-        wres = restrict(likelihood.weighted_residuals, fixed)
-        initial_guess = params.copy()
-        for p in fixed:
-            initial_guess.pop(p)
-    else:
-        wres, initial_guess = restrict_to(
-            likelihood.weighted_residuals,
-            params,
-            varied=list(grid.keys()) + varied,
-            flat=False,
-        )
+    initial_guess = params.copy()
+    for p in fixed:
+        assert p in params, "Unknow parameter name {p}"
+        initial_guess.pop(p)
+    params.update(fixed)
+
     # Looking for the global minimum
-    wres_, jac = gauss_newton_prep(wres, initial_guess)
+    wres, jac = gauss_newton_prep(likelihood.weighted_residuals, initial_guess)
     x0 = flatten_vector(initial_guess)
-    xbest, extra = gauss_newton_partial(wres_, jac, x0, {})
+    xbest, extra = gauss_newton_partial(wres, jac, x0, fixed)
     bestfit = unflatten_vector(initial_guess, xbest)
 
     # Exploring the chi2 space
@@ -88,14 +79,14 @@ def frequentist_contour_2d(
         partial_bestfit.pop(p)
 
     x = flatten_vector(partial_bestfit)
-    wres_, jac = gauss_newton_prep(wres, partial_bestfit)
+    wres, jac = gauss_newton_prep(likelihood.weighted_residuals, partial_bestfit)
 
     total_points = grid_size[0] * grid_size[1]
     with tqdm(total=total_points, desc=f"Exploring contour {explored_params}") as pbar:
         for i in range(grid_size[0]):
             for j in range(grid_size[1]):
                 point = {explored_params[0]: x_grid[i], explored_params[1]: y_grid[j]}
-                x, ploss = gauss_newton_partial(wres_, jac, x, point)
+                x, ploss = gauss_newton_partial(wres, jac, x, {**fixed, **point})
                 chi2_grid = chi2_grid.at[i, j].set(ploss["loss"][-1])
                 pbar.update(1)
     return {
@@ -111,7 +102,6 @@ def frequentist_contour_2d(
 def frequentist_contour_2d_sparse(
     likelihoods,
     grid=None,
-    varied=None,
     fixed=None,
     confidence_threshold=95,  # 95% confidence for 2 parameters; adjust as needed
 ):
@@ -131,8 +121,6 @@ def frequentist_contour_2d_sparse(
         grid (dict, optional): A dictionary defining the parameter ranges and grid
             sizes. Defaults to `{"Omega_bc": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]}`.
             The format is `{"param_name": [min, max, num_points]}`.
-        varied (list, optional): A list of additional parameter names to vary at
-            each grid point. Defaults to None.
         fixed (dict, optional): A dictionary of parameter names and their fixed
             values. Defaults to None.
         confidence_threshold (float, optional): The desired confidence level in
@@ -150,33 +138,26 @@ def frequentist_contour_2d_sparse(
     """
     if grid is None:
         grid = {"Omega_bc": [0.18, 0.48, 30], "w": [-0.6, -1.5, 30]}
-    if varied is None:
-        varied = []
+    if fixed is None:
+        fixed = {}
 
     chi2_threshold = conflevel_to_delta_chi2(confidence_threshold)
 
     likelihood = LikelihoodSum(likelihoods)
 
-    # Initial setup (same as before)
+    # Update the initial guess with the nuisance parameters associated
+    # with all involved likelihoods
     params = likelihood.initial_guess(get_cosmo_params())
-    if fixed is not None:
-        params.update(fixed)
-        wres = restrict(likelihood.weighted_residuals, fixed)
-        initial_guess = params.copy()
-        for p in fixed:
-            initial_guess.pop(p)
-    else:
-        wres, initial_guess = restrict_to(
-            likelihood.weighted_residuals,
-            params,
-            varied=list(grid.keys()) + varied,
-            flat=False,
-        )
+    initial_guess = params.copy()
+    for p in fixed:
+        assert p in params, "Unknow parameter name {p}"
+        initial_guess.pop(p)
+    params.update(fixed)
 
     # Find global minimum
-    wres_, jac = gauss_newton_prep(wres, initial_guess)
+    wres, jac = gauss_newton_prep(likelihood.weighted_residuals, initial_guess)
     x0 = flatten_vector(initial_guess)
-    xbest, extra = gauss_newton_partial(wres_, jac, x0, {})
+    xbest, extra = gauss_newton_partial(wres, jac, x0, fixed)
     bestfit = unflatten_vector(initial_guess, xbest)
     chi2_min = extra["loss"][-1]
 
@@ -187,10 +168,10 @@ def frequentist_contour_2d_sparse(
     if jnp.isnan(chi2_min):
         partial_guess = initial_guess.copy()
         first_param = explored_params[0]
-        point = {first_param: partial_guess.pop(first_param)}
-        wres_, jac = gauss_newton_prep(wres, partial_guess)
+        point = {first_param: partial_guess.pop(first_param), **fixed}
+        wres, jac = gauss_newton_prep(likelihood.weighted_residuals, partial_guess)
         x0 = flatten_vector(partial_guess)
-        xbest, extra = gauss_newton_partial(wres_, jac, x0, point)
+        xbest, extra = gauss_newton_partial(wres, jac, x0, point)
         bestfit = dict(unflatten_vector(partial_guess, xbest), **point)
         chi2_min = extra["loss"][-1]
 
@@ -208,7 +189,7 @@ def frequentist_contour_2d_sparse(
     for p in explored_params:
         partial_bestfit.pop(p)
     x = flatten_vector(partial_bestfit)
-    wres_, jac = gauss_newton_prep(wres, partial_bestfit)
+    wres, jac = gauss_newton_prep(likelihood.weighted_residuals, partial_bestfit)
 
     # Iterative contour exploration using a queue
     visited = set()
@@ -241,7 +222,7 @@ def frequentist_contour_2d_sparse(
 
             # Calculate chi2 at this point
             point = {explored_params[0]: x_grid[i], explored_params[1]: y_grid[j]}
-            x, ploss = gauss_newton_partial(wres_, jac, x, point)
+            x, ploss = gauss_newton_partial(wres, jac, x, {**fixed, **point})
             chi2_value = ploss["loss"][-1]
             chi2_grid = chi2_grid.at[i, j].set(chi2_value)
 
@@ -328,30 +309,25 @@ def frequentist_1d_profile(
     """
     if grid is None:
         grid = {"Omega_bc": []}
+    if fixed is None:
+        fixed = {}
+
     chi2_threshold = conflevel_to_delta_chi2(confidence_threshold, 1)
 
     likelihood = LikelihoodSum(likelihoods)
 
     # Initial setup (same as before)
     params = likelihood.initial_guess(get_cosmo_params())
-    if fixed is not None:
-        params.update(fixed)
-        wres = restrict(likelihood.weighted_residuals, fixed)
-        initial_guess = params.copy()
-        for p in fixed:
-            initial_guess.pop(p)
-    else:
-        wres, initial_guess = restrict_to(
-            likelihood.weighted_residuals,
-            params,
-            varied=list(grid.keys()),
-            flat=False,
-        )
+    initial_guess = params.copy()
+    for p in fixed:
+        assert p in params, "Unknow parameter name {p}"
+        initial_guess.pop(p)
+    params.update(fixed)
 
     # Find global minimum
-    wres_, jac = gauss_newton_prep(wres, initial_guess)
+    wres, jac = gauss_newton_prep(likelihood.weighted_residuals, initial_guess)
     x0 = flatten_vector(initial_guess)
-    xbest, extra = gauss_newton_partial(wres_, jac, x0, {})
+    xbest, extra = gauss_newton_partial(wres, jac, x0, fixed)
     bestfit = unflatten_vector(initial_guess, xbest)
     chi2_min = extra["loss"][-1]
 
@@ -369,7 +345,7 @@ def frequentist_1d_profile(
     partial_bestfit = bestfit.copy()
     partial_bestfit.pop(explored_param)
     x = flatten_vector(partial_bestfit)
-    wres_, jac = gauss_newton_prep(wres, partial_bestfit)
+    wres, jac = gauss_newton_prep(likelihood.weighted_residuals, partial_bestfit)
 
     # Iterative contour exploration using a queue
     visited = set()
@@ -387,7 +363,7 @@ def frequentist_1d_profile(
 
             # Calculate chi2 at this point
             point = {explored_param: x_grid[i]}
-            x, ploss = gauss_newton_partial(wres_, jac, x, point)
+            x, ploss = gauss_newton_partial(wres, jac, x, {**fixed, **point})
             chi2_value = ploss["loss"][-1]
             chi2_grid = chi2_grid.at[i].set(chi2_value)
 
