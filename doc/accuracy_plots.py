@@ -1,5 +1,4 @@
 import camb
-import cosmoprimo
 import jax
 import jax.numpy as jnp
 import jax_cosmo as jc
@@ -12,6 +11,13 @@ from cosmologix import densities, neutrinos
 from cosmologix.distances import mu
 from cosmologix.parameters import get_cosmo_params
 from cosmologix.tools import Constants
+
+try:
+    import cosmoprimo
+except ImportError:
+    print(
+        "Running the full comparison requires manual installation of cosmoprimo, for example via python -m pip install git+https://github.com/cosmodesi/cosmoprimo"
+    )
 
 
 #

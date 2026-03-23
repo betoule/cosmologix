@@ -54,7 +54,6 @@ test = [
     "camb",
     "jax_cosmo",
     "setuptools<82.0.0",  # pkg_resources (needed by jax_cosmo) is deprecated and removed from setuptools>=82
-    "cosmoprimo @ git+https://github.com/cosmodesi/cosmoprimo"
 ]
 [project.urls]
 "Source Code" = "https://gitlab.in2p3.fr/lemaitre/cosmologix"
