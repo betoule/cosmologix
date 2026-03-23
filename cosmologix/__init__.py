@@ -11,6 +11,9 @@ Modules:
     contours: Frequentist confidence contours.
     display: Plotting tools.
 """
+import os
+# Suppress XLA/JAX warnings (adjust level as needed)
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 __all__ = [
     "cli",
