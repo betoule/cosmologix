@@ -197,11 +197,7 @@ def get_priors(prior_names, base="PlanckBAO18", **kwargs):
             list: The resulting list of prior objects
 
         Example:
-    <<<<<<< HEAD
             priors = get_priors(['pr4', 'desidr2'], H0=(70, 1))
-    =======
-
-    >>>>>>> master
     """
     import numpy as np
     from cosmologix import likelihoods
