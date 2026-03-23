@@ -160,7 +160,7 @@ whose likelihood can be expressed as a chi-square.
 \autoref{sample_contour} provides an example 2-dimensionnal confidence
 region in the plane $(\Omega_{bc}, w)$ for a flat $w$-CDM model as
 probed by the Union3 supernovae compilation
-[@2023arXiv231112098R]. $Omega_{bc}$ is the combined density parameter
+[@2023arXiv231112098R]. $\Omega_{bc}$ is the combined density parameter
 of baryonic and cold dark matter. The full computation took 3.86s on
 an Intel(R) Core(TM) i7-1165G7 at 2.80GHz without GPU acceleration.
 
