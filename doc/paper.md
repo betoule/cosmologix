@@ -77,7 +77,7 @@ computation in `jax-cosmo` is neglecting contributions to the energy
 density from neutrinos and photons. The accuracy of the resulting
 computation is insufficient for the needs of the LEMAITRE analysis, a
 compilation of type-Ia Supernovae joining the very large sample of
-nearby events discovered by the Zwicky Transient Factory
+nearby events discovered by the Zwicky Transient Facility
 [@rigault:2025] to higher redshift events from the Supernova Legacy
 Survey [@astier:2006] and the Subaru Strategic Program
 [@yasuda:2019]. The LEMAITRE collaboration is therefore releasing its
@@ -103,7 +103,7 @@ adjustable in `cosmologix`. To assess the numerical accuracy of our
 baseline computation, we compared it to the same integral evaluated at
 10-fold higher resolution. The difference is displayed in
 \autoref{fig:accuracy} for the baseline Planck $\Lambda$CDM model,
-reported in Table 1 in [@planck2018VI]. The difference in distance
+reported in Table 1 in @planck2018VI. The difference in distance
 modulus between the coarse (baseline) and fine resolution computation
 is smaller than $10^{-4}$ mag over the redshift range $0.01 < z <
 1000$, dominated by the interpolation error.
@@ -137,7 +137,7 @@ architecture for 2000 redshifts (corresponding to the current number
 of supernovae in Hubble diagrams).
 
 In addition we also timed the computation of the jacobian matrix
-($\vec\nabla \vec \mu$) of the distance modulus with respect to the 9
+($\vec\nabla \mu$) of the distance modulus with respect to the 9
 cosmological parameters. It is evaluated as `jax.jacfwd(mu)`. The
 computation time for the Jacobian is roughly 5 times larger than the
 function itself. This is faster than finite differences, which require
