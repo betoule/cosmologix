@@ -95,7 +95,6 @@ pages:
     - pip install .[test]
     - pip install -U jupyter-book==1.0.4-post1 sphinx-autoapi anybadge
     - cd doc
-    - python accuracy_plots.py
     - jupyter-book clean book
     - jupyter-book build book
     - mv book/_build/html ../public
