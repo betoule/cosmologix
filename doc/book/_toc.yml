@@ -7,7 +7,7 @@ parts:
 - caption: DOCUMENTATION
   chapters:
   - file: basic.ipynb
-  - file: advanced
+  - file: advanced.ipynb
   - file: computation
   - file: numerical_results
   - file: release
