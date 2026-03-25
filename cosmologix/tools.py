@@ -104,6 +104,7 @@ def persistent_compilation_cache_setup() -> str:
                 f"The compilation cache as grown to {total_size:.2f} {unit}."
                 "Caching is disabled for now."
                 "Clear the cache using `cosmologix clear-cache -j` to re-enable."
+                "Or directly from python: tools.clear_cache(jit=True)"
             )
         else:
             jax.config.update("jax_compilation_cache_dir", get_cache_dir(True))
