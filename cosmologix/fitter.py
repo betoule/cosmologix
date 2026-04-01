@@ -409,7 +409,7 @@ def fit(likelihoods, fixed=None, verbose=False, initial_guess=None):
     params = likelihood.initial_guess(initial_guess.copy())
     initial_guess = params.copy()
     for p in fixed:
-        assert p in params, "Unknow parameter name {p}"
+        assert p in params, f"Unknow parameter name {p}"
         initial_guess.pop(p)
     params.update(fixed)
 
