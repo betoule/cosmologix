@@ -3,7 +3,7 @@ title: 'Cosmologix: Fast, accurate and differentiable distances in the universe 
 tags:
   - Python
   - cosmology
-  - jax
+  - JAX
   - distances
 authors:
   - name: Betoule, Marc
@@ -62,14 +62,14 @@ demonstrated that our implementation is approximately ten times faster
 than existing cosmological distance computation libraries, computing
 distances for 1000 redshifts in approximately 500 microseconds on a
 standard laptop CPU, while maintaining an accuracy of $10^{-4}$
-magnitudes in the distance modulus over the redshift range $0.01 < z <
+mag in the distance modulus over the redshift range $0.01 < z <
 1000$.
 
 # Statement of need
 
 Many software packages are available to compute cosmological distances
 including `astropy` [@astropy], `CAMB` [@Challinor:2011bk], `CLASS`
-[@class1], `CCL` [@ccl]. To our knowledge only `jax-cosmo` [@jaxcosmo]
+[@class1] or `CCL` [@ccl]. To our knowledge only `jax-cosmo` [@jaxcosmo]
 and `cosmoprimo` [@cosmoprimo] provide automatic differentiation
 through the use of JAX. Unfortunately, at the time of writing, the
 computation in `cosmoprimo` does not seem to be jittable and distance
@@ -87,7 +87,7 @@ speed while maintaining sufficient accuracy.
 
 # Computations of the homogeneous background evolution
 
-The core library offers `jax` functions to compute the evolution of
+The core library offers JAX functions to compute the evolution of
 energy density in the universe (via the `cosmologix.densities` module)
 and derived quantities, such as cosmological distances (via the
 `cosmologix.distances` module). Details are provided in the
@@ -110,7 +110,7 @@ is smaller than $10^{-4}$ mag over the redshift range $0.01 < z <
 
 We also compared the results of various external codes to the fine
 quadrature of `cosmologix` as the reference. It demonstrates agreement
-within a few $10^{-5}$ magnitudes over the same redshift
+within a few $10^{-5}$ mag over the same redshift
 range. Residual discrepancies between libraries stem from differences
 in handling the effective number of neutrino species. We adopt
 `CAMB`’s convention, where all species share the same temperature,
@@ -119,9 +119,12 @@ resulting in closer alignment with its predictions. We exclude
 neutrino contributions to energy density, precluding a meaningful
 comparison.
 
-![Difference in distance modulus for the Planck best-fit
-$\Lambda$CDM model with respect to the higher resolution quadrature
-computation in `cosmologix`.\label{fig:accuracy}](mu_accuracy.pdf)
+![Top: Distance modulus for the Planck best-fit $\Lambda$CDM model as
+a function of redshift computed using 2 different accurracy settings
+in cosmologix, and compared to 4 other numerical libraries. Bottom:
+Difference in the above numerical results with respect to the higher
+resolution quadrature computation in
+`cosmologix`.\label{fig:accuracy}](mu_accuracy.pdf)
 
 ## Computation speed
 
@@ -147,7 +150,7 @@ function itself. This is faster than finite differences, which require
 ![Computation speed of the distance modulus \label{fig:speed} for
 various cosmological codes. The left panel displays the measured time
 for the first call which integrates pre-computation and in the case of
-jax codes overhead associated with jit compilation. The right panel
+JAX codes overhead associated with jit compilation. The right panel
 displays the median time measured over 10 subsequent calls. The error
 bar is the rms over 10 measurements. The measurements were obtained on
 an AMD RYZEN AI MAX+ 395, without GPU acceleration.](mu_speed.pdf)
