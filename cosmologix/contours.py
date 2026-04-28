@@ -68,7 +68,7 @@ def frequentist_contour_2d(
     xbest, extra = gauss_newton_partial(wres, jac, x0, fixed)
     bestfit = unflatten_vector(initial_guess, xbest)
     chi2_min = extra["loss"][-1]
-    
+
     explored_params = list(grid.keys())
 
     # Handle the specific case of degenerate contours by fixing one of
@@ -82,7 +82,9 @@ def frequentist_contour_2d(
         xbest, extra = gauss_newton_partial(wres, jac, x0, point)
         bestfit = dict(unflatten_vector(partial_guess, xbest), **point)
         chi2_min = extra["loss"][-1]
-        assert jnp.isfinite(chi2_min), "Could not find the bestfit, problem looks degenerate"
+        assert jnp.isfinite(
+            chi2_min
+        ), "Could not find the bestfit, problem looks degenerate"
     # Grid setup
     grid_size = [grid[p][-1] for p in explored_params]
     chi2_grid = jnp.full(grid_size, jnp.nan)
@@ -106,7 +108,9 @@ def frequentist_contour_2d(
                     chi2_grid = chi2_grid.at[i, j].set(ploss["loss"][-1])
                 else:
                     # Special case, no free parameters left
-                    chi2_grid = chi2_grid.at[i, j].set(likelihood.negative_log_likelihood({**fixed, **point}))
+                    chi2_grid = chi2_grid.at[i, j].set(
+                        likelihood.negative_log_likelihood({**fixed, **point})
+                    )
                 pbar.update(1)
     return {
         "params": explored_params,

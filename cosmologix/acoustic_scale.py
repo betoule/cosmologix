@@ -190,6 +190,7 @@ def theta_MC(params):
     rsstar = rs_approx(params, zstar)
     return rsstar / dM(params, zstar) * 100.0
 
+
 def theta_star(params):
     params = densities.process_params(params)
     zstar = z_star(params)

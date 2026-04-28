@@ -173,8 +173,9 @@ def get_prior(p):
         object: The prior object.
     """
     import cosmologix.likelihoods
-    if p.endswith('*'):
-        kwarg = {'uncalibrated': True}
+
+    if p.endswith("*"):
+        kwarg = {"uncalibrated": True}
         p = p[:-1]
     else:
         kwarg = {}

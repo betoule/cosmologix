@@ -9,6 +9,7 @@ import jax.numpy as jnp
 from .parameters import get_cosmo_params
 from cosmologix import densities
 
+
 def flatten_vector(v):
     """Flattens a pytree-structured vector into a 1D array.
 
@@ -437,7 +438,7 @@ def fit(likelihoods, fixed=None, verbose=False, initial_guess=None):
     jac = wjac(xbest, fixed)  # pylint: disable=not-callable
     inverse_fim = jnp.linalg.inv(jac.T @ jac)
     extra["inverse_FIM"] = inverse_fim
-    
+
     # Unflatten the vectors for conveniency
     extra["x"] = xbest
     extra["bestfit"] = unflatten_vector(initial_guess, xbest)
@@ -453,7 +454,7 @@ def fit(likelihoods, fixed=None, verbose=False, initial_guess=None):
     full = {**fixed, **extra["bestfit"]}
     full = densities.process_params(full)
     extra["bestfit_full"] = full
-    
+
     return extra
 
 
