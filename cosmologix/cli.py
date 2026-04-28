@@ -151,7 +151,7 @@ def explore(
             "-T",
             help="Maximal explored level of confidence in percent",
         ),
-    ] = 95.3,
+    ] = 95.5,
     mu: Annotated[Optional[str], cli_tools.MU_OPTION] = None,
     mucov: Annotated[Optional[str], cli_tools.MU_COV_OPTION] = None,
     output: Annotated[

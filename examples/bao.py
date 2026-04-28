@@ -176,7 +176,7 @@ for label, contour in baocontours.items():
         contour,
         label=label,
         color=color,
-        filled=label=='All',
+        filled=label == "All",
         transform={"rd": ("hrd", rdtohrd), "Omega_bc": ("Omega_m", omegabc_to_omegam)},
     )
 plt.legend(loc="best", frameon=False)
