@@ -23,6 +23,8 @@ latex_translation = {
     "m_nu": r"$\sum m_\nu$",
     "Neff": r"$N_{eff}$",
     "M": r"$M_B$",
+    "rd": r"$r_d$",
+    "hrd": r"$h r_d$",
 }
 
 
@@ -299,6 +301,7 @@ def plot_contours(
     filled=False,
     transpose=False,
     levels=None,
+    transform=None,
     **keys,
 ):
     """Plots 2D confidence contours from a chi-square grid.
@@ -321,6 +324,7 @@ def plot_contours(
             Defaults to False.
         levels (list, optional): A list of confidence levels in percent.
             Defaults to [68.3, 95.5].
+        transform (dict, optionnal): Can be used to specify a transformation of one or both axes. Give a dictionnary containing the updated label and the transformation. For example to transform H0 into h pass: {'H0': ('h', lambda x: x/100)}.
         **keys: Additional keyword arguments passed to `matplotlib.pyplot.contour`
             and `matplotlib.pyplot.contourf`.
     """
@@ -329,7 +333,16 @@ def plot_contours(
 
     grid = load(grid)
 
+    if transform is None:
+        transform = {}
+    
     x, y = grid["params"]
+
+    for k in x, y:
+        if k not in transform:
+            # axis transformation default to identity
+            transform[k] = k, lambda x: x
+
     if transpose:
         x, y = y, x
         xl = "y"
@@ -341,8 +354,8 @@ def plot_contours(
         values = grid["chi2"].T
     if ax is None:
         ax = plt.gca()
-        ax.set_xlabel(latex_translation[x] if x in latex_translation else x)
-        ax.set_ylabel(latex_translation[y] if y in latex_translation else y)
+        ax.set_xlabel(latex_translation[transform[x][0]] if transform[x][0] in latex_translation else transform[x][0])
+        ax.set_ylabel(latex_translation[transform[y][0]] if transform[y][0] in latex_translation else transform[y][0])
 
     shades = jnp.linspace(1, 0.5, len(levels))
     colors = [to_rgba(color, alpha=alpha.item()) for alpha in shades]
@@ -352,8 +365,8 @@ def plot_contours(
     _levels = [conflevel_to_delta_chi2(l) for l in jnp.array(levels)]
     if filled:
         ax.contourf(
-            grid[xl],
-            grid[yl],
+            transform[x][1](grid[xl]),
+            transform[y][1](grid[yl]),
             values - grid["extra"]["loss"][-1],  # grid["chi2"].min(),
             levels=[0] + _levels,
             colors=colors,
@@ -363,8 +376,8 @@ def plot_contours(
     else:
         ax.add_line(plt.Line2D((jnp.nan,), (jnp.nan,), color=colors[0], label=label))
     ax.contour(
-        grid[xl],
-        grid[yl],
+        transform[x][1](grid[xl]),
+        transform[y][1](grid[yl]),
         values - grid["extra"]["loss"][-1],  # grid["chi2"].min(),
         levels=_levels,
         colors=colors,
@@ -372,7 +385,7 @@ def plot_contours(
     )
 
     if bestfit:
-        ax.plot(grid["bestfit"][x], grid["bestfit"][y], "k+")
+        ax.plot(transform[x][1](grid["bestfit"][x]), transform[y][1](grid["bestfit"][y]), "k+")
 
 
 def corner_plot(param_names, axes=None, figsize=(10, 10)):

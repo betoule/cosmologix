@@ -15,7 +15,8 @@ Modules:
 import os
 
 # Suppress XLA/JAX warnings (adjust level as needed)
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "5"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+#os.environ['XLA_FLAGS'] = '--xla_cpu_opt_preset=FAST_COMPILE'
 
 __all__ = [
     "cli",

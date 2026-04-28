@@ -1,4 +1,3 @@
-import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -10,7 +9,25 @@ from cosmologix import (
     parameters,
     contours,
     display,
+    densities,
 )
+
+import jax.numpy as jnp
+###########################################
+# Convenience functions to change variables
+###########################################
+def rdtohrd(rd, h=parameters.get_cosmo_params()["H0"] / 100):
+    hrd = h * rd
+    return hrd
+
+
+def hrdtord(hrd, h=parameters.get_cosmo_params()["H0"] / 100):
+    rd = hrd / h
+    return rd
+
+def omegabc_to_omegam(omegabc, omega_nu=densities.derived_parameters(parameters.get_cosmo_params())['Omega_nu']):
+    return omegabc + omega_nu
+###########################################
 
 # Uncalibrated DESI prior
 desiu = likelihoods.DESIDR2(True)
@@ -27,10 +44,10 @@ results = fitter.fit(
 aparams = parameters.get_cosmo_params(**results["bestfit"])
 
 # Extract the Omega_bc and error
-Om = results["bestfit"]["Omega_bc"]
-rdh = results["bestfit_full"]["rd"] * results["bestfit_full"]["H0"] / 100
-eOm = jnp.sqrt(jnp.diag(results["inverse_FIM"]))[0]
-erdh = results["uncertainties"]["rd"] * results["bestfit_full"]["H0"] / 100
+Om = omegabc_to_omegam(results["bestfit"]["Omega_bc"])
+rdh = rdtohrd(results["bestfit_full"]["rd"], h=results["bestfit_full"]["H0"] / 100)
+eOm = results["uncertainties"]["Omega_bc"]
+erdh = rdtohrd(results["uncertainties"]["rd"], h=results["bestfit_full"]["H0"] / 100)
 
 # Compute residuals
 res = desiu.residuals(aparams)
@@ -82,9 +99,9 @@ ax2.set_ylabel("residuals/model")
 ax2.axhline(
     0,
     color="k",
-    label=rf"$\Omega_{{bc}} = {Om:.3f} \pm {eOm:.3f}$"
+    label=rf"$\Omega_m = {Om:.4f} \pm {eOm:.4f}$"
     "\n"
-    rf"$r_d h = {rdh:.1f} \pm {erdh:.1f}$",
+    rf"$r_d h = {rdh:.2f} \pm {erdh:.2f}$",
 )
 ax1.legend(loc="lower right", frameon=False)
 ax2.legend(loc="lower right", frameon=False)
@@ -114,16 +131,6 @@ subsamples = {
 }
 
 
-# puts rd in units of hrd
-def rdtohrd(rd, h=parameters.get_cosmo_params()["H0"] / 100):
-    hrd = h * rd
-    return hrd
-
-
-def hrdtord(hrd, h=parameters.get_cosmo_params()["H0"] / 100):
-    rd = hrd / h
-    return rd
-
 
 prior = subprior([0])
 bf = fitter.fit([prior], fixed={**fixed, "rd": 151.0})
@@ -136,7 +143,26 @@ for label, index in subsamples.items():
         grid={"rd": [hrdtord(85), hrdtord(115), 100], "Omega_bc": [0.15, 0.55, 100]},
         fixed=fixed,
     )
-    display.plot_contours(contour, label=label, color=index[1], filled=True)
     baocontours[label] = contour
+
+filepath = '/home/betoule/Pictures/Screenshots/Screenshot From 2026-04-28 10-41-18.png'
+img = plt.imread(filepath)
+def display_screenshot(img, x, i, y, j):
+    def linear_transform(i, xref, iref):
+        return (i - iref[0]) * (xref[1] - xref[0]) / (iref[1] - iref[0]) + xref[0]
+    left = linear_transform(0, x, i)
+    right = linear_transform(img.shape[1], x, i)
+    top = linear_transform(0, y, j)
+    bottom = linear_transform(img.shape[0], y, j)
+    plt.imshow(img, extent=[left, right, bottom, top], aspect="auto", alpha=0.9)
+
+display_screenshot(img, [90, 110], [115, 814], [0.5, 0.2], [86, 741])
+
+for label, contour in baocontours.items():
+    color=subsamples[label][1]
+    display.plot_contours(contour, label=label, color=color, filled=False,
+                          transform={'rd': ('hrd', rdtohrd),
+                                     'Omega_bc': ('Omega_m', omegabc_to_omegam)})
 plt.legend(loc="best")
+
 plt.show(block=True)

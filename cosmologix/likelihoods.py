@@ -466,11 +466,41 @@ def Planck2018():
 
 
 def PR4():
-    """Returns the geometric prior from DESI DR2 results.
+    """Returns the geometric θ*, ωb, ωc prior used in DESI DR2 results.
 
     See https://arxiv.org/pdf/2503.14738 Appendix A.
+
+    The numbers are extracted from the exploration of a modified
+    likelihood from the latest Planck release described in
+    https://arxiv.org/pdf/2302.12911
+
+    The raw files can be found in:
+    https://github.com/cmbant/PlanckEarlyLCDM/
+
+    There is some inconsistency between the various source for these numbers:
+    - https://github.com/cmbant/PlanckEarlyLCDM/README.ml propose a Gaussian approximation which differ slightly from the values found in
+    - The bestfit values (or mean) and cov provided in the chains (spline_planck_PR4_TTTEEE_lowE_lensing_ISW.likestats)
+    - Last the DESI paper quote slightly different prior    
     """
     return GeometricCMBLikelihood(
+        # Chain values
+        # [1.0408091e+00, 2.2232079e-02, 1.1920179e-01], # Bestfit
+        # [1.0409097e+00, 2.2296855e-02, 1.1931074e-01], # Mean
+        # jnp.array([
+        #     [ 6.8552146E-08,   1.4486860E-08,  -1.4105674E-07],
+        #     [ 1.4486860E-08,   2.1344167E-08,  -1.1534501E-07],
+        #     [-1.4105674E-07,  -1.1534501E-07,   1.6977630E-06],
+        # ]),
+        # ["100theta_MC", "Omega_b_h2", "Omega_c_h2"],
+        # ReadMe values
+        # [1.04103e-2, 0.02223, 0.1192], 
+        # jnp.array(
+        #     [[ 6.62099420e-12,  1.24442058e-10, -1.31731741e-09],
+        #      [ 1.24442058e-10,  2.13441666e-08, -1.15345007e-07],
+        #      [-1.31731741e-09, -1.15345007e-07,  1.69776300e-06]]
+        #     ),
+        # ["theta_MC", "Omega_b_h2", "Omega_c_h2"],
+        # DESI paper
         [0.01041, 0.02223, 0.14208],
         jnp.array(
             [
