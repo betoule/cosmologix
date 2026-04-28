@@ -371,15 +371,17 @@ def fit(likelihoods, fixed=None, verbose=False, initial_guess=None):
 
     Returns:
         dict: A dictionary containing:
-            - 'x': The optimized parameter values in a flattened form.
-            - 'bestfit': The best-fit parameters as a dictionary.
-            - 'inverse_FIM': An approximation of the inverse Fisher Information
+            - 'x' (array): The optimized parameter values in a flattened form.
+            - 'bestfit' (pytree): The best-fit parameters as a dictionary.
+            - 'inverse_FIM' (2-d array): An approximation of the inverse Fisher Information
               Matrix (FIM) at the best fit.
-            - 'loss': The progression of loss values during optimization.
-            - 'timings': The time taken for each iteration of the optimization.
-            - 'residuals': The residuals at the best-fit point.
-            - 'uncertainties': The square root of the diagonal of
+            - 'loss' (array): The progression of loss values during optimization.
+            - 'timings' (array): The time taken for each iteration of the optimization.
+            - 'residuals' (array): The residuals at the best-fit point.
+            - 'uncertainties' (pytree): The square root of the diagonal of
                                the inverse of the FIM remapped as a dictionnary.
+            - 'fixed' (pytree): The dictionnary of fixed parameters provided as input
+            - 'bestfit_full' (pytree): The full set of parameter (fixed, bestfit, and derived parameters)
 
     Notes:
         The function uses `LikelihoodSum` to combine multiple likelihoods. The

@@ -480,7 +480,9 @@ def PR4():
     There is some inconsistency between the various source for these numbers:
     - https://github.com/cmbant/PlanckEarlyLCDM/README.ml propose a Gaussian approximation which differ slightly from the values found in
     - The bestfit values (or mean) and cov provided in the chains (spline_planck_PR4_TTTEEE_lowE_lensing_ISW.likestats)
-    - Last the DESI paper quote slightly different prior    
+    - Last the DESI paper quote a slightly different prior in omega_bc
+
+    We use the DESI number by default.
     """
     return GeometricCMBLikelihood(
         # Chain values
@@ -493,7 +495,7 @@ def PR4():
         # ]),
         # ["100theta_MC", "Omega_b_h2", "Omega_c_h2"],
         # ReadMe values
-        # [1.04103e-2, 0.02223, 0.1192], 
+        # [1.04103e-2, 0.02223, 0.1192],
         # jnp.array(
         #     [[ 6.62099420e-12,  1.24442058e-10, -1.31731741e-09],
         #      [ 1.24442058e-10,  2.13441666e-08, -1.15345007e-07],

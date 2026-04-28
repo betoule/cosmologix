@@ -335,7 +335,7 @@ def plot_contours(
 
     if transform is None:
         transform = {}
-    
+
     x, y = grid["params"]
 
     for k in x, y:
@@ -354,8 +354,16 @@ def plot_contours(
         values = grid["chi2"].T
     if ax is None:
         ax = plt.gca()
-        ax.set_xlabel(latex_translation[transform[x][0]] if transform[x][0] in latex_translation else transform[x][0])
-        ax.set_ylabel(latex_translation[transform[y][0]] if transform[y][0] in latex_translation else transform[y][0])
+        ax.set_xlabel(
+            latex_translation[transform[x][0]]
+            if transform[x][0] in latex_translation
+            else transform[x][0]
+        )
+        ax.set_ylabel(
+            latex_translation[transform[y][0]]
+            if transform[y][0] in latex_translation
+            else transform[y][0]
+        )
 
     shades = jnp.linspace(1, 0.5, len(levels))
     colors = [to_rgba(color, alpha=alpha.item()) for alpha in shades]
@@ -385,7 +393,11 @@ def plot_contours(
     )
 
     if bestfit:
-        ax.plot(transform[x][1](grid["bestfit"][x]), transform[y][1](grid["bestfit"][y]), "k+")
+        ax.plot(
+            transform[x][1](grid["bestfit"][x]),
+            transform[y][1](grid["bestfit"][y]),
+            "k+",
+        )
 
 
 def corner_plot(param_names, axes=None, figsize=(10, 10)):
