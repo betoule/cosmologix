@@ -173,13 +173,17 @@ def get_prior(p):
         object: The prior object.
     """
     import cosmologix.likelihoods
-
+    if p.endswith('*'):
+        kwarg = {'uncalibrated': True}
+        p = p[:-1]
+    else:
+        kwarg = {}
     original_name = known_priors()
     try:
         name_match = {k.lower(): k for k in original_name}[p.lower()]
     except KeyError:
         raise KeyError(f"Unknown prior name. Available priors: {original_name}")
-    return getattr(cosmologix.likelihoods, name_match)()
+    return getattr(cosmologix.likelihoods, name_match)(**kwarg)
 
 
 def get_priors(prior_names, base="PlanckBAO18", **kwargs):
