@@ -111,6 +111,7 @@ def fit(
     else:
         display.pretty_print(result, fom_scale="1sigma")
     result["label"] = "+".join(prior_names) + ("+SN" if mu is not None else "")
+
     if output:
         tools.save(result, output)
         print(f"Best-fit parameters saved to {output}")

@@ -67,9 +67,23 @@ def frequentist_contour_2d(
     x0 = flatten_vector(initial_guess)
     xbest, extra = gauss_newton_partial(wres, jac, x0, fixed)
     bestfit = unflatten_vector(initial_guess, xbest)
-
-    # Exploring the chi2 space
+    chi2_min = extra["loss"][-1]
+    
     explored_params = list(grid.keys())
+
+    # Handle the specific case of degenerate contours by fixing one of
+    # the two explored parameters
+    if jnp.isnan(chi2_min):
+        partial_guess = initial_guess.copy()
+        first_param = explored_params[0]
+        point = {first_param: partial_guess.pop(first_param), **fixed}
+        wres, jac = gauss_newton_prep(likelihood.weighted_residuals, partial_guess)
+        x0 = flatten_vector(partial_guess)
+        xbest, extra = gauss_newton_partial(wres, jac, x0, point)
+        bestfit = dict(unflatten_vector(partial_guess, xbest), **point)
+        chi2_min = extra["loss"][-1]
+        assert jnp.isfinite(chi2_min), "Could not find the bestfit, problem looks degenerate"
+    # Grid setup
     grid_size = [grid[p][-1] for p in explored_params]
     chi2_grid = jnp.full(grid_size, jnp.nan)
     x_grid, y_grid = [jnp.linspace(*grid[p]) for p in explored_params]
@@ -78,16 +92,21 @@ def frequentist_contour_2d(
     for p in explored_params:
         partial_bestfit.pop(p)
 
-    x = flatten_vector(partial_bestfit)
-    wres, jac = gauss_newton_prep(likelihood.weighted_residuals, partial_bestfit)
+    if len(partial_bestfit) > 0:
+        x = flatten_vector(partial_bestfit)
+        wres, jac = gauss_newton_prep(likelihood.weighted_residuals, partial_bestfit)
 
     total_points = grid_size[0] * grid_size[1]
     with tqdm(total=total_points, desc=f"Exploring contour {explored_params}") as pbar:
         for i in range(grid_size[0]):
             for j in range(grid_size[1]):
                 point = {explored_params[0]: x_grid[i], explored_params[1]: y_grid[j]}
-                x, ploss = gauss_newton_partial(wres, jac, x, {**fixed, **point})
-                chi2_grid = chi2_grid.at[i, j].set(ploss["loss"][-1])
+                if len(partial_bestfit) > 0:
+                    x, ploss = gauss_newton_partial(wres, jac, x, {**fixed, **point})
+                    chi2_grid = chi2_grid.at[i, j].set(ploss["loss"][-1])
+                else:
+                    # Special case, no free parameters left
+                    chi2_grid = chi2_grid.at[i, j].set(likelihood.negative_log_likelihood({**fixed, **point}))
                 pbar.update(1)
     return {
         "params": explored_params,
