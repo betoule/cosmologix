@@ -7,7 +7,7 @@ from typing import Callable, Dict, Any
 import jax
 import jax.numpy as jnp
 from .parameters import get_cosmo_params
-
+from cosmologix import densities
 
 def flatten_vector(v):
     """Flattens a pytree-structured vector into a 1D array.
@@ -377,6 +377,8 @@ def fit(likelihoods, fixed=None, verbose=False, initial_guess=None):
             - 'loss': The progression of loss values during optimization.
             - 'timings': The time taken for each iteration of the optimization.
             - 'residuals': The residuals at the best-fit point.
+            - 'uncertainties': The square root of the diagonal of
+                               the inverse of the FIM remapped as a dictionnary.
 
     Notes:
         The function uses `LikelihoodSum` to combine multiple likelihoods. The
@@ -435,11 +437,23 @@ def fit(likelihoods, fixed=None, verbose=False, initial_guess=None):
     jac = wjac(xbest, fixed)  # pylint: disable=not-callable
     inverse_fim = jnp.linalg.inv(jac.T @ jac)
     extra["inverse_FIM"] = inverse_fim
-
+    
     # Unflatten the vectors for conveniency
     extra["x"] = xbest
     extra["bestfit"] = unflatten_vector(initial_guess, xbest)
 
+    # Do the same to uncertainties
+    uncertainties = jnp.sqrt(jnp.diag(inverse_fim))
+    extra["uncertainties"] = unflatten_vector(initial_guess, uncertainties)
+
+    # Include the set of fixed parameters:
+    extra["fixed"] = fixed
+
+    # Include derived parameters for convenience:
+    full = {**fixed, **extra["bestfit"]}
+    full = densities.process_params(full)
+    extra["bestfit_full"] = full
+    
     return extra
 
 
