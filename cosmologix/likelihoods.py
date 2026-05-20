@@ -147,7 +147,7 @@ class MuMeasurements(Chi2FullCov):
         self.z_cmb = jnp.atleast_1d(z_cmb)
         self.data = jnp.atleast_1d(mu)
         if weights is None:
-            self.cov = jnp.array(mu_cov)
+            self.cov = jnp.array(mu_cov.astype(np.dtype("=f8")))
             self.weights = jnp.linalg.inv(self.cov)
         else:
             self.weights = weights
@@ -416,7 +416,7 @@ def Union3():
     union3_file = tools.cached_download(
         "https://github.com/rubind/union3_release/raw/refs/heads/main/mu_mat_union3_cosmo=2_mu.fits"
     )
-    union3_mat = fits.getdata(union3_file)
+    union3_mat = fits.getdata(union3_file).astype(np.dtype("=f8"))
     z = jnp.array(union3_mat[0, 1:])
     mu = jnp.array(union3_mat[1:, 0])
     inv_cov = jnp.array(union3_mat[1:, 1:])

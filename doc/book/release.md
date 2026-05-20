@@ -1,10 +1,13 @@
 # Release history
 
-## Roadmap
+### v1.0.0 (current)
+- Update DESI DR2 likelihood
+- Provide a mechanism to transform axes in the low-level API of display.plot_contours
+- Automatically compute derived parameters and uncertainties in the output of fitter.fit
+- Handle edge case of frequentist contour exploration with zero free parameters
+- Enable selection of "uncalibrated" BAO priors from the CLI by appending `*` to the prior name
 
-- [ ] Conversion of contours to different parameterisation (e.g. `Omega_bc` to `Omega_m`)
-
-### v0.9.9 (current)
+### v0.9.9
 - API refinement: Introduction of parameters.get_priors to ease retrieval of predifined priors by name
 - Introduction of the helper parameters.get_constrained_params, making it easy to decide which parameters are constrained by a given set of probes.
 - Get rid of annoying XLA warnings
