@@ -45,18 +45,19 @@ bibliography: paper.bib
 
 # Summary
 
-Type-Ia supernovae serve as standardizable candles to measure
-luminosity distances in the universe. `Cosmologix` accelerates and
+Type Ia supernovae serve as standardizable candles to measure
+luminosity distances in the Universe. `Cosmologix` accelerates and
 simplifies cosmological parameter inference from large datasets by
 providing fully differentiable calculations of the distance-redshift
 relation as a function of cosmological parameters. This is achieved
-through the use of JAX [@jax2018github], a Python library providing
+through the use of JAX, a Python library providing
 automatic differentiation and compilation for CPU and hardware
 accelerators. `Cosmologix` incorporates the density evolution of all
 relevant species, including neutrinos. It also provides common
 fitting formulae for the acoustic scale so that the resulting code can
 be used for fast cosmological inference from supernovae in combination
-with BAO or CMB distance measurements. We checked the accuracy of our
+with baryon acoustic oscillation or cosmic microwave background
+distance measurements. We checked the accuracy of our
 computation against `CAMB`, `CCL` and `astropy.cosmology`. We
 demonstrated that our implementation is approximately ten times faster
 than existing cosmological distance computation libraries, computing
@@ -68,15 +69,15 @@ mag in the distance modulus over the redshift range $0.01 < z <
 # Statement of need
 
 Many software packages are available to compute cosmological distances
-including `astropy` [@astropy], `CAMB` [@Challinor:2011bk], `CLASS`
+including Astropy [@astropy], `CAMB` [@Challinor:2011bk], `CLASS`
 [@class1] or `CCL` [@ccl]. To our knowledge only `jax-cosmo` [@jaxcosmo]
 and `cosmoprimo` [@cosmoprimo] provide automatic differentiation
-through the use of JAX. Unfortunately, at the time of writing, the
+through the use of JAX [@jax2018github]. Unfortunately, at the time of writing, the
 computation in `cosmoprimo` does not seem to be jittable and distance
 computation in `jax-cosmo` is neglecting contributions to the energy
 density from neutrinos and photons. The accuracy of the resulting
 computation is insufficient for the needs of the LEMAITRE analysis, a
-compilation of type-Ia Supernovae joining the very large sample of
+compilation of type Ia Supernovae joining the very large sample of
 nearby events discovered by the Zwicky Transient Facility
 [@rigault:2025] to higher redshift events from the Supernova Legacy
 Survey [@astier:2006] and the Subaru Strategic Program
@@ -106,7 +107,7 @@ baseline computation, we compared it to the same integral evaluated at
 reported in Table 1 in @planck2018VI. The difference in distance
 modulus between the coarse (baseline) and fine resolution computation
 is smaller than $10^{-4}$ mag over the redshift range $0.01 < z <
-1000$, dominated by the interpolation error.
+1000$ and dominated by the interpolation error.
 
 We also compared the results of various external codes to the fine
 quadrature of `cosmologix` as the reference. It demonstrates agreement
@@ -120,8 +121,8 @@ neutrino contributions to energy density, precluding a meaningful
 comparison.
 
 ![Top: Distance modulus for the Planck best-fit $\Lambda$CDM model as
-a function of redshift computed using 2 different accurracy settings
-in cosmologix, and compared to 4 other numerical libraries. Bottom:
+a function of redshift computed using two different accuracy settings
+in cosmologix, and compared to four other numerical libraries. Bottom:
 Difference in the above numerical results with respect to the higher
 resolution quadrature computation in
 `cosmologix`.\label{fig:accuracy}](mu_accuracy.pdf)
@@ -134,12 +135,12 @@ number of redshifts requested. We differentiate between the first call
 and subsequent calls, as the initial call may involve specific
 overheads. For `cosmologix`, this includes JIT-compilation times,
 which introduces a significant delay. In subsequent calls,
-`cosmologix` overperforms all other tested codes by a significant
+`cosmologix` outperforms all other tested codes by a significant
 margin, typically 10 times faster or more on the tested CPU
 architecture for 2000 redshifts (corresponding to the current number
 of supernovae in Hubble diagrams).
 
-In addition we also timed the computation of the jacobian matrix
+We also timed the computation of the Jacobian matrix
 ($\vec\nabla \mu$) of the distance modulus with respect to the 9
 cosmological parameters. It is evaluated as `jax.jacfwd(mu)`. The
 computation time for the Jacobian is roughly 5 times larger than the
@@ -148,10 +149,10 @@ function itself. This is faster than finite differences, which require
 50\%.
 
 ![Computation speed of the distance modulus \label{fig:speed} for
-various cosmological codes. The left panel displays the measured time
+various cosmological codes. Left: the measured time
 for the first call which integrates pre-computation and in the case of
-JAX codes overhead associated with jit compilation. The right panel
-displays the median time measured over 10 subsequent calls. The error
+JAX codes overhead associated with JIT compilation. Right:
+the median time measured over 10 subsequent calls. The error
 bar is the rms over 10 measurements. The measurements were obtained on
 an AMD RYZEN AI MAX+ 395, without GPU acceleration.](mu_speed.pdf)
 
@@ -160,10 +161,10 @@ an AMD RYZEN AI MAX+ 395, without GPU acceleration.](mu_speed.pdf)
 Last, the code provides a framework to efficiently build frequentist
 confidence contours for cosmological parameters for all measurements
 whose likelihood can be expressed as a chi-square.
-\autoref{sample_contour} provides an example 2-dimensionnal confidence
+\autoref{sample_contour} provides an example 2-dimensional confidence
 region in the plane $(\Omega_{bc}, w)$ for a flat $w$-CDM model as
 probed by the Union3 supernovae compilation
-[@2023arXiv231112098R]. $\Omega_{bc}$ is the combined density parameter
+[@rubin:2025]. $\Omega_{bc}$ is the combined density parameter
 of baryonic and cold dark matter. The full computation took 3.86s on
 an Intel(R) Core(TM) i7-1165G7 at 2.80GHz without GPU acceleration.
 
