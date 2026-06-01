@@ -35,7 +35,7 @@ dependencies = [
     "requests",
     "tqdm",
     "astropy", # for pyfits and tests
-    "typer",
+    "typer<0.26", # Typer drop support for click features in 0.26
     "asdf", # to save in asdf format
     "zstandard", # for file compression
 ]
