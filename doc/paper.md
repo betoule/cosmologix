@@ -46,13 +46,13 @@ bibliography: paper.bib
 # Summary
 
 Type-Ia supernovae serve as standardizable candles to measure
-luminosity distances in the universe. `Cosmologix` accelerates and
+luminosity distances in the universe. Cosmologix accelerates and
 simplifies cosmological parameter inference from large datasets by
 providing fully differentiable calculations of the distance-redshift
 relation as a function of cosmological parameters. This is achieved
 through the use of JAX [@jax2018github], a Python library providing
 automatic differentiation and compilation for CPU and hardware
-accelerators. `Cosmologix` incorporates the density evolution of all
+accelerators. Cosmologix incorporates the density evolution of all
 relevant species, including neutrinos. It also provides common
 fitting formulae for the acoustic scale so that the resulting code can
 be used for fast cosmological inference from supernovae in combination
@@ -99,7 +99,7 @@ distance) for a large number of redshifts in the following discussion.
 
 The distance computation involves the numerical evaluation of an
 integral. The resolution of the quadrature used for this evaluation is
-adjustable in `cosmologix`. To assess the numerical accuracy of our
+adjustable in Cosmologix. To assess the numerical accuracy of our
 baseline computation, we compared it to the same integral evaluated at
 10-fold higher resolution. The difference is displayed in
 \autoref{fig:accuracy} for the baseline Planck $\Lambda$CDM model,
@@ -109,7 +109,7 @@ is smaller than $10^{-4}$ mag over the redshift range $0.01 < z <
 1000$, dominated by the interpolation error.
 
 We also compared the results of various external codes to the fine
-quadrature of `cosmologix` as the reference. It demonstrates agreement
+quadrature of Cosmologix as the reference. It demonstrates agreement
 within a few $10^{-5}$ mag over the same redshift
 range. Residual discrepancies between libraries stem from differences
 in handling the effective number of neutrino species. We adopt
@@ -121,10 +121,10 @@ comparison.
 
 ![Top: Distance modulus for the Planck best-fit $\Lambda$CDM model as
 a function of redshift computed using 2 different accurracy settings
-in cosmologix, and compared to 4 other numerical libraries. Bottom:
+in Cosmologix, and compared to 4 other numerical libraries. Bottom:
 Difference in the above numerical results with respect to the higher
 resolution quadrature computation in
-`cosmologix`.\label{fig:accuracy}](mu_accuracy.pdf)
+Cosmologix.\label{fig:accuracy}](mu_accuracy.pdf)
 
 ## Computation speed
 
@@ -132,9 +132,9 @@ The computation time for a vector of distance moduli across various
 redshifts is plotted in \autoref{fig:speed} as a function of the
 number of redshifts requested. We differentiate between the first call
 and subsequent calls, as the initial call may involve specific
-overheads. For `cosmologix`, this includes JIT-compilation times,
+overheads. For Cosmologix, this includes JIT-compilation times,
 which introduces a significant delay. In subsequent calls,
-`cosmologix` overperforms all other tested codes by a significant
+Cosmologix overperforms all other tested codes by a significant
 margin, typically 10 times faster or more on the tested CPU
 architecture for 2000 redshifts (corresponding to the current number
 of supernovae in Hubble diagrams).
